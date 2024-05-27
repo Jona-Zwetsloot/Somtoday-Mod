@@ -1,0 +1,38 @@
+{
+  "extName": {
+    "message": "Somtoday Mod"
+  },
+  "extDescription": {
+    "message": "Adjust the appearance of Somtoday. Adds a dark mode, background images, fonts, colors and more."
+  },
+  "checkboxTag": {
+    "message": "Enable Somtoday Mod"
+  },
+  "activeText": {
+    "message": "Somtoday Mod is activated!"
+  },
+  "btnOne": {
+    "message": "Go to Somtoday"
+  },
+  "btnTwo": {
+    "message": "Settings"
+  },
+  "newOne": {
+    "message": "Improved layout of roster"
+  },
+  "newTwo": {
+    "message": "Added option to open learning resources in new tab"
+  },
+  "newThree": {
+    "message": "The name of your mentor can now also be changed in the nicknames"
+  },
+  "whatsNew": {
+    "message": "See what's new"
+  },
+  "whatsNewHeader": {
+    "message": "New in this release"
+  },
+  "back": {
+    "message": "Back"
+  }
+}

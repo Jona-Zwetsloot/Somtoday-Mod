@@ -1,0 +1,44 @@
+{
+  "name": "__MSG_extName__",
+  "version": "3.30",
+  "manifest_version": 3,
+  "description": "__MSG_extDescription__",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "scripts": ["sw.js"],
+    "type": "module"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "somtodaymod@jonazwetsloot.nl",
+      "strict_min_version": "109.0"
+    }
+  },
+  "default_locale": "nl",
+  "content_scripts": [{
+    "js": ["script.js"],
+    "matches": ["*://*.somtoday.nl/home/*", "*://som.today/*"],
+    "run_at": "document_start"
+  }],
+  "web_accessible_resources": [{
+    "resources": [ "somtoday-userscript.js" ],
+    "matches": [ "<all_urls>" ]
+  }],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": ["*://*.somtoday.nl/home/*", "*://som.today/*"],
+  "action": {
+    "default_title": "__MSG_extName__",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  }
+}

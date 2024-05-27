@@ -1,0 +1,38 @@
+{
+  "extName": {
+    "message": "Somtoday Mod"
+  },
+  "extDescription": {
+    "message": "Pas het uiterlijk van Somtoday aan. Voegt een dark mode, achtergrondafbeeldingen, lettertypes, kleuren en meer toe."
+  },
+  "checkboxTag": {
+    "message": "Somtoday Mod aanzetten"
+  },
+  "activeText": {
+    "message": "Somtoday Mod is geactiveerd!"
+  },
+  "btnOne": {
+    "message": "Ga naar Somtoday"
+  },
+  "btnTwo": {
+    "message": "Instellingen"
+  },
+  "newOne": {
+    "message": "Layout van rooster is verbeterd"
+  },
+  "newTwo": {
+    "message": "Optie om leermiddelen in nieuw tabblad te openen toegevoegd"
+  },
+  "newThree": {
+    "message": "Bij de nicknames kan de naam van je mentor nu ook aangepast worden"
+  },
+  "whatsNew": {
+    "message": "Bekijk wat er nieuw is"
+  },
+  "whatsNewHeader": {
+    "message": "Nieuw in deze release"
+  },
+  "back": {
+    "message": "Terug"
+  }
+}
