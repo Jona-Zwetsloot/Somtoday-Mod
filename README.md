@@ -1,4 +1,4 @@
-# Somtoday-Mod
+# Somtoday Mod
 Somtoday Mod is a free browser-extension which adjusts the student website of Somtoday. It improves the appearance of Somtoday and adds options such as a dark mode, fonts, colors, backgrounds, layout and more. Somtoday Mod is not affiliated with Somtoday/Topicus. It is available for the <a href="https://chromewebstore.google.com/detail/somtoday-mod/gehilkhfalphnhpidceocgmdijplpkbn">Chrome Webstore</a>, <a href="https://microsoftedge.microsoft.com/addons/detail/somtoday-mod/ldhlddmnhkkjnocncckkencgcmgmffme">Edge Addons</a> and <a href="https://addons.mozilla.org/nl/firefox/addon/somtoday-mod/">Firefox Add-ons</a> as extension. It is also available as userscript.
 <br><br>
 
