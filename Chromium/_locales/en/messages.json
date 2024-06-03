@@ -5,9 +5,6 @@
   "extDescription": {
     "message": "Adjust the appearance of Somtoday. Adds a dark mode, background images, fonts, colors and more."
   },
-  "checkboxTag": {
-    "message": "Enable Somtoday Mod"
-  },
   "activeText": {
     "message": "Somtoday Mod is activated!"
   },
@@ -18,13 +15,13 @@
     "message": "Settings"
   },
   "newOne": {
-    "message": "Improved layout of roster"
+    "message": "Improved layout on small screens"
   },
   "newTwo": {
-    "message": "Added option to open learning resources in new tab"
+    "message": "Somtoday Mod released for Firefox on Android"
   },
   "newThree": {
-    "message": "The name of your mentor can now also be changed in the nicknames"
+    "message": "Performance improvements (Somtoday now loads 0.25s faster on average)"
   },
   "whatsNew": {
     "message": "See what's new"
@@ -34,5 +31,14 @@
   },
   "back": {
     "message": "Back"
+  },
+  "enableDisable": {
+    "message": "Enable Somtoday Mod"
+  },
+  "toSomtoday": {
+    "message": "To ELO"
+  },
+  "resetAll": {
+    "message": "Reset all"
   }
 }
