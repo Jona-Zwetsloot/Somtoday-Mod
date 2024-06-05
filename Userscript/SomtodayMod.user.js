@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Somtoday Mod
 // @namespace    https://jonazwetsloot.nl/projecten/somtoday-mod
-// @version      3.4
+// @version      3.5
 // @description  Give Somtoday a new look with this script.
 // @author       Jona Zwetsloot
 // @match        https://*.somtoday.nl/home/*
+// @match        https://*.somtoday.nl/error*
 // @match        https://som.today/*
 // @icon         https://jonazwetsloot.nl/images/SomtodayModIcon.png
 // @grant        GM_getValue
@@ -18,34 +19,34 @@
 // See https://jonazwetsloot.nl/projecten/somtoday-mod for more information about Somtoday Mod.
 
 // TABLE OF CONTENTS
-// 1 - VERSION & SAVE MANAGEMENT - line 60
+// 1 - VERSION & SAVE MANAGEMENT
 //     Manages version, platform and save data.
 
-// 2 - SHORTHAND FUNCTIONS - line 153
+// 2 - SHORTHAND FUNCTIONS
 //     Contains a few shorthand functions.
 
-// 3 - EXECUTE MOD AFTER PAGE LOAD - line 245
+// 3 - EXECUTE MOD AFTER PAGE LOAD
 //     Makes sure the script executes at the right time.
 
-// 4 - COLORS - line 317
+// 4 - COLORS
 //     Define the colors used in the CSS, based on the color the user picked.
 
-// 5 - ERROR CHECKS - line 505
-//     Check if other Somtoday Mod instances are active and if 404 or 500 error occured.
+// 5 - ERROR CHECKS
+//     Check if other Somtoday Mod instances are active and if 404 or 502 error occured.
 
-// 6 - IMPORTANT FUNCTIONS - line 569
+// 6 - IMPORTANT FUNCTIONS
 //     Contains a few important functions, such as start(), menu(), style() and pageUpdate().
 
-// 7 - PAGEUPDATE FUNCTIONS - line 1125
+// 7 - PAGEUPDATE FUNCTIONS
 //     Contains all functions executed in pageUpdate().
 
-// 8 - SETTINGS - line 1825
+// 8 - SETTINGS
 //     Contains the code used for the modsettings page.
 
-// 9 - SERVER REQUESTS - line 2273
+// 9 - SERVER REQUESTS
 //     Contains all the functions that make requests to the Somtoday Mod server, except sendDebugData which can be found at part 3.
 
-// 10 - EXECUTION - line 2422
+// 10 - EXECUTION
 //     Executes the functions defined in previous parts. Also contains the welcome message.
 
 
@@ -57,7 +58,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-let version = 3.4;
+let version = 3.5;
 let platform = "Userscript";
 let minified = false;
 
@@ -228,7 +229,7 @@ function execute(functionarray) {
             element();
         } catch (e) {
             sendDebugData(element.name, e);
-            console.error(e);
+            setTimeout(console.error.bind(console, e));
         }
     }
 }
@@ -248,21 +249,23 @@ String.prototype.replaceAt = function(index, replacement) {
 let isloaded = false;
 
 // Show a message on top of the page. Similair to browser confirm().
-function modMessage(title, description, link1, link2, action1, action2) {
+function modMessage(title, description, link1, link2, red1, red2, noBackgroundClick) {
     while (!n(id('mod-message'))) {
         tryRemove(id('mod-message'));
     }
     const element = n(id('somtoday-mod')) ? tn('body', 0) : id('somtoday-mod');
-    element.insertAdjacentHTML('afterbegin', '<div id="mod-message" class="mod-msg-open"><center><div onclick="event.stopPropagation();"><h2>' + title + '</h2><p>' + description + '</p>' + (n(link1) ? '' : '<a id="mod-message-action1" class="mod-message-button" tabindex="0">' + link1 + '</a>') + (n(link2) ? '' : '<a id="mod-message-action2" class="mod-message-button" tabindex="0">' + link2 + '</a>') + '</div></center></div>');
+    element.insertAdjacentHTML('afterbegin', '<div id="mod-message" class="mod-msg-open"><center><div onclick="event.stopPropagation();"><h2>' + title + '</h2><p>' + description + '</p>' + (n(link1) ? '' : '<a id="mod-message-action1" class="mod-message-button' + (red1 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link1 + '</a>') + (n(link2) ? '' : '<a id="mod-message-action2" class="mod-message-button' + (red2 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link2 + '</a>') + '</div></center></div>');
     if (!n(link1)) {
         id('mod-message-action1').focus();
         id('mod-message-action1').addEventListener("keydown", (event) => { if (event.keyCode === 13) { id('mod-message-action1').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); if (!n(id('mod-message-action2'))) { id('mod-message-action2').focus(); } } } );
     }
     if (!n(link2)) {
         id('mod-message-action2').addEventListener("keydown", (event) => { if (event.keyCode === 13) { id('mod-message-action2').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); id('mod-message-action1').focus(); } } );
-        id('mod-message').addEventListener("click", function() { id('mod-message-action2').click(); } );
+        if (noBackgroundClick == null) {
+            id('mod-message').addEventListener("click", function() { id('mod-message-action2').click(); } );
+        }
     }
-    else if (!n(link1)) {
+    else if (!n(link1) && noBackgroundClick == null) {
         id('mod-message').addEventListener("click", function() { id('mod-message-action1').click(); } );
     }
 }
@@ -282,7 +285,7 @@ function sendDebugData(name, error) {
 
 // Load Somtoday Mod once the page is loaded
 function addLoadListener() {
-    if (window.location.origin.indexOf("somtoday.nl") == -1) {
+    if (window.location.origin.indexOf("som.today") != -1) {
         if ((get("bools") == null) || get("bools").charAt(4) == "1") {
             window.location.replace("https://inloggen.somtoday.nl");
         }
@@ -298,12 +301,22 @@ function addLoadListener() {
             tn('head', 0).insertAdjacentHTML('afterbegin', '<style id="transitions-disabled">* { transition: none !important; }</style>');
         }
         // Add onload event listener and execute onload function if page is loaded
-        window.addEventListener('load', function () { if (!isloaded && !n(id('master-panel'))) { execute([onload]); } }, {passive: true});
+        window.addEventListener('load', function () {
+            if (!isloaded && !n(id('master-panel'))) {
+                execute([onload]);
+            } else if (!isloaded && !n(cn("stpanel--status", 0)) && !n(cn("errorTekst", 0))) {
+                tn('html', 0).removeAttribute('style'); onload();
+            }
+        }, {passive: true});
 
         // Execute onload function after 1s if document is loaded
         // This is to be sure that the mod didn't miss the load event
         setTimeout(function() {
             if (!isloaded && !n(id('master-panel')) && (((!n(document.readyState)) && document.readyState == 'complete')) || (n(document.readyState))) {
+                onload();
+            }
+            else if (!isloaded && !n(cn("stpanel--status", 0)) && !n(cn("errorTekst", 0)) && (((!n(document.readyState)) && document.readyState == 'complete')) || (n(document.readyState))) {
+                tn('html', 0).removeAttribute('style');
                 onload();
             }
         }, 1000);
@@ -530,14 +543,6 @@ function onload() {
         return;
     }
 
-    // Stop script if 500 error occurs
-    if (!n(cn("stpanel--status", 0))) {
-        // Reload page at certain pages
-        autoReload('https://' + window.location.hostname + ((window.location.pathname == '/home/news' || window.location.pathname =='/home/roster' || window.location.pathname == '/home/homework' || window.location.pathname == '/home/grades' || window.location.pathname == '/home/subjects' || window.location.pathname == '/home/absence' || window.location.pathname == '/home/leermiddelen' || window.location.pathname == '/home/profile' || window.location.pathname == '/home/messages') ? window.location.pathname : '/home/news'));
-        setTimeout(console.warn.bind(console, "SOMTODAY MOD: Internal server error (500)"));
-        return;
-    }
-
     // Stop script if Somtoday has outage
     if (!n(cn("titlewrap", 0))) {
         // Since https://som.today and the error page are very similar, check if the word 'storing' is present on the page
@@ -579,7 +584,26 @@ function onload() {
             }
             if (!n(id('user').getElementsByTagName('a')[0])) {
                 if (!n(id('user').getElementsByTagName('a')[0].children[1])) {
-                    username = id('user').getElementsByTagName('a')[0].children[1].innerHTML;
+                    // Username is in expected element
+                    if (id('user').getElementsByTagName('a')[0].href.indexOf('profile') != -1 && id('user').getElementsByTagName('a')[1].href.indexOf('profile?') == -1) {
+                        username = id('user').getElementsByTagName('a')[0].children[1].innerHTML;
+                    }
+                    // Username is in an other, unknown element
+                    else {
+                        for (const element of id('user').getElementsByTagName('a')) {
+                            if (element.href.indexOf('profile') != -1 && element.href.indexOf('profile?') == -1) {
+                                if (!n(element.children[1])) {
+                                    username = element.children[1].innerHTML;
+                                }
+                                else if (!n(element.children[0])) {
+                                    username = element.children[0].innerHTML;
+                                }
+                                else {
+                                    username = element.innerHTML;
+                                }
+                            }
+                        }
+                    }
                     firstname = username.replace(/ .*/, '');
                     lastname = username.replace(/.* /, '');
                     initials = username.replace(/[^A-Z]+/g, "");
@@ -604,14 +628,26 @@ function onload() {
         } else {
             id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="background-image-overlay"></div>');
         }
-        setHTML(id('user').children[1], get("bools").charAt(2) == "1" ? "<img id='profile-img' class='profile-img' style='display: inline-block;' src='" + (!n(get("profilepic")) ? get("profilepic") : profilepic) + "'/>" : "<div id='profile-img' class='profile-img'>" + initials + "</div>");
-        setHTML(id('user').children[2], getIcon("envelope", "topmenusvg", colors[7], "id='messages-btn'"));
-        setHTML(id('user').children[4], getIcon("right-from-bracket", "topmenusvg", colors[7], "id='logout-btn'"));
-        if ((id('user') != null) && id('user').children[4] != null && id('user').children[2] != null) {
-            id('user').children[4].title = "Uitloggen";
-            id('user').children[2].title = "Berichten";
+        // Check for internal server error in which case the #user element does not exist
+        let internalServerError = false;
+        if (n(id('user'))) {
+            id('header').insertAdjacentHTML('beforeend', '<div class="right"><div id="user"></div></div>');
+            internalServerError = true;
         }
-        id('user').insertAdjacentHTML('beforeend', '<h1 id="page-title">' + ((get('layout') == 1 || get('layout') == 4) ? getIcon('logo', null, colors[7], ' id="logo"') : '') + '<p></p></h1>');
+        for (const element of id('user').getElementsByTagName('a')) {
+            if (element.href.indexOf('logout') != -1) {
+                setHTML(element, getIcon("right-from-bracket", "topmenusvg", colors[7], "id='logout-btn'"));
+                element.title = "Uitloggen";
+            }
+            else if (element.href.indexOf('profile') != -1 && element.href.indexOf('profile?') == -1) {
+                setHTML(element, get("bools").charAt(2) == "1" ? "<img id='profile-img' class='profile-img' style='display: inline-block;' src='" + (!n(get("profilepic")) ? get("profilepic") : profilepic) + "'/>" : "<div id='profile-img' class='profile-img'>" + initials + "</div>");
+            }
+            else if (element.href.indexOf('messages') != -1 && element.href.indexOf('messages?') == -1) {
+                setHTML(element, getIcon("envelope", "topmenusvg", colors[7], "id='messages-btn'"));
+                element.title = "Berichten";
+                }
+        }
+        id('user').insertAdjacentHTML('beforeend', '<h1 id="page-title">' + ((get('layout') == 1 || get('layout') == 4) ? getIcon('logo', null, colors[7], ' id="logo"') : '') + '<p>' + (internalServerError ? 'Interne fout' : '') + '</p></h1>');
         if (get("bools").charAt(7) == "1") {
             tryRemove(id('inbox-counter'));
         }
@@ -645,18 +681,22 @@ function onload() {
         // Fonts thanks to Google Fonts: https://fonts.google.com/
         const layout = get('layout');
         const zoom = get('zoom');
+        let masterAndDetailPanelMaxHeight;
+        if (!n(id('master-panel')) && !n(id('detail-panel-wrapper'))) {
+            masterAndDetailPanelMaxHeight = Math.max(id('master-panel').clientHeight,id('detail-panel-wrapper').clientHeight);
+        }
         // Menu
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Permanent+Marker&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");*,.ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button,textarea{font-family:"' + get("fontname") + '","Open Sans","SOMFont",sans-serif;' + ((get("fontname") == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" :"") + ' }#background-image-overlay{pointer-events:none;-webkit-user-select:none;user-select:none;z-index:-1;' + (layout == 1 ? 'min-height:calc(100vh - 180px);width:70%;left:15%;top:160px;position:absolute;background:' + colors[8] + ';height:' + Math.max(id('master-panel').clientHeight,id('detail-panel-wrapper').clientHeight) + 'px;' :(layout == 4 ? 'width:100%;left:0;top:0;position:fixed;background:' + colors[8] + ';height:100%;' :'')) + ' }#main-menu-wrapper{z-index:998;overflow:hidden;padding:0px;background:' + colors[0] + ';' + ((layout == 1 || layout == 4) ? 'position:absolute;left:0;top:80px;height:80px;' :'position:fixed;top:0;height:100%;width:120px;max-width:14vw;') + (layout == 1 ? 'width:70%;border-top-left-radius:16px;border-top-right-radius:16px;margin-left:15%;' :(layout == 2 ? 'left:0;' :(layout == 3 ? 'right:0;' :'width:100%;'))) + '}h1 > #logo{height:35px;width:35px;margin-left:-50px;margin-top:-5px;position:absolute;}center > #logo{height:min(11vw,8vh);width:50%;padding:10px 0;}#main-menu{width:100%;height:100%;' + ((layout == 2 || layout == 3) ? 'overflow-y:auto;' : '') + '}#main-menu div a{border-radius:0;background:transparent;color:white;max-height:14vw;' + ((layout == 2 || layout == 3) ? 'width:100%;height:' + (id('main-menu').getElementsByTagName('a').length > 8 ? '95px' :'100px;') :(layout == 1 ? 'width:140px;height:80px;' :'width:150px;height:80px;')) + ' padding:0;margin:0;transition:background 0.3s ease;display:inline-block;}#main-menu div a svg{transition:transform 0.3s ease;}#main-menu div a.active svg,#main-menu div a:hover svg{transform:scale(1.1);}#main-menu div a.active,#main-menu div a:hover,#main-menu div a:focus{background:' + ((layout == 1 || layout == 4) ? colors[1] :(layout == 2 ? 'linear-gradient(-90deg,' + colors[0] + ' 0%,' + colors[1] + ' 40%,' + colors[1] + ' 100%)' :'linear-gradient(90deg,' + colors[0] + ' 0%,' + colors[1] + ' 40%,' + colors[1] + ' 100%)')) + ' !important;color:white !important;}div.profile-img{background:' + colors[1] + ';}.profile-img{line-height:50px;border-radius:50%;overflow:hidden;-webkit-user-select:none;user-select:none;object-fit:cover;color:' + colors[2] + ';width:50px;height:50px;font-size:25px;text-align:center;font-weight:700;}#profile-img{transition:filter 0.2s ease,background 0.2s ease,color 0.2s ease;z-index:10000;position:absolute;right:' + (layout == 1 ? 'calc(15% + 30px)' :'40px') + ';top:13px;}.topmenusvg{height:30px;width:30px;position:absolute;top:23px;transition:filter 0.2s ease;}#header-wrapper{visibility:hidden;}#user{box-sizing:border-box;' + (layout == 1 ? '' :'border-bottom:3px solid ' + colors[4]) + ';' + ((layout == 1 || layout == 4) ? 'width:100%;margin-left:0;' :(layout == 2 ? 'margin-left:min(14vw,120px);width:calc(100% - min(14vw,120px) - 6px);' :'margin-right:min(14vw,120px);margin-left:0;width:calc(100% - min(14vw,120px) - 6px);')) + ' visibility:visible;position:' + (get("bools").charAt(3) == "0" ? "absolute" :"fixed") + ';top:' + ((layout == 1 && get('bools').charAt(3) == "0") ? '-20px' :'0') + ';left:0;z-index:1000;background:' + colors[12] + ';height:80px;}#user a{opacity:1 !important;}#user a:hover div#profile-img,div#profile-img:hover,#user a:focus div#profile-img{background:' + colors[7] + ';color:white;}#user a:hover img, #user a:hover svg,#user a:focus svg{filter:brightness(140%);}#user img:first-child{display:none;}#page-title{position:absolute;left:' + (layout == 1 ? 'calc(15% + 70px)' :(layout == 4 ? '80px' :'35px')) + ';top:25px;}#inbox-counter{position:absolute;right:' + (layout == 1 ? 'calc(15% + 130px)' :'140px') + ';top:0;z-index:100000;width:fit-content !important;height:unset !important;min-width:24px;}#main-menu-wrapper label.MainMenuIcons:before{width:100%;font-size:26px;text-align:center;}.famenu,#main-menu-wrapper label.MainMenuIcons{display:block;width:100%;height:35%;padding-top:' + ((get("bools").charAt(1) == "0" && layout == 1) ? '15%' :((get("bools").charAt(1) == "0" && layout == 4) ? '12%' :'26%')) + ';}.famenu.tag,#main-menu-wrapper.tag label.MainMenuIcons{padding-top:' + ((layout == 1 || layout == 4) ? '15px' :'16%') + ';}#main-menu p,#main-menu q{font-size:15px;font-weight:700;width:calc(100% - 4px);padding:10px 2px;text-align:center;color:' + colors[2] + ';word-wrap:break-word;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Permanent+Marker&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");*,.ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button,textarea{font-family:"' + get("fontname") + '","Open Sans","SOMFont",sans-serif;' + ((get("fontname") == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" :"") + ' }#background-image-overlay{pointer-events:none;-webkit-user-select:none;user-select:none;z-index:-1;' + (layout == 1 ? 'min-height:calc(100vh - 180px);width:70%;left:15%;top:160px;position:absolute;background:' + colors[8] + ';height:' + masterAndDetailPanelMaxHeight + 'px;' :(layout == 4 ? 'width:100%;left:0;top:0;position:fixed;background:' + colors[8] + ';height:100%;' :'')) + ' }#main-menu-wrapper{z-index:998;overflow:hidden;padding:0px;background:' + colors[0] + ';' + ((layout == 1 || layout == 4) ? 'position:absolute;left:0;top:80px;height:80px;' :'position:fixed;top:0;height:100%;width:120px;max-width:14vw;') + (layout == 1 ? 'width:70%;border-top-left-radius:16px;border-top-right-radius:16px;margin-left:15%;' :(layout == 2 ? 'left:0;' :(layout == 3 ? 'right:0;' :'width:100%;'))) + '}h1 > #logo{height:35px;width:35px;margin-left:-50px;margin-top:-5px;position:absolute;}center > #logo{height:min(11vw,8vh);width:50%;padding:10px 0;}#main-menu{width:100%;height:100%;' + ((layout == 2 || layout == 3) ? 'overflow-y:auto;' : '') + '}#main-menu div a{border-radius:0;background:transparent;color:white;max-height:14vw;' + ((layout == 2 || layout == 3) ? 'width:100%;height:' + (id('main-menu').getElementsByTagName('a').length > 8 ? '95px' :'100px;') :(layout == 1 ? 'width:140px;height:80px;' :'width:150px;height:80px;')) + ' padding:0;margin:0;transition:background 0.3s ease;display:inline-block;}#main-menu div a svg{transition:transform 0.3s ease;}#main-menu div a.active svg,#main-menu div a:hover svg{transform:scale(1.1);}#main-menu div a.active,#main-menu div a:hover,#main-menu div a:focus{background:' + ((layout == 1 || layout == 4) ? colors[1] :(layout == 2 ? 'linear-gradient(-90deg,' + colors[0] + ' 0%,' + colors[1] + ' 40%,' + colors[1] + ' 100%)' :'linear-gradient(90deg,' + colors[0] + ' 0%,' + colors[1] + ' 40%,' + colors[1] + ' 100%)')) + ' !important;color:white !important;}div.profile-img{background:' + colors[1] + ';}.profile-img{line-height:50px;border-radius:50%;overflow:hidden;-webkit-user-select:none;user-select:none;object-fit:cover;color:' + colors[2] + ';width:50px;height:50px;font-size:25px;text-align:center;font-weight:700;}#profile-img{transition:filter 0.2s ease,background 0.2s ease,color 0.2s ease;z-index:10000;position:absolute;right:' + (layout == 1 ? 'calc(15% + 30px)' :'40px') + ';top:13px;}.topmenusvg{height:30px;width:30px;position:absolute;top:23px;transition:filter 0.2s ease;}#header-wrapper{visibility:hidden;}#user{box-sizing:border-box;' + (layout == 1 ? '' :'border-bottom:3px solid ' + colors[4]) + ';' + ((layout == 1 || layout == 4) ? 'width:100%;margin-left:0;' :(layout == 2 ? 'margin-left:min(14vw,120px);width:calc(100% - min(14vw,120px));' :'margin-right:min(14vw,120px);margin-left:0;width:calc(100% - min(14vw,120px));')) + ' visibility:visible;position:' + (get("bools").charAt(3) == "0" ? "absolute" :"fixed") + ';top:' + ((layout == 1 && get('bools').charAt(3) == "0") ? '-20px' :'0') + ';left:0;z-index:1000;background:' + colors[12] + ';height:80px;}#user a{opacity:1 !important;}#user a:hover div#profile-img,div#profile-img:hover,#user a:focus div#profile-img{background:' + colors[7] + ';color:white;}#user a:hover img, #user a:hover svg,#user a:focus svg{filter:brightness(140%);}#user img:first-child{display:none;}#page-title{position:absolute;left:' + (layout == 1 ? 'calc(15% + 70px)' :(layout == 4 ? '80px' :'35px')) + ';top:25px;}#inbox-counter{position:absolute;right:' + (layout == 1 ? 'calc(15% + 130px)' :'140px') + ';top:0;z-index:100000;width:fit-content !important;height:unset !important;min-width:24px;}#main-menu-wrapper label.MainMenuIcons:before{width:100%;font-size:26px;text-align:center;}.famenu,#main-menu-wrapper label.MainMenuIcons{display:block;width:100%;height:35%;padding-top:' + ((get("bools").charAt(1) == "0" && layout == 1) ? '23px' :((get("bools").charAt(1) == "0" && layout == 4) ? '23px' :'26%')) + ';}.famenu.tag,#main-menu-wrapper.tag label.MainMenuIcons{padding-top:' + ((layout == 1 || layout == 4) ? '15px' :'16%') + ';}#main-menu p,#main-menu q{font-size:15px;font-weight:700;width:calc(100% - 4px);padding:10px 2px;text-align:center;color:' + colors[2] + ';word-wrap:break-word;}</style>');
         // Calendar
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>#calendar,#calendar *{box-sizing:border-box;}ul{list-style-type:none;}#calendar{position:absolute;top:0;right:0;' + ((layout == 1 || layout == 4) ? 'padding-top:' + (Math.round(66 / (zoom / 100))).toString() + 'px;padding-left:20px;' :'padding-left:15%;') + ' height:calc((100vh - 80px) / ' + (zoom / 100) + ');max-width:600px;z-index:1000;width:100%;background:' + (layout == 1 ? 'transparent;border-top-right-radius:16px' :'linear-gradient(to right,rgba(0,0,0,0),' + colors[3] + ' 20%)') + ';-webkit-user-select:none;user-select:none;}.month{padding:25px 40px;width:100%;}.month ul{position:relative;margin:0;padding:0;}.month ul li{margin:0 5px;display:inline-block;color:' + colors[6] + ';font-size:20px;text-transform:uppercase;letter-spacing:3px;float:left;}#month{padding-left:15px;}#month,#year{padding-top:8px;}#weekdays{margin-top:40px;margin-bottom:0;padding:25px 40px;}#weekdays li{color:' + colors[11] + ';display:inline-block;text-align:center;}#days{padding:40px;margin:0;}#days li{position:relative;list-style-type:none;text-align:center;font-size:16px;color:' + colors[9] + ';aspect-ratio:1 / 1;padding-top:calc(50% - 18px);margin:8px;border-radius:50%;cursor:pointer;transition:0.2s background ease;}#days li:hover,#days li.selected{background:' + colors[5] + ';}#days li.empty{border:none;cursor:default;}#days li.active{background:' + colors[6] + ';color:white !important;font-weight:700;}#days li:after{content:"";position:absolute;display:none;border-radius:50%;margin-left:37.5%;margin-top:10%;width:25%;height:25%;}#days li.green:after{display:block;background:#39c380;}#days li.orange:after{display:block;background:#e8ad1c;}#days li.red:after{display:block;background:#f56558;}#days,#weekdays{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 1fr;grid-template-rows:1fr;}.empty{background:none !important;}@media all and (max-width:1300px){#calendar{padding-left:5%;background:linear-gradient(to right,rgba(0,0,0,0),' + colors[3] + ' 15%);}#days li{margin:15px 2px;padding-top:6px;}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>#calendar,#calendar *{box-sizing:border-box;}ul{list-style-type:none;}#calendar{position:absolute;top:0;right:0;' + ((layout == 1 || layout == 4) ? 'padding-top:' + (Math.round(66 / (zoom / 100))).toString() + 'px;padding-left:20px;' :'padding-left:15%;') + ' height:calc((100vh - 80px) / ' + (zoom / 100) + ');max-width:600px;z-index:1000;width:100%;background:' + (layout == 1 ? 'transparent;border-top-right-radius:16px' :'linear-gradient(to right,rgba(0,0,0,0),' + colors[3] + ' 20%)') + ';-webkit-user-select:none;user-select:none;}.month{padding:25px 40px;width:100%;}.month ul{position:relative;margin:0;padding:0;}.month ul li{margin:0 5px;display:inline-block;color:' + colors[6] + ';font-size:20px;text-transform:uppercase;letter-spacing:3px;float:left;}#month{padding-left:15px;}#month,#year{padding-top:8px;}#weekdays{margin-top:40px;margin-bottom:0;padding:25px 40px;}#weekdays li{color:' + colors[11] + ';display:inline-block;text-align:center;}#days{padding:40px;margin:0;}#days li{position:relative;list-style-type:none;text-align:center;font-size:16px;color:' + colors[9] + ';aspect-ratio:1 / 1;padding-top:calc(50% - 18px);margin:8px;border-radius:50%;cursor:pointer;transition:0.2s background ease;}#days li:hover,#days li.selected{background:' + colors[5] + ';}#days li.empty{border:none;cursor:default;}#days li.active{background:' + colors[6] + ';color:white !important;font-weight:700;}#days li:after{content:"";position:absolute;display:none;border-radius:50%;margin-left:37.5%;margin-top:10%;width:25%;height:25%;}#days li.green:after{display:block;background:#39c380;}#days li.orange:after{display:block;background:#e8ad1c;}#days li.red:after{display:block;background:#f56558;}#days,#weekdays{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 1fr;grid-template-rows:1fr;}.empty{background:none !important;}@media all and (max-width:1300px){#content-wrapper:has(.stpanel--status){' + (layout == 2 ? 'padding-left: 12vw;' : (layout == 3 ? 'padding-right: 12vw;' : '')) + '}#calendar{padding-left:5%;background:linear-gradient(to right,rgba(0,0,0,0),' + colors[3] + ' 15%);}#days li{margin:15px 2px;padding-top:6px;}}</style>');
         // Media queries
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>' + (layout == 1 ? '@media (max-width:1440px){#page-title{left:calc(7.5% + 70px);}#profile-img{right:calc(7.5% + 30px);}svg#logout-btn{right:calc(7.5% + 170px);}svg#messages-btn{right:calc(7.5% + 110px);}#inbox-counter{right:calc(7.5% + 130px);}.bericht .r-content{max-width:calc(100% - 55px) !important;}.msgdetails1 > .pasfoto{width:40px !important;height:40px !important;margin-right:10px !important;line-height:38px;font-size:20px;}div#master-panel:has(.profileMaster){width:calc(85% / ' + (zoom / 100) + ' - 235px) !important;}div#master-panel:has(.roosterMaster){width:calc(85% / ' + (zoom / 100) + ') !important;}div#modactions{right:7.5%;}#main-menu-wrapper{margin-left:7.5% !important;width:85% !important;}#master-panel{left:7.5% !important;width:' + (48 / (zoom / 100)) + '% !important;}#detail-panel-wrapper{width:calc(' + (35 / (zoom / 100)) + '% - 15px) !important;right:7.5% !important;}#background-image-overlay{left:7.5% !important;width:85% !important;}}' :'') + ((layout == 2 || layout == 3) ? '@media (max-height:890px){#main-menu div a{height:90px;margin:0 !important;}.famenu{padding-top:22%;}.famenu.tag{padding-top:13%;}}@media (max-height:790px){#main-menu div a{height:80px;}.famenu{padding-top:20%;}.famenu.tag{padding-top:10%;}}@media (max-height:700px){#main-menu div a{height:70px;}.famenu{padding-top:17%;}.famenu.tag{padding-top:7%;}}@media (max-height:570px){#main-menu div a{height:60px;}.famenu{padding-top:14%;}.famenu.tag{padding-top:5%;}}' : '' ) + '@media (max-width:875px){.truncate.afspraak div.toekenning.truncate{padding:0;margin-top:42px;}div.truncate.afspraak{margin:0 2px;}a.afspraak-link.inline{padding:7px;width:calc(100% - 15px);height:calc(100% - 14px);}#main-menu p{font-size:14px;}}@media (max-width:700px){div.layout-container{width:calc(50% - 16px);height:unset;aspect-ratio:1.3 / 1;}div.theme img{height:100px;}div.theme h3{font-size:0;margin-left:0;}.theme h3 svg{height:15px;}div.theme{width:calc(50% - 20px);}#main-menu p{font-size:12px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}}@media (max-width:600px){.layout-container div span{display:none;}#main-menu div a{margin:' + ((layout == 4 || layout == 1) ? '0' :'8px 0') + ';}}@media (max-width:500px){.profielTblData .twopartfields > span,.twopartfields input{max-width:100px !important;}#page-title p{max-width:calc(100vw - 280px);overflow:hidden; height:30px;}label.switch{margin:-8px 0;margin-left:5px;}div#modactions a{margin-bottom:0;}div a.menuitem svg{margin-left:-35px;}div a.menuitem{padding-left:20px;font-size:15px;margin-right:0;}div#modsettings > div > p{max-width:100%;}#modsettings > div:has(.switch) p{width:calc(100% - 55px) !important;}div div#master-panel:has(.profileMaster){width:' + ((layout == 1 || layout == 4) ? 'calc(100% / ' + (zoom / 100) + ' - 40px)' :'calc((100% - min(14vw,120px)) / ' + (zoom / 100) + ' - 30px)') + ' !important;}div#modsettings{padding:5px 25px}div#modactions{width:30px!important;}#theme-wrapper,#layout-wrapper{width:calc(100% + 58px);}#modactions .button-silver-deluxe span{padding:15px 20px;margin-left:-8px;border-radius:6px;}.toekenning.truncate .icon-huiswerk svg,.toekenning.truncate .icon-toets svg,.toekenning.truncate .icon-grote-toets svg{display:none}.toekenning.truncate .icon-huiswerk,.toekenning.truncate .icon-toets,.toekenning.truncate .icon-grote-toets{width:10px;height:10px;margin-left:0;}.toekenning.truncate{padding:3px !important;}.roster-table-header .day .huiswerk-items{padding-left:0;}.weekitems.eerste-kolom{margin-left:-4px;margin-top:10px;}.hours.eerste-kolom,.day.filler.eerste-kolom{display:none}.day{height:1130px;}div.roster-table{padding:5px;width:calc(100% - 10px);}' + (layout == 1 ? '' :'#inbox-counter{right:120px;}') + ' #profile-img{-webkit-user-select:none;user-select:none;right:25px !important;}svg#logout-btn{right:145px !important;}svg#messages-btn{right:95px !important;}#page-title{left:10px;}}@media (max-width:1024px){#content-wrapper.is-opendetailpanel #detail-panel-wrapper{top:80px;}}@media (max-width:380px){#page-title p{display:none;}}@media (max-height:600px) and (min-width:1020px){div#modactions{position:absolute;height:fit-content;}}@media (max-height:550px) and (max-width:1020px){div#modactions{position:absolute;border-left:none;}div#modactions a{margin-right:0;}div#modactions .button-silver-deluxe span{overflow:hidden;padding-left:0;width:30px;}}@media (max-width:1020px){.close-detailpanel{right:-5px !important;z-index:1;}.berichtenDetail .close-detailpanel,.activityDetail .close-detailpanel,.homeworkDetail .close-detailpanel{right:20px !important;}.homeworkDetail .blue.ribbon p{transform:translate(-35px,-13px);}.bericht .r-content{max-width:calc(100% - 110px) !important;}#header{margin-left:0;margin-right:0;}div#master-panel:has(.profileMaster){width:' + ((layout == 1 || layout == 4) ? 'calc(100% / ' + (zoom / 100) + ' - 60px)' :'calc((100% - min(14vw,120px)) / ' + (zoom / 100) + ' - 60px)') + ' !important;padding-right:0;}' + (layout == 1 ? 'body div#master-panel:has(.roosterMaster){width:calc(100% / ' + (zoom / 100) + ') !important;}' :'') + ' .roosterMaster .uurNummer{margin-left:0;}.hour.pauze{visibility:hidden;}' + (layout == 1 ? '#profile-img{-webkit-user-select:none;user-select:none;right:50px;}svg#logout-btn{right:170px;}svg#messages-btn{right:120px;}#page-title{left:80px;}#inbox-counter{right:140px;}' :'') + ' #header .right{position:static;}#master-panel .date div p.date-day{margin-left:0;}.weekitems.eerste-kolom{margin-bottom:50px;}body #master-panel,body.roster #master-panel{left:' + (layout == 2 ? 'min(120px,14vw)' :'0') + ' !important;width:' + ((layout == 4 || layout == 1) ? 'calc((100% / ' + (zoom / 100) + '))' :'calc((100% - min(120px,14vw)) / ' + (zoom / 100) + ')') + ' !important;}#background-image-overlay{left:0 !important;width:100% !important;}' + (layout == 1 ? '#main-menu-wrapper{width:100% !important;margin-left:0 !important;}':'') + ' #content-wrapper #detail-panel-wrapper,#content-wrapper.is-opendetailpanel #master-panel{display:none !important;}#content-wrapper.is-opendetailpanel #detail-panel-wrapper,#content-wrapper #master-panel{display:block !important;top:' + ((layout == 4 || layout == 1) ? '160px' :'80px') + ' !important;}#content-wrapper.is-opendetailpanel #detail-panel{padding-top:20px;box-sizing:border-box;}.box.msgdetails2{margin-right:0;}.leermiddelen #content-wrapper.is-opendetailpanel #detail-panel-wrapper{min-height:60px;opacity:1 !important;}#content-wrapper.is-opendetailpanel #detail-panel-wrapper{overflow:hidden !important;height:fit-content;display:block;position:absolute;top:80px;z-index:10;width:calc((100% ' + ((layout == 4 || layout == 1) ? '' :'- min(120px,14vw)') + ') / ' + (zoom / 100) + ' - 30px) !important;' + ((layout == 2 || layout == 3) ? (layout == 3 ? 'right' :'left') + ':min(120px,14vw)' :'left:0') + ' !important;transform-origin:top left !important;right:0;padding:0 15px;}}@media all and (max-width:1700px){' + ((layout == 4 || layout == 1) ? '#main-menu div a{width:' + (100 / id('main-menu').getElementsByTagName('a').length) + '% !important;max-height:80px !important;}' :'') + ' .homeworkDetail .blue.ribbon p{visibility:hidden;}.homeworkDetail .blue.ribbon p a{visibility:visible;}}#logout-btn{right:' + (layout == 1 ? 'calc(15% + 170px)' :'180px') + ';}#messages-btn{right:' + (layout == 1 ? 'calc(15% + 110px)' :'120px') + ';}ul li label{color:' + colors[7] + ';font-size:14px;padding:5px;}input[type=text],input[type=number],#mod-message textarea{background:none;max-width:calc(100% - 24px);background:' + colors[12] + ';border:2px solid ' + colors[4] + ';color:' + colors[11] + ';transition:border 0.2s ease;border-radius:14px;padding:5px 10px;}input[type=text]:focus,input[type=number]:focus,#mod-message textarea:focus{outline:none;border:2px solid ' + colors[7] + ';}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>' + (layout == 1 ? '@media (max-width:1440px){#page-title{left:calc(7.5% + 70px);}#profile-img{right:calc(7.5% + 30px);}svg#logout-btn{right:calc(7.5% + 170px);}svg#messages-btn{right:calc(7.5% + 110px);}#inbox-counter{right:calc(7.5% + 130px);}.bericht .r-content{max-width:calc(100% - 55px) !important;}.msgdetails1 > .pasfoto{width:40px !important;height:40px !important;margin-right:10px !important;line-height:38px;font-size:20px;}div#master-panel:has(.profileMaster){width:calc(85% / ' + (zoom / 100) + ' - 235px) !important;}div#master-panel:has(.roosterMaster){width:calc(85% / ' + (zoom / 100) + ') !important;}div#modactions{right:7.5%;}#main-menu-wrapper{margin-left:7.5% !important;width:85% !important;}#master-panel{left:7.5% !important;width:' + (48 / (zoom / 100)) + '% !important;}#detail-panel-wrapper{width:calc(' + (35 / (zoom / 100)) + '% - 15px) !important;right:7.5% !important;}#background-image-overlay{left:7.5% !important;width:85% !important;}}' :'') + ((layout == 2 || layout == 3) ? '@media (max-height:890px){#main-menu div a{height:90px;margin:0 !important;}.famenu{padding-top:22%;}.famenu.tag{padding-top:13%;}}@media (max-height:790px){#main-menu div a{height:80px;}.famenu{padding-top:20%;}.famenu.tag{padding-top:10%;}}@media (max-height:700px){#main-menu div a{height:70px;}.famenu{padding-top:17%;}.famenu.tag{padding-top:7%;}}@media (max-height:570px){#main-menu div a{height:60px;}.famenu{padding-top:14%;}.famenu.tag{padding-top:5%;}}' : '' ) + '@media (max-width:875px){.truncate.afspraak div.toekenning.truncate{padding:0;margin-top:42px;}div.truncate.afspraak{margin:0 2px;}a.afspraak-link.inline{padding:7px;width:calc(100% - 15px);height:calc(100% - 14px);}#main-menu p{font-size:14px;}}@media (max-width:700px){div.layout-container{width:calc(50% - 16px);height:unset;aspect-ratio:1.3 / 1;}div.theme img{height:100px;}div.theme h3{font-size:0;margin-left:0;}.theme h3 svg{height:15px;}div.theme{width:calc(50% - 20px);}#main-menu p{font-size:12px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}}@media (max-width:600px){.layout-container div span{display:none;}#main-menu div a{margin:' + ((layout == 4 || layout == 1) ? '0' :'8px 0') + ';}}@media (max-width:500px){.profielTblData .twopartfields > span,.twopartfields input{max-width:100px !important;}#page-title p{max-width:calc(100vw - 280px);overflow:hidden; height:30px;}label.switch{margin:-8px 0;margin-left:5px;}div#modactions a{margin-bottom:0;}span#inbox-counter{right:115px;}div a.menuitem svg{margin-left:-35px;}div a.menuitem{padding-left:20px;font-size:15px;margin-right:0;}div#modsettings > div > p{max-width:100%;}#modsettings > div:has(.switch) p{width:calc(100% - 55px) !important;}div div#master-panel:has(.profileMaster){width:' + ((layout == 1 || layout == 4) ? 'calc(100% / ' + (zoom / 100) + ' - 40px)' :'calc((100% - min(14vw,120px)) / ' + (zoom / 100) + ' - 30px)') + ' !important;}div#modsettings{padding:5px 25px}div#modactions{width:30px!important;}#theme-wrapper,#layout-wrapper{width:calc(100% + 58px);}#modactions .button-silver-deluxe span{padding:15px 20px;margin-left:-8px;border-radius:6px;}.toekenning.truncate .icon-huiswerk svg,.toekenning.truncate .icon-toets svg,.toekenning.truncate .icon-grote-toets svg{display:none}.toekenning.truncate .icon-huiswerk,.toekenning.truncate .icon-toets,.toekenning.truncate .icon-grote-toets{width:10px;height:10px;margin-left:0;}.toekenning.truncate{padding:3px !important;}.roster-table-header .day .huiswerk-items{padding-left:0;}.weekitems.eerste-kolom{margin-left:-4px;margin-top:10px;}.hours.eerste-kolom,.day.filler.eerste-kolom{display:none}.day{height:1130px;}div.roster-table{padding:5px;width:calc(100% - 10px);}' + (layout == 1 ? '' :'#inbox-counter{right:120px;}') + ' #profile-img{-webkit-user-select:none;user-select:none;right:25px !important;}svg#logout-btn{right:145px !important;}svg#messages-btn{right:95px !important;}#page-title{left: ' + (layout == 2 ? '20px' : '10px') + ';}}@media (max-width:1024px){#content-wrapper.is-opendetailpanel #detail-panel-wrapper{top:80px;}}@media (max-width:380px){#page-title p{display:none;}}@media (max-height:600px) and (min-width:1020px){div#modactions{position:absolute;height:fit-content;}}@media (max-height:550px) and (max-width:1020px){div#modactions{position:absolute;border-left:none;}div#modactions a{margin-right:0;}div#modactions .button-silver-deluxe span{overflow:hidden;padding-left:0;width:30px;}}@media (max-width:1020px){.close-detailpanel{right:-5px !important;z-index:1;}.berichtenDetail .close-detailpanel,.activityDetail .close-detailpanel,.homeworkDetail .close-detailpanel{right:20px !important;}.homeworkDetail .blue.ribbon p{transform:translate(-35px,-13px);}.bericht .r-content{max-width:calc(100% - 110px) !important;}#header{margin-left:0;margin-right:0;}div#master-panel:has(.profileMaster){width:' + ((layout == 1 || layout == 4) ? 'calc(100% / ' + (zoom / 100) + ' - 60px)' :'calc((100% - min(14vw,120px)) / ' + (zoom / 100) + ' - 60px)') + ' !important;padding-right:0;}' + (layout == 1 ? 'body div#master-panel:has(.roosterMaster){width:calc(100% / ' + (zoom / 100) + ') !important;}' :'') + ' .roosterMaster .uurNummer{margin-left:0;}.hour.pauze{visibility:hidden;}' + (layout == 1 ? '#profile-img{-webkit-user-select:none;user-select:none;right:50px;}svg#logout-btn{right:170px;}svg#messages-btn{right:120px;}#page-title{left:80px;}#inbox-counter{right:140px;}' :'') + ' #header .right{position:static;}#master-panel .date div p.date-day{margin-left:0;}.weekitems.eerste-kolom{margin-bottom:50px;}body #master-panel,body.roster #master-panel{left:' + (layout == 2 ? 'min(120px,14vw)' :'0') + ' !important;width:' + ((layout == 4 || layout == 1) ? 'calc((100% / ' + (zoom / 100) + '))' :'calc((100% - min(120px,14vw)) / ' + (zoom / 100) + ')') + ' !important;}#background-image-overlay{left:0 !important;width:100% !important;}' + (layout == 1 ? '#main-menu-wrapper{width:100% !important;margin-left:0 !important;}':'') + ' #content-wrapper #detail-panel-wrapper,#content-wrapper.is-opendetailpanel #master-panel{display:none !important;}#content-wrapper.is-opendetailpanel #detail-panel-wrapper,#content-wrapper #master-panel{display:block !important;top:' + ((layout == 4 || layout == 1) ? '160px' :'80px') + ' !important;}#content-wrapper.is-opendetailpanel #detail-panel{padding-top:20px;box-sizing:border-box;}.box.msgdetails2{margin-right:0;}.leermiddelen #content-wrapper.is-opendetailpanel #detail-panel-wrapper{min-height:60px;opacity:1 !important;}#content-wrapper.is-opendetailpanel #detail-panel-wrapper{overflow:hidden !important;height:fit-content;display:block;position:absolute;top:80px;z-index:10;width:calc((100% ' + ((layout == 4 || layout == 1) ? '' :'- min(120px,14vw)') + ') / ' + (zoom / 100) + ' - 30px) !important;' + ((layout == 2 || layout == 3) ? (layout == 3 ? 'right' :'left') + ':min(120px,14vw)' :'left:0') + ' !important;transform-origin:top left !important;right:0;padding:0 15px;}}@media all and (max-width:1700px){' + ((layout == 4 || layout == 1) ? '#main-menu div a{width:' + (100 / id('main-menu').getElementsByTagName('a').length) + '% !important;max-height:80px !important;}' :'') + ' .homeworkDetail .blue.ribbon p{visibility:hidden;}.homeworkDetail .blue.ribbon p a{visibility:visible;}}#logout-btn{right:' + (layout == 1 ? 'calc(15% + 170px)' :'180px') + ';}#messages-btn{right:' + (layout == 1 ? 'calc(15% + 110px)' :'120px') + ';}ul li label{color:' + colors[7] + ';font-size:14px;padding:5px;}input[type=text],input[type=number],#mod-message textarea{background:none;max-width:calc(100% - 24px);background:' + colors[12] + ';border:2px solid ' + colors[4] + ';color:' + colors[11] + ';transition:border 0.2s ease;border-radius:14px;padding:5px 10px;}input[type=text]:focus,input[type=number]:focus,#mod-message textarea:focus{outline:none;border:2px solid ' + colors[7] + ';}</style>');
         // Somtoday popups (roster popup and link popup)
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.fancybox-close,.ui-dialog .ui-dialog-titlebar-close{background:' + colors[0] + ';border-radius:50%;transition:0.2s background ease;animation:0.2s closebtnopacity ease;border:none;width:36px;height:36px;z-index:1000;overflow:hidden;}@keyframes closebtnopacity{0%{opacity:0;transform:scale(0);}100%{opacity:1;transform:scale(1);}}' + (layout == 1 ? '.ui-dialog{transform:translateY(-20px);}' :'') + '.ui-dialog .ui-dialog-titlebar-close{margin-right:-20px;margin-top:-35px;}.fancybox-close:hover,.ui-dialog .ui-dialog-titlebar-close:hover{background:' + colors[1] + ';}.ui-icon.ui-icon-closethick{background-image:unset !important;position:relative;margin-top:-3px;margin-left:0;display:block;top:0;left:0;width:100%;height:100%;text-indent:0;}.fancybox-close:before,.ui-icon-closethick:before{content:"\u00D7";display:block;color:white;font-size:30px;margin:2px 8px;transition:transform 0.2s ease;}.fancybox-close:hover:before,.ui-dialog .ui-dialog-titlebar-close:hover .ui-icon-closethick:before{transform:scale(0.8);}.fancybox-wrap{overflow:visible !important;}.fancybox-skin,.box{background:' + colors[12] + ';padding:15px 20px !important;border-radius:12px;}.fancybox-skin{padding-right:0 !important;transition:0.3s box-shadow ease;box-shadow:' + (get('bools').charAt(0) == "1" ? '0 0 50px #555' :'0 0 50px #aaa') + ' !important;}.fancybox-skin *,.box *{color:' + colors[11] + ' !important;word-wrap:break-word;} .fancybox-inner,.fancybox-skin{width:665px !important;max-width:100%;}.fancybox-skin{max-width:calc(100% - 25px);}.fancybox-overlay{overflow:hidden !important;background:rgba(0,0,0,0.3);} .ui-widget.ui-widget-content,.ui-widget.ui-widget-content fieldset,fieldset input{color:' + colors[11] + ';border:none;}fieldset legend{margin-left:-2px;font-size:16px;font-weight:700;}fieldset label:last-of-type{display:none;}fieldset{border:none;padding-bottom:20px;}fieldset label input{margin-top:5px;}fieldset label{margin-top:10px;display:block;}fieldset input[type=submit],fieldset input[type=reset]{font-weight:700;cursor:pointer;padding-top:15px;background:none;}</style>');
         // Icon animations
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-feedback-bounce{animation:0.6s feedbackbounce 0.2s ease;}@keyframes feedbackbounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}60%{transform:translateY(-4px);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
         // Input type range
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;margin-bottom:10px;margin-top:12px;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:' + colors[14] + ';border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:' + colors[15] + ';height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid ' + colors[15] + ';outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:' + colors[14] + ';border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:' + colors[15] + ';height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid ' + colors[1] + ';outline-offset:0.125rem;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;margin-bottom:10px;margin-top:12px;max-width:100%;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:' + colors[14] + ';border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:' + colors[15] + ';height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid ' + colors[15] + ';outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:' + colors[14] + ';border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:' + colors[15] + ';height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid ' + colors[1] + ';outline-offset:0.125rem;}</style>');
         // Input type checkbox
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:-8px 15px;}.switch input{display:none !important;}.slider{background-color:' + colors[5] + ';bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:' + colors[7] + ';}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
         // Custom select
@@ -664,7 +704,7 @@ function onload() {
         // New message at message page
         tn("head", 0).insertAdjacentHTML('beforeend', '<style>#new-toolbar{width:100%;pointer-events:none;position:absolute;}#new-toolbar svg{display:inline-block;height:15px;width:15px;padding:7.5px 7.5px;}#new-toolbar div{display:inline-block;width:10px;}div.wysiwyg.wysiwyg ul.toolbar li{padding:0;margin:0;float:unset;display:inline-block;background:none;border:none;height:30px;width:30px;vertical-align:middle;}.NewMessageDetail .invoerVeld table{width:100% !important;}.NewMessageDetail .invoerVeld table div.wysiwyg.wysiwyg ul.toolbar,.form-ouderavond .invoerVeld table div.wysiwyg.wysiwyg ul.toolbar{height:fit-content;padding:0;}div.wysiwyg.wysiwyg ul.toolbar li:hover,div.wysiwyg.wysiwyg ul.toolbar li.active{border:none;height:30px;width:30px;}div.wysiwyg.wysiwyg ul.toolbar li:hover{background:' + colors[3] + ' !important;}div.wysiwyg.wysiwyg ul.toolbar li.separator{border-radius:0;border:none;width:10px;padding:0;height:25px;margin:0;pointer-events:none;}.NewMessageDetail .invoerVeld table div.wysiwyg{position:relative;background:' + colors[12] + ' !important;}.NewMessageDetail .invoerVeld.textinhoud{background:none;border:none;width:100%;}div.wysiwyg.wysiwyg div.toolbar-wrap{border-bottom:2px solid ' + colors[4] + ';}.NewMessageDetail .invoerVeld table div.wysiwyg.wysiwyg iframe,div.wysiwyg>textarea{padding:10px 15px;}div.wysiwyg.wysiwyg ul.toolbar li.disabled{background:' + colors[12] + ' !important;opacity:0.7 !important;}div.wysiwyg:not(.ui-resizable)::before{content:"Je bekijkt nu de HTML-code voor je bericht." !important;bottom:5px;right:10px;display:block !important;font-size:10px;position:absolute !important;}#iddad{/*padding:2px 5px;*/ font-size:15px;font-family:Arial,Verdana,Helvetica,"Arial Unicode MS",sans-serif;}</style>');
         // Mod message style
-        tn("head", 0).insertAdjacentHTML('beforeend', '<style>#mod-message input,div#mod-message textarea{display:block;width:100%;max-width:100%;padding:20px;font-size:14px;margin:10px 0;}div#mod-message textarea{height:300px;padding:12px 20px;}#mod-message .mod-message-button:focus{border:4px solid ' + colors[13] + ';}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid ' + colors[0] + ';background:' + colors[0] + ';border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:' + colors[2] + ';}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:' + colors[12] + ';box-shadow:' + (get('bools').charAt(0) == "1" ? '0 0 50px #555' :'0 0 50px #aaa') + ';width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message,#mod-message *{box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';box-sizing:border-box;transition:opacity .2s ease;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';}}</style>');
+        tn("head", 0).insertAdjacentHTML('beforeend', '<style>#mod-message input,div#mod-message textarea{display:block;width:100%;max-width:100%;padding:20px;font-size:14px;margin:10px 0;}div#mod-message textarea{height:300px;padding:12px 20px;}#mod-message .mod-message-button:focus{border:4px solid ' + colors[13] + ';}#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred !important;}#mod-message .mod-message-button.mod-button-discouraged{background:' + colors[12] + ' !important; color:red !important; border:4px solid red !important;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid ' + colors[0] + ';background:' + colors[0] + ';border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:' + colors[2] + ';}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:' + colors[12] + ';box-shadow:' + (get('bools').charAt(0) == "1" ? '0 0 50px #555' :'0 0 50px #aaa') + ';width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message,#mod-message *{box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';box-sizing:border-box;transition:opacity .2s ease;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';}}</style>');
         // Mod tooltip - imitates Somtoday tooltips
         tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-tooltip-active{opacity:1;}.mod-tooltip{opacity:0;}.mod-tooltip,.mod-tooltip-active{transition:opacity 0.6s ease;z-index:1000;background:' + colors[12] + ';display:block;position:absolute;font-size:1.1em;pointer-events:none;padding:8px;color:' + colors[11] + ';border-radius:4px;max-width:min(500px,70%);}</style>');
         // Modsettings
@@ -674,7 +714,7 @@ function onload() {
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.ui-tooltip{pointer-events:none;' + (get("bools").charAt(8) == "1" ? "display:none !important;}" :" }") + (get("bools").charAt(9) == "0" ? 'html::-webkit-scrollbar{display:none;}html{scrollbar-width:none;' :'html{') + (layout == 1 ? ' position:relative;margin-top:20px;' :'') + ' scroll-padding-top:100px !important;scroll-padding-bottom:150px !important;background-color:' + colors[12] + ';}.custom-select{border:2px solid #f0f3f5;background:#fff;}.custom-select:hover{border:2px solid ' + colors[3] + ';}.custom-select:focus-within{outline:none !important;border:2px solid ' + colors[13] + ' !important;}.custom-select select{outline:none;}.afspraak-window .bold{margin-bottom:6px;}.ui-autocomplete{padding:0;margin:0;border-radius:16px;overflow:hidden;translate:200px 0 !important;}.inpQuickSearch{width:100% !important;}.inpQuickSearch input{width:100% !important;}.ui-menu .ui-menu-item .ui-menu-item-wrapper{padding:10px 15px;}.ui-state-active,.ui-widget-content .ui-state-active{background:' + colors[3] + ';color:' + colors[11] + ';border:none;padding:11px 16px !important;}.inleveropdracht-conversation-separator{border-top:none;}.leermiddelenDetail .panel-header .type{margin-top:-5px;}.jaarbijlagen .jaarbijlagen-header{margin-bottom:7px;margin-top:7px;padding-top:15px;}.jaarbijlagen .jaarbijlage-map .jaarbijlage-map-header,.jaarbijlagen .bijlagen-container .bijlagen-header{margin:0 -15px;padding:0 15px;}.jaarbijlagen .jaarbijlage .url{margin:-6px -10px;padding:6px 10px;}.jaarbijlagen .icon-chevron-right{margin-top:3px;}.jaarbijlagen .expanded .icon-chevron-right{margin-top:-5px;}.section>h3{border-top:none;border-bottom:0;margin-bottom:0;}.yellow.ribbon .d-next svg,.yellow.ribbon .d-prev svg,#mod-nextmonth svg,#mod-prevmonth svg,.yellow.ribbon .chk svg{transition:transform 0.3s ease;}.yellow.ribbon .d-next:hover svg,.yellow.ribbon .d-prev:hover svg,#mod-nextmonth:hover svg,#mod-prevmonth:hover svg,.yellow.ribbon .chk:hover svg{transform:scale(1.1);}.homeworkDetail .blue.ribbon p{margin-top:-5px;}.roosterMaster .hours .hour{width:100% !important;}.set .block .blocks{display:block;}.profileMaster{position:relative;}#master-panel:has(.profileMaster){width:calc((' + (layout == 1 ? 70 :100) + '% / ' + (zoom / 100) + ') - 238px' + ((layout == 2 || layout == 3) ? ' - (min(120px,14vw) / ' + (zoom / 100) + ')':'') + ') !important;padding-right:238px;}#master-panel:has(.roosterMaster){width:calc((' + (layout == 1 ? 70 :100) + '%' + ((layout == 2 || layout == 3) ? ' - min(120px,14vw)':'') + ') / ' + (zoom / 100) + ') !important;}.roosterMaster{width:100%;}.uurTijd,.pauzetijden{margin-left:65px;}.profileMaster h2.left-16{margin-left:26px;}.vakkenMaster .sub>span:first-of-type{display:inline;}.section.beschrijving .right{color:' + colors[6] + ';border:2px solid ' + colors[3] + ';background:' + colors[12] + ' !important;transition:border .3s ease,background .3s ease,color .2s ease;margin-bottom:10px;float:left;margin-left:0;margin-right:8px;}.section.beschrijving .right:hover{background:' + colors[0] + ' !important;color:' + colors[2] + ';border:2px solid ' + colors[0] + ';}.agendaKwtWindow table.keuzes tr.details td.details{line-height:17px;}.bericht .r-content{max-width:calc(100% - 80px);}.r-content.bericht > .msgdetails1:first-of-type h2:empty:before,.m-element .msgdetails1 h2:empty:before{content:"Geen onderwerp";color:' + colors[9] + ';}#detail-panel .type,.m-wrapper.active .type{margin-right:5px;width:29px;line-height:29px;}.type span{width:35px;text-wrap:nowrap;overflow:hidden;text-overflow:ellipsis;}.leermiddelenDetail .set .double .block .content > div > div:first-of-type:not(:empty){margin-top:6px;}.leermiddelenDetail .set,.vakkenDetail .section:last-of-type .set{column-count:2;}.leermiddelenDetail .set .double,.vakkenDetail .section:last-of-type .set .double{display:inline-block;width:100%;}.set .double .block{margin:5px 0;}.leermiddelenDetail .set .double .block .content .header{margin:-12px;padding:12px;display:block;}.close-detailpanel .icon-remove-sign{color:' + colors[6] + ';}#main-menu-bottom{display:none;}.ui-widget-overlay.ui-front{background:#000;z-index:10000 !important;}div.info-notice.nobackground{padding:0;margin:15px 30px !important;background:none;border:none;}.inleverperiode-panel .header{line-height:25px;}.inleverperiode-panel .leerling-inlevering{line-height:30px;}.file-download .header{margin-top:20px;}div.info-notice{width:fit-content;margin-bottom:10px !important;padding:10px 20px;border:2px solid ' + colors[7] + ';color:' + colors[7] + ' !important;background:' + colors[12] + ';line-height:15px;border-radius:16px;padding-left:50px;}.info-notice svg{height:20px;position:absolute;margin-left:-30px;margin-top:-4px }.goverview{margin-top:20px;}.m-wrapper.active .m-element .IconFont.MainMenuIcons{opacity:1;padding-left:30px;font-size:15px;}.inleveropdracht-conversation .reactie-container textarea{outline:none;border:2px solid ' + colors[4] + ';line-height:27px;padding:5px 10px;transition:border .2s ease;background:' + colors[12] + ';}.inleveropdracht-conversation .reactie-container textarea:hover{border:2px solid ' + colors[4] + ';box-shadow:none;}.inleveropdracht-conversation .reactie-container textarea:focus{box-shadow:none;border:2px solid ' + colors[13] + ';}.inleveropdracht-conversation .reactie-container a{border:none;background:' + colors[13] + ';}.inleveropdracht-conversation .reactie-container a.disabled i{color:#bbb;}.gperiod .tog-period,.gperiod.expand .tog-period{border-top:0;}#mod-prevmonth,#mod-nextmonth{height:1.5em;display:inline-block;margin-right:12px;padding:1px 2px;box-sizing:border-box;}.homeworkaster .yellow.ribbon span{width:100px;}#background-img{z-index:-2;pointer-events:none;-webkit-user-select:none;user-select:none;position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;' + (!n(get("blur")) ? 'filter:blur(' + get("blur") + 'px);' :'') + ' }.br{height:10px;margin-bottom:0 !important;}#master-panel .sub,.inleveropdracht-conversation .boodschap .afzender{color:' + colors[9] + ';}.afspraak-window{width:630px;}.details.expanded tr{width:100%;display:inline-block;}.inleveropdracht-conversation .boodschap{display:inline-block;width:calc(100% - 80px);vertical-align:top;margin-left:0;}.leerling-inlevering .icon-trash{padding-top:10px;}#modactions .button-silver-deluxe span{-webkit-user-select:none;user-select:none;padding-left:40px;position:relative;font-size:14px;}#modactions .button-silver-deluxe span svg{height:1.5em;position:absolute;left:15px;font-size:12px;}@media (max-width:1020px){#modactions h2{display:none;}#modactions{padding:5px !important;right:' + (layout == 3 ? 'min(120px,14vw)' :'0') + ' !important;padding-top:' + Math.round(195 / (zoom / 100)).toString() + 'px !important;width:50px !important;}#modactions .button-silver-deluxe span{color:transparent;width:60px;}}.keuzes tr.details td.details{width:100%;}.keuzes tr.details td:last-of-type table tr td:last-of-type{min-width:250px;}.keuzes tr.details > td:first-of-type{display:none;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.antwoordheader{margin-top:15px;}.conversation div.sub{position:absolute;top:-30px;width:100%;}.conversation .bericht{position:relative;margin-top:60px;margin-bottom:0;}.triangle-box::after,.triangle-box::before{display:none;}.triangle-box{background:' + colors[12] + ';margin-left:70px;border:3px solid ' + colors[3] + ';color:' + colors[11] + ';padding:10px 20px;}.conversation .pasfoto{position:absolute;}.conversation{border-top:none;}.label-pill-lighter,.huiswerkbijlage .simple-view .bijlage-extensie,.simple-view,.jaarbijlage-extensie{background:transparent !important;border:2px solid ' + colors[3] + ' !important;color:' + colors[6] + ' !important;}.jaarbijlage{border:2px solid transparent !important;}.simple-view:hover,.simple-view:hover .bijlage-extensie,.jaarbijlage:hover .jaarbijlage-extensie{border:2px solid ' + colors[1] + ' !important;}.simple-view,.huiswerkbijlage .simple-view .bijlage-extensie,.simple-view .bijlage-label,.jaarbijlage,.jaarbijlage-extensie{transition:0.3s background ease,0.2s color ease,0.2s border ease !important;}.simple-view:hover,.huiswerkbijlage .simple-view:hover .bijlage-extensie,.jaarbijlage:hover .jaarbijlage-extensie,.jaarbijlage:hover{background:' + colors[0] + ' !important;color:' + colors[2] + ' !important;}.simple-view:hover .bijlage-label,.jaarbijlagen .jaarbijlage:hover .jaarbijlage-label{color:' + colors[2] + ' !important;}.huiswerkbijlage .simple-view .bijlage-label{color:' + colors[6] + ';}.section.beschrijving > .section:last-of-type > p{margin-top:5px;margin-bottom:10px;}.box.small.inline.roster .location{padding-left:0;background:none;}.box.small.inline.roster .number{margin-right:10px;color:' + colors[6] + ';}.box.small.inline.roster{background:' + (get('bools').charAt(0) == "1" ? colors[8] :colors[12]) + ';vertical-align:top;width:calc(33.333% - 10px);padding:10px 15px !important;border-radius:14px;box-sizing:border-box;border:none;color:' + colors[9] + ';min-width:130px;margin-right:10px;margin-bottom:10px;}.glevel > div{padding:5px 15px;}.glevel > div{display:none;}.glevel:has(.expanded) > div{display:block;}.glevel{background:' + colors[8] + ';border-radius:8px;}.gperiod.expand .tog-noperiod,.tog-level:hover{border-radius:8px;border:none;background:' + colors[8] + ' url(../images/bck_levelshrinked-ver-183AE12A8943134C34FA665BC1D0AFF0.png) no-repeat 10px 10px;}.tog-level.expanded{background:' + colors[8] + ' url(../images/bck_levelexpanded-ver-E3703F8158EBFA264750E762D48B5ABF.png) no-repeat 10px 10px;}.grades .glevel .tog-level span.right,.tog-level > span > span > .right{margin-right:10px;}.tog-level{transition:background 0.2s ease;border-radius:8px;border:none;background:transparent url(../images/bck_levelshrinked-ver-183AE12A8943134C34FA665BC1D0AFF0.png) no-repeat 10px 10px;padding:5px;padding-left:30px;}.gperiod.expand,.gperiod.expand tbody,.exam td,.exam tr.even,.exam tr.odd{background:transparent;border:none;}.section span.grade,.section span.weging{background:none;}div.wysiwyg>textarea{background:' + colors[12] + ';width:calc(100% - 30px) !important;}.set .block .blocks .block{background:' + colors[8] + ';margin:8px 0;width:unset !important;display:block;border-radius:12px;padding:10px 20px;border:3px solid ' + colors[4] + ';}.set .block .blocks .block *{color:' + colors[11] + ';}.inleverperiode-panel .block,.inleverperiode-panel .leerling-inlevering{border:none;}.file-download .naam{color:' + colors[6] + ' !important;}.file-download .leerling-inlevering:hover{background:transparent !important;}.ui-widget-header,.ui-widget-content,.section .grade,.section .weging{background:' + colors[12] + ';border:none;}.map-naam{-webkit-user-select:none;user-select:none;}.bijlagen-container:hover .map-naam,.jaarbijlage-map:hover .map-naam,textarea{color:' + colors[11] + ' !important;}.jaarbijlagen .jaarbijlage,.huiswerkbijlage .simple-view{-webkit-user-select:none;user-select:none;border-radius:6px;background:' + colors[12] + ';border:none;}.jaarbijlagen .bijlagen-container .bijlagen-header,.jaarbijlagen .bijlagen-container .jaarbijlage-map-header,.jaarbijlagen .jaarbijlage-map .bijlagen-header,.jaarbijlagen .jaarbijlage-map .jaarbijlage-map-header,.jaarbijlagen .jaarbijlage .jaarbijlage-label{color:' + colors[6] + ';}.jaarbijlagen .bijlagen-container,.jaarbijlagen .jaarbijlage-map{background:' + colors[12] + ';border:none !important;transition:background 0.3s ease;}.jaarbijlagen .bijlagen-container:hover,.jaarbijlagen .bijlagen-container.expanded,.jaarbijlagen .jaarbijlage-map.expanded,.jaarbijlagen .jaarbijlage-map:hover,div.block.content,.box.inleverperiode,.double .block{background:' + colors[8] + ';border:none !important;transition:background 0.3s ease;}.box.inleverperiode,.double .block{color:' + colors[11] + ' }.box.inleverperiode:hover,.double .block:hover{background:' + colors[12] + ';}.box.inleverperiode:hover *{color:' + colors[6] + ' !important;}#master-panel{transform:scale(' + zoom + '%);transform-origin:top left;min-height:calc((100vh - ' + (layout == 1 ? '180px' :(layout == 4 ? '160px' :'80px')) + ') / ' + (zoom / 100) + ');padding-bottom:0;padding-top:0;position:absolute;' + (layout == 1 ? 'top:160px;left:15%' :(layout == 2 ? 'top:80px;left:min(14vw,120px)' :(layout == 3 ? 'top:80px;left:0' :'top:160px;left:0'))) + ';background:' + ((layout != 1 && layout != 4) ? colors[8] :'transparent') + ';}#detail-panel{width:100% !important;top:0;position:static !important;' + ((layout == 1 || layout == 4) ? 'padding-top:' + (Math.round(115 / (zoom / 100))).toString() + 'px;' :'') + ' }#detail-panel-wrapper{transform:scale(' + zoom + '%);transform-origin:top right;background:' + ((layout != 1 && layout != 4) ? colors[8] :'transparent') + ';' + ((layout == 2 || layout == 4) ? 'top:80px;right:0;' :(layout == 1 ? 'top:80px;right:15%;' :'top:80px;right:min(14vw,120px);')) + ((get("bools").charAt(3) == "1" && layout != 4 && layout != 1) ? 'height:calc((100% - 80px) / ' + (zoom / 100) + ');position:fixed;overflow-y:auto;overflow-x:hidden;' :'position:absolute;min-height:calc((100% - 160px) / ' + (zoom / 100) + ');height:fit-content;overflow:visible !important;') + ' min-width:unset;}#master-panel~#detail-panel-wrapper{border-left:none !important;}#detail-panel,#detail-panel-wrapper,.loaderFade,#master-panel{transition:none;}.button-silver-deluxe{box-shadow:none;border:none;}a.button-silver-deluxe:focus span,div.button-silver-deluxe:focus span,a.button-silver-deluxe:hover span,div.button-silver-deluxe:hover span{background:' + colors[4] + ';color:' + colors[9] + ';text-shadow:none;font-weight:700;}.button-silver-deluxe span{text-shadow:none;transition:0.3s background ease;background:' + colors[12] + ';border:3px solid ' + colors[4] + ';color:' + colors[9] + ';padding:10px 20px;border-radius:14px;}#master-panel div.sub{padding-left:0;}.roster-table-content .uurNummer,.goverview tbody td,.goverview th{background:' + colors[12] + ' !important;border:3px solid ' + colors[3] + ' !important;color:' + colors[9] + ' !important;}.goverview th{background:' + colors[3] + ' !important;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.roster-table{padding:20px;width:calc(100% - 40px);}.huiswerk-items{min-height:80px !important;padding-top:10px;padding-bottom:20px;}.weekitems.eerste-kolom .weekItem,.weekitems.eerste-kolom .geen-items{padding-top:15px;}.ui-widget-shadow{box-shadow:none;}.roster-table-header .day .huiswerk-items,.roster-table-header .day,.dayTitle{background:transparent !important;}.toekenning.truncate .icon-huiswerk,.toekenning.truncate .icon-toets,.toekenning.truncate .icon-grote-toets{margin-right:3px;}.toekenning.truncate .huiswerk-gemaakt,.glevel *{color:' + colors[9] + ' !important;}.toekenning.truncate span,.toekenning.truncate a,.toekenning.truncate,.huiswerk-items{color:' + colors[10] + ';pointer-events:all;}.afspraak .icon-link{position:relative;z-index:10;}.icon-studiewijzer,.icon-huiswerk,.icon-leermiddelen{background:#39c380;}.icon-toets{background:#e8ad1c;}.icon-grote-toets{background:#f56558;}.icon-studiewijzer,.icon-toets,.icon-huiswerk,.icon-grote-toets,.icon-leermiddelen{margin-left:5px;padding-top:4px;box-sizing:border-box;height:22px;width:22px;}.icon-studiewijzer:before,.icon-toets:before,.icon-huiswerk:before,.icon-grote-toets:before,.icon-leermiddelen:before{display:none;}.icon-leermiddelen{margin-left:0;}.afspraak-link.inline{padding:12px 15px;margin:0;height:calc(100% - 24px);width:calc(100% - 30px);position:absolute;}.truncate.afspraak{box-sizing:border-box;background:' + colors[3] + ';border-radius:8px;transition:background 0.3s ease;margin:0 5px;}.afspraakVakNaam.truncate,.load-more a div{min-width:40px;text-decoration-color: ' + colors[6] + ' !important;color:' + colors[6] + ';}.load-more a:hover div{text-decoration:underline;}.afspraakLocatie,.kwtOpties{color:' + colors[9] + ';font-size:12px;padding-left:0;}.truncate.afspraak:hover{background:' + colors[4] + ';}.truncate.afspraak.nlg{background:' + colors[8] + ';box-shadow:none;border:3px solid ' + colors[3] + ';}.day{border-left:none;}.dayTitle,.roster-table-content .day,.roster-table-content .hours,.roster-table-header,.roster-table-content .hours .hour{border-color:transparent !important;}.hour.pauze{background:none !important;}.truncate.afspraak .toekenning.truncate{margin-top:55px; height:fit-content;position:relative;pointer-events:none;padding:0 7px;}.toekenning.truncate{background:transparent;padding:3px 7px;padding-right:15px;z-index:1;}.d-next,.d-prev{transform:none;border:none;cursor:pointer;height:18px;width:18px;}#nprogress .bar,#nprogress .peg{background:' + colors[0] + ';box-shadow:none;}body{height:0;overflow-y:scroll !important;color:' + colors[11] + ';}#content,body{border:none;background:transparent !important;}.panel-header{border-bottom:0 !important;margin-bottom:4px;max-width:100%;}.title div.block.content{padding:13px 20px;border-radius:12px;}h2,h3,.title div.block.content,.section>p,.inleveropdracht-conversation .boodschap .content{color:' + colors[11] + ';}div table.tblData td.tblTag{color:' + colors[11] + ';border-bottom:0;}.section li.block,.box.msgdetails2,.verstuurpanel .invoerVeld.textinhoud{word-wrap:break-word;background:' + (get('bools').charAt(0) == "1" ? colors[8] :colors[12]) + ';margin:8px 0;padding:15px 20px;border-radius:14px;border:3px solid ' + colors[3] + ';color:' + colors[11] + ';}.bericht .r-content h2{max-width:100%;}.verstuurpanel .invoerVeld.textinhoud{width:calc(100% - 55px);transition:border .3s ease;}.verstuurpanel .invoerVeld.textinhoud:focus{outline:none;border:3px solid ' + colors[7] + ';}.studiewijzerdescription,.r-content{color:' + colors[9] + ';}.yellow.ribbon a.IconFont,.yellow.ribbon a:hover{background:transparent;} h1,.box .number{color:' + colors[6] + ' !important;} .blue.ribbon p{margin-left:-140px !important;display:block;position:absolute;}.left h1{display:none;}.profileMaster div h2{display:none;}.yellow.ribbon:hover a.menuitem::after,a.menuitem:hover::after{margin-left:10px;opacity:1;}a.menuitem:after{transition:opacity 0.3s ease,margin-left 0.3s ease;opacity:0;display:inline-block;margin-left:-5px;position:absolute;margin-top:3px;content:url(\'data:image/svg+xml;utf8,<svg fill="%23' + colors[6].substring(1) + '" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>\');}a.menuitem svg{width:25px;height:25px;margin-left:-50px;margin-top:-3px;position:absolute;}a.menuitem{-webkit-user-select:none;user-select:none;padding:0;padding-left:50px;margin:5px 25px;display:block;font-size:18px;color:' + colors[6] + ';}.pasfoto{border:0 !important;border-radius:50%;overflow:hidden;object-fit:cover;display:inline-block;width:50px !important;height:50px !important;margin-right:20px !important;}.pasfoto svg{height:100%;background:' + colors[8] + ';}.yellow.ribbon{top:0;left:0;position:absolute;box-sizing:border-box;padding:10px;width:100%;background:linear-gradient(90deg,' + colors[4] + ' 0%,' + colors[3] + ' 25%,' + colors[3] + ' 75%,rgba(0,0,0,0) 100%) !important;}.yellow.ribbon *{overflow:visible;}.yellow.ribbon p{height:34px;}.yellow.ribbon p a{border-bottom:0 !important;}.yellow.ribbon p a:before{display:none;}.tog-period span.titel{width:calc(100% - 80px);height:24px;overflow:hidden;text-overflow:ellipsis;display:inline-block;line-height:20px;white-space:nowrap;}.box.small.roster.class li > *{font-size:14px;margin-left:10px;margin-top:0;margin-bottom:5px;display:inline-block;}.box.small.roster.class li{height:fit-content !important;display:block;}.box.small.roster.class{border:none;padding:15px;border-radius:10px;margin-bottom:10px;}.box .class-time{background:none;padding-left:0;display:block;}.m-element:hover{border-bottom:0 !important;}.twopartfields span{float:right;}.profielTblData,.profileMaster .m-wrapperTable{max-width:100%;width:720px;padding-left:10px;}.profielTblData .button-silver-deluxe{margin-right:0;margin-bottom:15px;}div.m-wrapperTable table.profielTblData tr td{border-bottom:none;padding:0 5px !important;}.profielTblData tr td:first-of-type{width:70%;}.profielTblData tr td:last-of-type{text-align:right;}.m-wrapper.active{margin-right:0;padding-right:0;background:none !important;}.m-wrapper.active .type.IconFont.icon-envelope-open,.m-wrapper.active .type.IconFont.icon-envelope-open-attach,.m-wrapper.active .type.IconFont.icon-envelope,.m-wrapper.active .type.IconFont.icon-envelope-attach{width:29px;}.profileMaster .m-wrapper.active .type:has(svg){width:29px;}.IconFont:not(.MainMenuIcons):before,.IconFont label:before,.m-wrapper .type:before,.icon-envelope-open:before,.icon-trash:before,.mod-icon-hide:before{display:none;}.msgdetails1 .IconFont svg,.m-wrapper .type svg{display:block;margin:auto;}.msgdetails1 .IconFont:not(.icon-chevron-right),.m-wrapper .type{position:absolute;overflow:visible !important;}.r_content.sub{padding:0 !important;}div.type{text-align:left;color:' + colors[6] + ';background:none;border:none;margin:0;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-paperclip{position:absolute;height:18px;width:18px;background:' + colors[7] + ';border-radius:50%;margin-left:18px;margin-top:-5px;}#detail-panel:has(.activityDetail){padding-top:calc(100px / ' + (zoom / 100).toString() + ');}.invoerVeld.textinhoud .ui-resizable-handle { display: none !important; }.m-element h2.centered{padding-top:9px;}.section.NewMessageDetail{padding-right:10px;}ul.feedbackPanel,.feedbackPanel:has(.feedbackPanelERROR){margin:0 0 10px 0 !important;padding:10px 15px;background:' + (get("bools").charAt(0) == "1" ? '#66000f' : '#eed3d7') + ' !important;}ul.feedbackPanel li{padding:0;background:unset !important;color:' + colors[11] + '!important}.m-element,div.m-wrapperTable table tr td{border:none;}.icon-md.icon-info-sign{cursor:pointer;}.r-content.bericht.expand.reply .pasfoto{right:0;}div.date{position:relative;display:block;height:70px;}div.huiswerk{max-width:calc(100% - 150px);margin-bottom:0;position:relative;margin-left:48px;}.sub.homework,.sub.homework .deadline,div.huiswerk,.sub span,.yellow.ribbon span,.yellow.ribbon a,.dayTitle.truncate span,.hour.pauze,.weekitems .weekitemLabel,.roster-table-header .geen-items{color:' + colors[9] + ';}.sub a span,.box a,.box u:has(a),.box a *{text-decoration-color:#39f !important;color:#39f !important;}.m-element{padding:20px 25px;border-bottom:0;min-height:40px;}.m-element:hover,.m-wrapper.active .m-element{background:linear-gradient(90deg,' + colors[4] + ' 0%,' + colors[3] + ' 25%,' + colors[3] + ' 70%,rgba(0,0,0,0) 100%) !important;}div.date div{left:65px;top:25px;}#master-panel .date div p.date-day,#master-panel .date div p.date-month,#master-panel .date div,#master-panel .date div p.date-day,#master-panel .date div p.date-month,#master-panel .date span{text-align:left;padding:15px 0;height:fit-content;background:none !important;border:none !important; color:' + colors[6] + ' !important;width:fit-content;display:inline-block;font-size:16px;padding-right:4px;text-transform:lowercase;}.date-day{background:transparent !important;}.huiswerk .onderwerp,.homework-detail-header{color:' + colors[10] + ';}.active .huiswerk .onderwerp,#master-panel h2,.blue.ribbon p,.blue.ribbon .icon-check,.blue.ribbon .icon-check-empty{color:' + colors[6] + ' !important;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>.geen-items.truncate{padding:3px 6px;}.stpanel--error--message a:hover,.stpanel--status a:hover{background:' + colors[0] + ';color:' + colors[2] + ';}.stpanel--error--message a,.stpanel--status a{display:block;transition:0.2s background ease, 0.2s color ease;padding: 20px 40px;border:2px solid ' + colors[0] + ';margin-top:30px;color:' + colors[6] + ';border-radius:12px;}.stpanel--error--message,.stpanel--status{background:unset;padding:1rem 4rem;font-size:15px;}#content{box-shadow:none;}#content-wrapper:has(.stpanel--status){margin-top:110px;}.mod-paperclip{position:absolute;height:18px;width:18px;background:' + colors[7] + ';border-radius:50%;margin-left:18px;margin-top:-5px;}#detail-panel:has(.activityDetail){padding-top:calc(100px / ' + (zoom / 100).toString() + ');}.invoerVeld.textinhoud .ui-resizable-handle { display: none !important; }.m-element h2.centered{padding-top:9px;}.section.NewMessageDetail{padding-right:10px;}ul.feedbackPanel,.feedbackPanel:has(.feedbackPanelERROR){margin:0 0 10px 0 !important;padding:10px 15px;background:' + (get("bools").charAt(0) == "1" ? '#66000f' : '#eed3d7') + ' !important;}ul.feedbackPanel li{padding:0;background:unset !important;color:' + colors[11] + '!important}.m-element,div.m-wrapperTable table tr td{border:none;}.icon-md.icon-info-sign{cursor:pointer;}.r-content.bericht.expand.reply .pasfoto{right:0;}div.date{position:relative;display:block;height:70px;}div.huiswerk{max-width:calc(100% - 150px);margin-bottom:0;position:relative;margin-left:48px;}.sub.homework,.sub.homework .deadline,div.huiswerk,.sub span,.yellow.ribbon span,.yellow.ribbon a,.dayTitle.truncate span,.hour.pauze,.weekitems .weekitemLabel,.roster-table-header .geen-items{color:' + colors[9] + ';}.sub a span,.box a,.box u:has(a),.box a *{text-decoration-color:#39f !important;color:#39f !important;}.m-element{padding:20px 25px;border-bottom:0;min-height:40px;}.m-element:hover,.m-wrapper.active .m-element{background:linear-gradient(90deg,' + colors[4] + ' 0%,' + colors[3] + ' 25%,' + colors[3] + ' 70%,rgba(0,0,0,0) 100%) !important;}div.date div{left:65px;top:25px;}#master-panel .date div p.date-day,#master-panel .date div p.date-month,#master-panel .date div,#master-panel .date div p.date-day,#master-panel .date div p.date-month,#master-panel .date span{text-align:left;padding:15px 0;height:fit-content;background:none !important;border:none !important; color:' + colors[6] + ' !important;width:fit-content;display:inline-block;font-size:16px;padding-right:4px;text-transform:lowercase;}.date-day{background:transparent !important;}.huiswerk .onderwerp,.homework-detail-header{color:' + colors[10] + ';}.active .huiswerk .onderwerp,#master-panel h2,.blue.ribbon p,.blue.ribbon .icon-check,.blue.ribbon .icon-check-empty{color:' + colors[6] + ' !important;}</style>');
     }
 
     // Write message in the console
@@ -1066,21 +1106,22 @@ function onload() {
         // Set busy to true to be sure the pageUpdate isn't executed twice when master and detailpanel change at the same time
         busy = true;
         execute([autoReload, panelStyles, icons, profilePicture, pageName, hideElements, panelHeaderIcons]);
-        if (!n(cn("roosterMaster", 0))) {
+        if (isOpen("roosterMaster")) {
             execute([roosterLayout]);
-        } else if (!n(cn("homeworkaster", 0))) {
+        } else if (isOpen("homeworkaster") || isOpen("homeworkMaster")) {
+            // Homeworkmaster classname is spelled wrong. Check also for good version in case it is changed in the future.
             execute([insertCalendar, monthNavigation, calendarHomework]);
-        } else if (!n(cn("cijfersMaster", 0))) {
+        } else if (isOpen("cijfersMaster")) {
             execute([gradeDescription]);
-        } else if (!n(cn("vakkenMaster", 0))) {
+        } else if (isOpen("vakkenMaster")) {
             execute([subjectPageCloseButton]);
-        } else if (!n(cn("leermiddelenMaster", 0))) {
+        } else if (isOpen("leermiddelenMaster")) {
             execute([addSubjectName]);
-        } else if (!n(cn("profileMaster", 0))) {
+        } else if (isOpen("profileMaster")) {
             execute([getBirthday, insertSettings])
-        } else if (!n(cn("berichtenMaster", 0))) {
+        } else if (isOpen("berichtenMaster")) {
             execute([linkPopup, toolbar, hideConversation]);
-        } else if (!n(cn("activityMaster", 0))) {
+        } else if (isOpen("activityMaster")) {
             execute([roosterEmpty]);
         }
         execute([nicknames]);
@@ -1089,6 +1130,25 @@ function onload() {
         setTimeout(function() {
             busy = false;
         }, 100);
+    }
+
+    // Check if a panel is open
+    function isOpen(className) {
+        return !n(cn(className, 0)) && !cn(className, 0).hidden && !n(cn(className, 0).children[0]);
+    }
+
+    // Get the number of loaded pages (should be one but sometimes its not for some reason)
+    // Used for autoReload function and to check if some items should be removed
+    function getPagesLoaded() {
+        let i = 0;
+        if (!n(id('master-panel'))) {
+            for (const element of id('master-panel').children) {
+                if (!n(element.classList) && !element.hidden && !n(element.children[0])) {
+                    i++;
+                }
+            }
+        }
+        return i;
     }
 
     // Bind a tooltip that looks like a real Somtoday's tooltip to an element
@@ -1125,66 +1185,67 @@ function onload() {
     // 7 - PAGEUPDATE FUNCTIONS
 
     // Autoreload page if Somtoday error occurs
-    function autoReload(url) {
-        // Somtoday behaves weird with multiple tabs open
-        // To solve this, get the URL of the page the user wants to access from the last clicked menu-link and redirect the page to this URL
-        // If the last clicked menu-link is undefined, just reload the page
-        // The code also adds a protection to prevent a fast reload loop, it displays a warning message if the page reloads the second time in 2s.
-        if (get("bools").charAt(12) == "1") {
-            let somtodaypagesloaded = 0;
-            if (!n(id('master-panel'))) {
-                for (const element of id('master-panel').children) {
-                    if (!n(element.classList)) {
-                        somtodaypagesloaded++;
+    function autoReload() {
+        // Somtoday behaves weird with multiple tabs open. To solve this, this code reloads the page. It also adds protections to prevent a reload loop.
+        if (get("bools").charAt(12) == "1" && autorefreshAvailable && getPagesLoaded() > 1) {
+            if (parseFloat((new Date() - get('reload')) / 1000) <= 2 && get("bools").charAt(13) == "0") {
+                // Display warning message
+                setTimeout(console.warn.bind("console", "SOMTODAY MOD: Reload not executed to prevent reload loop."));
+                modMessage('Multitab browsing fout', 'Er zijn veel opeenvolgende refreshes door Somtoday Mod gedetecteerd. Het wordt aangeraden Multitab browsing uit te zetten om zo een reload loop te voorkomen. Wil je Multitab browsing uitzetten?</p><br><p style="display: inline-block;">Dit bericht niet meer tonen</p><label class="switch" for="dont-show-again"><input type="checkbox" id="dont-show-again"><div class="slider round"></div></label>', 'Uitzetten (aangeraden)', 'Aanlaten', false, true, true);
+                id('mod-message-action1').addEventListener("click", function() {
+                    if (id('dont-show-again').checked) {
+                        set('bools', get('bools').replaceAt(13, "1"));
                     }
-                }
+                    set('bools', get('bools').replaceAt(12, "0"));
+                    id('mod-message').classList.remove('mod-msg-open');
+                    setTimeout(function () { tryRemove(id('mod-message')); }, 350); });
+                id('mod-message-action2').addEventListener("click", function() {
+                    if (id('dont-show-again').checked) {
+                        set('bools', get('bools').replaceAt(13, "1"));
+                    }
+                    modMessage('Zeker weten?', 'Ga alleen door als je de instelling Multitab browsing al langere tijd aan hebt staan.', 'Doorgaan', 'Multitab browsing uitzetten', true, false, true);
+                    id('mod-message-action1').addEventListener("click", function() {
+                        window.location.reload();
+                        id('mod-message').classList.remove('mod-msg-open');
+                        setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                    });
+                    id('mod-message-action2').addEventListener("click", function() {
+                        set('bools', get('bools').replaceAt(12, "0"));
+                        id('mod-message').classList.remove('mod-msg-open');
+                        setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                    });
+                });
             }
-            if (somtodaypagesloaded > 1 || url != null) {
-                if (parseFloat((new Date() - get('reload')) / 1000) < 2) {
-                    if (get("bools").charAt(13) == "0") {
-                        // Display warning message
-                        setTimeout(console.warn.bind("console", "SOMTODAY MOD: Reload not executed to prevent reload loop."));
-                        modMessage('Automatisch refreshen', 'Er zijn veel opeenvolgende refreshes door Somtoday Mod gedetecteerd. Wil je automatisch refreshen uitzetten?</p><br><h3>Waarom refresht Somtoday Mod de pagina?</h3><p>Somtoday kan met meerdere tabbladen open onverwacht reageren. Daarom voert Somtoday Mod checks uit om te kijken of de pagina herladen moet worden, zodat Somtoday niet meer onverwacht reageert. Als er iets misgaat in dit proces, kan een reload loop plaatsvinden. Het wordt aangeraden Automatisch reloaden uit te zetten als dit gebeurt.</p><br><h3>Is dit een fout?</h3><p>Dit bericht betekent niet per se dat er een fout in Somtoday Mod zit. Het is namelijk ook mogelijk dat je dit bericht te zien krijgt als je snel tussen twee Somtoday-tabbladen wisselt.</p><br><p style="display: inline-block;">Dit bericht niet meer tonen</p><label class="switch" for="dont-show-again"><input type="checkbox" id="dont-show-again"><div class="slider round"></div></label>', 'Uitzetten', 'Aanlaten');
-                        id('mod-message-action1').addEventListener("click", function() { if (id('dont-show-again').checked) { set('bools', get('bools').replaceAt(13, "1")); } set('bools', get('bools').replaceAt(12, "0")); id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 350); });
-                        id('mod-message-action2').addEventListener("click", function() { if (id('dont-show-again').checked) { set('bools', get('bools').replaceAt(13, "1")); } window.location.reload(); id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 350); });
-                    }
-                    else {
-                        // User has disabled warning message, delay reload by 1s
-                        setTimeout(console.warn.bind("console", "SOMTODAY MOD: Reload delayed by 1000ms to prevent fast reload loop."));
-                        if (url != null) {
-                            setTimeout(function () { window.location.href = url; });
-                        }
-                        else {
-                            setTimeout(function () { window.location.reload() }, 1000);
-                        }
-                    }
+            else {
+                // Reload with set delay to prevent fast reload loop
+                let reloadTimeout = -0.00035 * Math.pow(new Date() - get('reload'), 2) + 6000;
+                if (reloadTimeout < 0) {
+                    reloadTimeout = 0;
                 }
-                else {
+                setTimeout(function() {
                     set("reload", new Date());
-                    if (url != null) {
-                        window.location.href = url;
-                    }
-                    else {
-                        if (!n(target)) {
-                            if (!n(target.href)) {
-                                window.location.href = target.href;
-                            }
-                            else {
-                                window.location.reload();
-                            }
+                    if (!n(target)) {
+                        if (!n(target.href)) {
+                            window.location.href = target.href;
                         }
                         else {
                             window.location.reload();
                         }
-                        return;
                     }
-                }
+                    else {
+                        window.location.reload();
+                    }
+                }, reloadTimeout);
+                return;
             }
         }
     }
 
     // Apply default Somtoday Mod-styles to the master and detail panel
     function panelStyles() {
+        if (n(id('master-panel')) || n(id("detail-panel-wrapper"))) {
+            return;
+        }
         id('detail-panel-wrapper').style.visibility = 'visible';
         if (get('layout') == 4) {
             id('master-panel').style.width = 'calc(60% / ' + (get("zoom") / 100) + ' - 30px)';
@@ -1511,11 +1572,11 @@ function onload() {
     // If user has specified nicknames, change docent names to nickname
     // Doesn't use innerHTML because innerHTML doesn't allow script injection
     function nicknames() {
-        if (!n(get("nicknames"))) {
-            let namearray = get("nicknames").split("|")
+        if (!n(get("nicknames")) && !isOpen("leermiddelenMaster")) {
+            let namearray = get("nicknames").split("|");
             for (let i = 0; i < (namearray.length / 2); i++) {
                 let real = namearray[i * 2];
-                let nick = namearray[i * 2 + 1]
+                let nick = namearray[i * 2 + 1];
                 if (real != "") {
                     let regex = new RegExp("((<span>)(.*?))" + real.replace(/\\/g, '\\\\') + "((.*?)(<\/span>)+?)", "g");
                     nick = "$1" + nick + "$4";
@@ -1616,7 +1677,7 @@ function onload() {
         }
     }
 
-    // Update page name in menu, and add logo if needed
+    // Update page name in menu
     function pageName() {
         if (!n(tn('h1', 1))) {
             if (get('layout') == 4 || get('layout') == 1) {
@@ -1653,7 +1714,7 @@ function onload() {
         }
     }
 
-    // Apply style to master panel and hide the detail panel, as it is not used on the roster page
+    // Apply style to master panel on roster page
     function roosterLayout() {
         if (get('layout') == 1) {
             id('master-panel').style.width = 'calc((100% - 30%) / ' + (get("zoom") / 100) + ')';
@@ -1665,7 +1726,7 @@ function onload() {
     // Remove some elements if they aren't needed anymore
     function hideElements() {
         // Remove modactions if page is not profile page
-        if (n(cn("profileMaster", 0))) {
+        if (n(cn("profileMaster", 0)) || n(id('modsettings'))) {
             tryRemove(id("modactions"));
             tryRemove(id("modsettingsfontscript"));
         }
@@ -2060,6 +2121,7 @@ function onload() {
         // Only display update checker for Userscript, and display autoupdate message for Extension
         const updatechecker = platform == "Userscript" ? '<a id="versionchecker" class="button-silver-deluxe"><span>' + getIcon('globe', 'mod-update-rotate', colors[11]) + 'Check updates</span></a>' : '';
         const updateinfo = platform == "Userscript" ? '' : '<div class="br"></div><p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
+
         // Construct mod settings
         // To add your own settings, you can use the addSetting() function.
         // Copy one of the settings, change the 3rd parameter to be something else - it should be unique, for example uniquekey - and then you can access the value with get(uniquekey) once the user has saved the form.
@@ -2081,9 +2143,9 @@ function onload() {
             addSetting('Paginanaam in navigatiemenu', 'Laat een tekst met de paginanaam zien onder het icoontje in het navigatiemenu.', 'bools01', 'checkbox', false) +
             addSetting('Verberg bericht teller in menu', 'Verberg het gele tellertje dat het aantal ongelezen berichten aangeeft.', 'bools07', 'checkbox', false) +
             '<h3 class="category">Aanvullende opties</h3>' +
-            addSetting('Automatisch refreshen', 'Herlaad de pagina als Somtoday Mod detecteert dat er een fout in Somtoday heeft plaatsgevonden.', 'bools12', 'checkbox', false) +
             addSetting('Deel debug-data', 'Verstuurt bij een error informatie naar de developer om Somtoday te verbeteren.</p><div class="br"></div><p>Dit gebeurt anoniem en hier kan je niet mee worden geidentificeerd.', 'bools05', 'checkbox', false) +
             addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) +
+            (autorefreshAvailable ? addSetting('Multitab browsing', 'Somtoday kan met meerdere tabbladen open onverwacht reageren. Deze instelling herlaadt de pagina wanneer dit gebeurt.', 'bools12', 'checkbox', false) : '') +
             addSetting('Open leermiddelen in nieuw tabblad', 'Open alle leermiddelen automatisch in een nieuw tabblad', 'bools14', 'checkbox', true) +
             addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools04', 'checkbox', true) +
             addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools09', 'checkbox', true) +
@@ -2237,7 +2299,7 @@ function onload() {
                 set("theme", "");
             }
         }
-        // Set emtpy image as theme background shown in
+        // Set emtpy image as theme background if no url is given
         if (url == "") {
             smallimg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
@@ -2445,6 +2507,12 @@ function onload() {
         }
     }
 
+    // Check if autorefresh is available. If not, disable it to prevent reload loops.
+    let autorefreshAvailable = getPagesLoaded() == 1;
+    if (!autorefreshAvailable) {
+        set('bools', get('bools').replaceAt(12, "0"));
+    }
+
     // Execute functions
     execute([start, consoleMessage, generateColors, congratulations, menu, menuIcons, style, pageUpdate]);
 
@@ -2471,11 +2539,13 @@ function onload() {
     // Add resize event listener to change some heights dynamically
     if (get('layout') == 1) {
         window.addEventListener("resize", function() {
-            if (!n(id('background-image-overlay'))) {
-                id('background-image-overlay').style.height = (Math.max(id('master-panel').clientHeight, id('detail-panel-wrapper').clientHeight) * (get('zoom') / 100)) + 'px';
-            }
-            if (!n(id('calendar'))) {
-                id('calendar').style.height = (id('master-panel').clientHeight + (80 / (get('zoom') / 100))) + 'px';
+            if (!n(id('master-panel')) && !n(id('detail-panel-wrapper'))) {
+                if (!n(id('background-image-overlay'))) {
+                    id('background-image-overlay').style.height = (Math.max(id('master-panel').clientHeight, id('detail-panel-wrapper').clientHeight) * (get('zoom') / 100)) + 'px';
+                }
+                if (!n(id('calendar'))) {
+                    id('calendar').style.height = (id('master-panel').clientHeight + (80 / (get('zoom') / 100))) + 'px';
+                }
             }
         }, {passive: true});
     }
@@ -2520,8 +2590,9 @@ function onload() {
     });
 
     execute([addObservers]);
+    var observerStep = 10;
     function addObservers() {
-        // Assign detailpanelobserver to detailpanel
+        // Assign the observers to their elements.
         if (!n(id('detail-panel')) && !n(id('master-panel'))) {
             detailpanelobserver.observe(id('detail-panel'), {
                 subtree: true,
@@ -2533,8 +2604,8 @@ function onload() {
             });
         }
         else {
-            setTimeout(addObservers, 100);
-            console.warn('SOMTODAY MOD: #detail-panel lijkt niet te bestaan.');
+            observerStep = observerStep * 5;
+            setTimeout(addObservers, observerStep);
         }
     }
 }
