@@ -15,13 +15,13 @@
     "message": "Settings"
   },
   "newOne": {
-    "message": "Improved layout on small screens"
+    "message": "Fixed bugs in menu (wrong initials, link to profile invisible)"
   },
   "newTwo": {
-    "message": "Somtoday Mod released for Firefox on Android"
+    "message": "Fixed infinite reload loop"
   },
   "newThree": {
-    "message": "Performance improvements (Somtoday now loads 0.25s faster on average)"
+    "message": "Performance improvements (Somtoday now loads 0.05s faster on average)"
   },
   "whatsNew": {
     "message": "See what's new"

@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extName__",
-  "version": "3.4",
+  "version": "3.7",
   "manifest_version": 3,
   "description": "__MSG_extDescription__",
   "default_locale": "nl",
@@ -12,13 +12,13 @@
   },
   "content_scripts": [{
     "js": ["script.js"],
-    "matches": ["*://*.somtoday.nl/home/*", "*://som.today/*"],
+    "matches": ["*://*.somtoday.nl/home/*", "*://*.somtoday.nl/error*", "*://som.today/*"],
     "run_at": "document_start"
   }],
   "permissions": [
     "storage"
   ],
-  "host_permissions": ["*://*.somtoday.nl/home/*", "*://som.today/*"],
+  "host_permissions": ["*://*.somtoday.nl/home/*", "*://*.somtoday.nl/error*", "*://som.today/*"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
