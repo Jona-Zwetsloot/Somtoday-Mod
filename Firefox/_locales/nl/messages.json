@@ -15,13 +15,13 @@
     "message": "Instellingen"
   },
   "newOne": {
-    "message": "Verbeterde weergave voor kleine schermen"
+    "message": "Bugs in menu gefixt (verkeerde initialen, profiellink niet zichtbaar)"
   },
   "newTwo": {
-    "message": "Somtoday Mod beschikbaar gemaakt voor Firefox op Android"
+    "message": "Oneindige reload loop gefixt"
   },
   "newThree": {
-    "message": "Prestatieverbeteringen (Somtoday wordt nu gemiddeld 0,25s sneller geladen)"
+    "message": "Prestatieverbeteringen (Somtoday wordt nu gemiddeld 0,05s sneller geladen)"
   },
   "whatsNew": {
     "message": "Bekijk wat er nieuw is"
