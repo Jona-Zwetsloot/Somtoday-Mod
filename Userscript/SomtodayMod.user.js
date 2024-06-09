@@ -1667,7 +1667,7 @@ function onload() {
                 }
             }
         }
-        if (!n('username')) {
+        if (!n(get('username'))) {
             for (const element of cn("sub")) {
                 if ((!n(element.children[0])) && !n(element.children[0].children[1])) {
                     setHTML(element.children[0].children[1], element.children[0].children[1].innerHTML.replace(realname, get('username').replace(/</g, '&lt;').replace(/>/g, '&gt;')));
