@@ -861,8 +861,8 @@ function onload() {
         style();
         function style() {
             tn('body', 0).insertAdjacentHTML('beforeend', '<img src="' + get('background') + '" id="mod-background">');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style>hmy-switch-group{position:relative;}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px; z-index:100;}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-grades-download{right:0;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}#mod-background{position:fixed;left:0;width:100%;top:0;height:100%;object-fit:cover;z-index:-1;opacity: 0.3;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style>sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}hmy-switch-group{position:relative;}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px; z-index:100;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style>#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:0;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}#mod-background{position:fixed;left:0;width:100%;top:0;height:100%;object-fit:cover;z-index:-1;opacity: 0.3;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style>@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Permanent+Marker&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");*,.ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button,textarea{font-family:"' + get("fontname") + '","Open Sans",sans-serif !important;' + ((get("fontname") == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" :"") + ' }</style>');
             // Icon animations
             tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-feedback-bounce{animation:0.6s feedbackbounce 0.2s ease;}@keyframes feedbackbounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}60%{transform:translateY(-4px);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
@@ -876,6 +876,7 @@ function onload() {
             tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-tooltip-shadow{box-shadow:0 0 5px ' + (darkmode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)') + ';}.mod-tooltip-active{opacity:1;}.mod-tooltip{opacity:0;}.mod-tooltip,.mod-tooltip-active{transition:opacity 0.6s ease;z-index:100000;background:' + colors[12] + ';display:block;position:absolute;font-size:1.1em;pointer-events:none;padding:8px;color:' + colors[11] + ';border-radius:4px;max-width:min(500px,70%);}</style>');
             // Mod message style
             tn("head", 0).insertAdjacentHTML('beforeend', '<style>#mod-message input,div#mod-message textarea{display:block;width:100%;max-width:100%;padding:20px;font-size:14px;margin:10px 0;}div#mod-message textarea{height:300px;padding:12px 20px;}#mod-message .mod-message-button:focus{border:4px solid ' + colors[13] + ';}#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred !important;}#mod-message .mod-message-button.mod-button-discouraged{background:' + colors[12] + ' !important; color:red !important; border:4px solid red !important;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid ' + colors[0] + ';background:' + colors[0] + ';border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:' + colors[2] + ';outline:none;cursor:pointer;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:' + colors[12] + ';box-shadow:' + (get('bools').charAt(0) == "1" ? '0 0 50px #555' :'0 0 50px #aaa') + ';width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message,#mod-message *{box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';box-sizing:border-box;transition:opacity .2s ease;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';}}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-setting-button{padding:10px 20px;background:var(--grey-20);border-radius:8px;margin-right:10px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--grey-40);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
             // Modsettings
             tn("head", 0).insertAdjacentHTML('beforeend', '<style>.br{height:10px;margin-bottom:0 !important;}.layout-container.layout-selected,.layout-container:hover{border:3px solid ' + colors[1] + ';}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:' + colors[12] + ';border:3px solid ' + colors[12] + ';border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease;box-shadow:2px 2px 20px ' + (darkmode ? '#555' :'#ddd') + ';}.layout-container div span{position:absolute;transform:translate(-50%,-50%);top:50%;left:50%;}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:' + colors[5] + ';border-radius:6px;position:absolute;}.example-box-wrapper{background:' + colors[12] + ';border:3px solid ' + colors[4] + ';width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:-10px;}.example-box-wrapper > div{transform-origin:top left;}#theme-wrapper,#layout-wrapper{width:calc(100% + 18px);margin-left:-5px;}#layout-wrapper{margin-left:-15px;}.theme{display:inline-block;cursor:pointer;width:190px;margin-bottom:10px !important;margin-left:5px;overflow:hidden;background:' + colors[12] + ';border:3px solid ' + colors[12] + ';border-radius:16px;transition:.3s border ease,.2s background ease;box-shadow:2px 2px 10px ' + (darkmode ? '#555' :'#ddd') + ';}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid ' + colors[5] + ';}.theme.theme-selected,.theme.theme-selected-set{background:' + colors[5] + ';}.theme img{width:100%;height:175px;object-fit:cover;background:' + colors[12] + ';}.theme h3{margin:10px 15px;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px 10px;}.theme h3 svg{display:inline-block;position:absolute;margin:3px 30px;}#modactions .button-silver-deluxe span{background:transparent;border:none;text-wrap:nowrap;}#modactions .button-silver-deluxe:hover span{background:' + colors[4] + ';}#modactions a{margin-right:10px;margin-bottom:10px;width:100%;}#modsettings-inner #modactions{margin:0 -10px;margin-bottom:-60px;}#modsettings-inner #modactions a{width:fit-content;}#modsettings h3.category{padding:10px;border-bottom:6px solid ' + colors[14] + ';border-radius:6px;font-size:20px;margin:20px -10px;margin-top:75px;}#modsettings div{margin-bottom:30px;}#modsettings input{margin-left:0;display:block;}#modsettings p{display:inline-block;}#modsettings > div > p{max-width:calc(100% - 100px);}#modsettings input[type="text"]{width:500px;}div.mod-button{margin-bottom:20px !important;display:inline-block;margin-right:10px;}label.mod-file-label:hover,.mod-button:hover{border:2px solid ' + colors[5] + ';cursor:pointer;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease;background:' + colors[12] + ';display:block;width:fit-content;padding:10px 18px;border:2px solid ' + colors[7] + ';border-radius:12px;margin:5px 0;color:' + colors[7] + ';}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:' + colors[7] + ';color:' + colors[12] + ';}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.color{cursor:pointer;width:35px;height:35px;border-radius:50%;border:3px solid ' + colors[4] + ';display:inline-block;}</style>');
         }
@@ -886,7 +887,7 @@ function onload() {
                 download();
             }
             else {
-                modMessage('Hoeveel cijfers wil je downloaden?', 'Kies het aantal cijfers dat je wil downloaden.<input id="mod-grades-amount" type="number" min="1" max="25" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value > 25) { this.value = 25; }"/>', 'Doorgaan', 'Annuleren');
+                modMessage('Hoeveel cijfers wil je downloaden?', 'Kies het aantal cijfers dat je wil downloaden (1-25).<input id="mod-grades-amount" type="number" min="1" max="25" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value < 1 && this.value != \'\') { this.value = 1; } else if (this.value > 25) { this.value = 25; }"/>', 'Doorgaan', 'Annuleren');
                 id('mod-message-action1').addEventListener("click", download);
                 id('mod-message-action2').addEventListener("click", function() {
                     id('mod-message').classList.remove('mod-msg-open');
@@ -944,6 +945,10 @@ function onload() {
             childList: true
         });
         pageUpdate();
+        setTimeout(pageUpdate, 500);
+        setTimeout(pageUpdate, 1000);
+        setTimeout(pageUpdate, 1500);
+        setTimeout(pageUpdate, 2000);
         function pageUpdate() {
             updateCssVariables();
             darkmode = tn('html', 0).classList.contains('dark');
@@ -968,7 +973,8 @@ function onload() {
             else if (!n(id("mod-setting-button"))) {
                 id("mod-setting-button").getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
             }
-            if (!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) {
+            // Check if latest grades page or average grades page is open
+            if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0))) {
                 if (n(id('mod-grades-download-computer')) && !n(tn('hmy-switch-group', 0))) {
                     tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-computer').addEventListener('click', downloadGrades);
@@ -978,7 +984,61 @@ function onload() {
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
                 }
             }
+            // Check if subject grades page is open
             if (!n(tn('sl-vakresultaten', 0))) {
+                // Check if report section is open
+                if (n(id('mod-grade-calculate'))) {
+                    // Insert calculation tools
+                    tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grade-calculate"><h3>Gemiddelde berekenen</h3><p>Wat moet ik halen?</p><input id="mod-grade-one-one" type="number" placeholder="Ik wil staan"/><input id="mod-grade-one-two" type="number" placeholder="Weging"/><input id="mod-grade-one-three" type="submit" value="Berekenen"/><br><p>Wat ga ik staan?</p><input id="mod-grade-two-one" type="number" placeholder="Ik haal een"/><input id="mod-grade-two-two" type="number" placeholder="Weging"/><input id="mod-grade-two-three" type="submit" value="Berekenen"/></div>')
+                    id('mod-grade-one-three').addEventListener('click', function () {
+                        // Calculate average
+                        let total = 0;
+                        let weight = 0;
+                        for (const element of tn('sl-resultaat-item')) {
+                            const tempGrade = parseFloat(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
+                            const tempWeight = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
+                            if (!isNaN(tempGrade) && !isNaN(tempWeight)) {
+                                total += tempGrade * tempWeight;
+                                weight += tempWeight;
+                            }
+                        }
+                        // Calculate grade needed for chosen average
+                        let chosenAverage = parseFloat(id('mod-grade-one-one').value);
+                        let chosenWeight = parseFloat(id('mod-grade-one-two').value);
+                        if (isNaN(chosenAverage) || isNaN(chosenWeight)) {
+                            id('mod-grade-one-three').value = "Berekenen";
+                        }
+                        else {
+                            const result = (Math.round(((chosenAverage * (chosenWeight + weight) - total) / chosenWeight) * 100) / 100).toString();
+                            id('mod-grade-one-three').value = result.length == 3 ? result + '0' : result;
+                        }
+                    });
+                    id('mod-grade-two-three').addEventListener('click', function () {
+                        // Calculate average
+                        let total = 0;
+                        let weight = 0;
+                        for (const element of tn('sl-resultaat-item')) {
+                            const tempGrade = parseFloat(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
+                            const tempWeight = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
+                            if (!isNaN(tempGrade) && !isNaN(tempWeight)) {
+                                total += tempGrade * tempWeight;
+                                weight += tempWeight;
+                            }
+                        }
+                        // Calculate average with chosen grade added
+                        let chosenGrade = parseFloat(id('mod-grade-two-one').value);
+                        let chosenWeight = parseFloat(id('mod-grade-two-two').value);
+                        if (isNaN(chosenGrade) || isNaN(chosenWeight)) {
+                            id('mod-grade-two-three').value = "Berekenen";
+                        }
+                        else {
+                            total += chosenGrade * chosenWeight;
+                            weight += chosenWeight;
+                            const result = (Math.round((total / weight) * 100) / 100).toString();
+                            id('mod-grade-two-three').value = result.length == 3 ? result + '0' : result;
+                        }
+                    });
+                }
             }
             window.dispatchEvent(new Event('resize'));
             setTimeout(function() {
@@ -986,20 +1046,26 @@ function onload() {
             }, 100);
         }
         function openSettings() {
+            tryRemove(id('mod-setting-panel'));
             if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
                 tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
             }
             if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
-                tn('sl-account-modal', 0).getElementsByClassName('content')[0].innerHTML = '<div></div>';
-                tn('sl-account-modal-tab', 0).click();
+                tn('sl-account-modal', 0).getElementsByClassName('content')[0].insertAdjacentHTML('beforeend', '<div></div>');
+                if (tn('sl-account-modal-tab', 0).classList.contains('active')) {
+                    tn('sl-account-modal-tab', 1).click();
+                }
+                else {
+                    tn('sl-account-modal-tab', 0).click();
+                }
             }
             id("mod-setting-button").classList.add('active');
             if (tn('sl-account-modal-header', 1) != null) {
                 tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = 'Mod-instellingen';
             }
-            const updatechecker = platform == "Userscript" ? '<a id="versionchecker" class="button-silver-deluxe"><span>' + getIcon('globe', 'mod-update-rotate', colors[11]) + 'Check updates</span></a>' : '';
+            const updatechecker = platform == "Userscript" ? '<a id="versionchecker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', colors[11]) + 'Check updates</span></a>' : '';
             const updateinfo = platform == "Userscript" ? '' : '<div class="br"></div><p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="button-silver-deluxe"><span>' + getIcon('floppy-disk', 'mod-save-shake', colors[11]) + 'Instellingen opslaan</span></a><a id="reset" class="button-silver-deluxe"><span>' + getIcon('rotate-left', 'mod-reset-rotate', colors[11]) + 'Reset instellingen</span></a>' + updatechecker + '<a class="button-silver-deluxe" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', colors[11]) + 'Informatie over mod</span></a><a class="button-silver-deluxe" id="feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', colors[11]) + 'Feedback geven</span></a><a class="button-silver-deluxe" id="report-bug"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', colors[11]) + 'Bug melden</span></a></div><h3>Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div>' + addSetting('Achtergrondafbeelding', 'Stelt een afbeelding in voor op de achtergrond.</p><div class="br"></div><p>', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div>' +
+            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', colors[11]) + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', colors[11]) + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', colors[11]) + 'Informatie over mod</span></a><a class="mod-setting-button" id="feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', colors[11]) + 'Feedback geven</span></a><a class="mod-setting-button" id="report-bug"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', colors[11]) + 'Bug melden</span></a></div><h3>Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div>' + addSetting('Achtergrondafbeelding', 'Stelt een afbeelding in voor op de achtergrond.</p><div class="br"></div><p>', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div>' +
                 '</div>');
             // Add themes
             // Background images thanks to Pexels: https://www.pexels.com
@@ -1013,12 +1079,190 @@ function onload() {
             addTheme("Bergen en ruimte", "1624504", "6489a0", 50, true);
             addTheme("Stad", "2246476", "18202d", 25, true);
             addTheme("Weg", "1820563", "de3c22", 65, true);
+            // Make save button, reset button (and updatechecker for the Userscript-version) work
+            id("save").addEventListener("click", function() { execute([save]) });
+            id("reset").addEventListener("click", function() {
+                modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
+                id('mod-message-action1').addEventListener("click", function() { reset(); window.location.reload(); });
+                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+            });
+            id("information-about-mod").addEventListener("click", function() {
+                modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat': 'browserextensie die') + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals een dark mode, lettertypes, kleuren, achtergronden, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met Somtoday ' + somtodayversion + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. Source code is <a href="https://jonazwetsloot.nl/versions/somtoday-mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2024 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p><a id="mod-github" href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" class="mod-info-button" target="_blank">' + getIcon('github', null, colors[11]) + '</a><a id="mod-projectpage" href="https://jonazwetsloot.nl/projecten/somtoday-mod" class="mod-info-button" target="_blank">' + getIcon('circle-info', null, colors[11]) + '</a><a id="mod-creative-commons" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="mod-info-button" target="_blank">' + getIcon('cc', null, colors[11]) + '</a>', 'Terug');
+                //bindTooltip('mod-creative-commons', 'Gelicentieerd onder de CC BY-NC-SA 4.0', true);
+                //bindTooltip('mod-projectpage', 'Ga naar de projectpagina op mijn site', true);
+                //bindTooltip('mod-github', 'Ga naar de GitHub repo', true);
+                //id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
+                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+            });
+            id("report-bug").addEventListener("click", function() { execute([prepareBugReport]) });
+            id("feedback").addEventListener("click", function() { execute([feedback]) });
+            if (platform == "Userscript") {
+                id("versionchecker").addEventListener("click", function() { execute([checkUpdate]) });
+            }
         }
         function closeSettings(element) {
             id("mod-setting-button").classList.remove('active');
             tryRemove(id("mod-setting-panel"));
             tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
         }
+    // Reset all settings
+    function reset() {
+        set("primarycolor", "#0067c2");
+        set("nicknames", "");
+        set("bools", "010110100110101000000000000000");
+        set("zoom", "120");
+        set("title", "");
+        set("icon", "");
+        set("background", "");
+        set("transparency", 0.8);
+        set("fontname", "Gabarito");
+        set("theme", "Standaard");
+        set("layout", 1);
+        set("profilepic", "");
+        set("username", "");
+    }
+    // Check if updates are available - userscript only (user initiated)
+    function checkUpdate() {
+        fetch("https://jonazwetsloot.nl/somtoday-mod-update-checker?v=" + version).then(function(response) {
+            if (response.ok) {
+                return response.text();
+            }
+            return Promise.reject(response);
+        }).then(text => {
+            if (text == "Newest") {
+                modMessage('Geen updates gevonden', 'Helaas, er zijn geen updates gevonden.', 'Oke');
+                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+            } else if (text == "Optional") {
+                modMessage('Kleine update gevonden', 'Er is een kleine update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
+                id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/userscripts/SomtodayMod' + (minified ? '' : 'Unminified') + '.user.js'); });
+                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+            } else if (text == "Update") {
+                modMessage('Update gevonden', 'Er is een update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
+                id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/userscripts/SomtodayMod' + (minified ? '' : 'Unminified') + '.user.js'); });
+                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+            }
+            else {
+                modMessage('Fout', 'Somtoday Mod kan de reactie van de server niet begrijpen.', 'Oke');
+                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+            }
+        }).catch((response) => {
+            modMessage('Fout', 'Er kon niet op updates worden gechecked. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
+            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+        });
+    }
+
+    // Sends a feedback message (user initiated)
+    function feedback() {
+        modMessage('Feedback geven', 'Heb je suggesties voor verbeteringen of een heel goed idee voor Somtoday Mod? Dan kan je hier feedback geven.</p><textarea placeholder="Schrijf hier je feedback." id="feedbackmsg"></textarea><p>', 'Verstuur', 'Terug');
+        id('mod-message-action1').addEventListener("click", function() {
+            hide(id('mod-message-action1'));
+            hide(id('mod-message-action2'));
+            if (n(id('feedbackmsg').value)) {
+                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305);
+                setTimeout(function() {
+                    modMessage('Fout', 'Voer een tekst in.', 'Oke');
+                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('feedback'))) { id("feedback").click();} }, 305); });
+                }, 310);
+            }
+            else {
+                let formData = new FormData();
+                formData.append('message', id('feedbackmsg').value);
+                fetch("https://jonazwetsloot.nl/somtoday-mod-feedback", { method: 'POST', body: formData }).then(function(response) {
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    return Promise.reject(response);
+                }).then(text => {
+                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                    if (text == "Sent") {
+                        setTimeout(function() {
+                        modMessage('Verstuurd!', 'Je feedback is verstuurd.', 'Oke');
+                            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                        }, 310);
+                    } else {
+                        setTimeout(function() {
+                            modMessage('Fout', 'De server kon je feedback niet verwerken.', 'Oke');
+                            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                        }, 310);
+                    }
+                }).catch((response) => {
+                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                    setTimeout(function() {
+                        modMessage('Fout', 'Je feedback kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
+                        id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                        id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                    }, 310);
+                });
+            }
+        });
+        id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+    }
+
+    // Show message and prepare bug report server request (user initiated)
+    function prepareBugReport() {
+        modMessage('Bug melden', 'Heb je een bug ontdekt? Dan kan je die hier melden. Alle bugs zijn openbaar te bekijken <a href="https://jonazwetsloot.nl/bugs/somtoday-mod" target="_blank">op deze pagina</a>.</p><input type="text" placeholder="Korte beschrijving van bug" id="shortdescription"><textarea placeholder="Uitgebreidere beschrijving van bug" id="longdescription"></textarea><p style="margin-top: 20px; margin-bottom: -5px;">Screenshot (optioneel)</p><div><label style="margin-top: 15px;" class="mod-file-label" for="bug-screenshot">' + getIcon('upload', null, colors[7]) + '<p style="display: inline;">Kies een bestand</p></label><input oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input" type="file" accept="image/*" id="bug-screenshot"/></div><p>', 'Verstuur', 'Terug');
+        id('mod-message-action1').addEventListener("click", function() {
+            hide(id('mod-message-action1'));
+            hide(id('mod-message-action2'));
+            if (n(id('shortdescription').value) || n(id('longdescription').value)) {
+                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                setTimeout(function() {
+                    modMessage('Fout', 'Voer ten minste beide tekstvelden in.', 'Oke');
+                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('report-bug'))) { id("report-bug").click();} }, 305); });
+                }, 310);
+            }
+            else {
+                let formData = new FormData();
+                formData.append('title', id('shortdescription').value);
+                formData.append('message', id('longdescription').value);
+                formData.append('product', 'Somtoday Mod');
+                formData.append('version', version);
+                formData.append('platform', platform);
+                if (!n(id('bug-screenshot').files[0])) {
+                    let reader = new FileReader();
+                    reader.readAsDataURL(id('bug-screenshot').files[0]);
+                    reader.onload = function() {
+                        formData.append('screenshot', reader.result);
+                        sendBugReport(formData);
+                    };
+                }
+                else {
+                    sendBugReport(formData);
+                }
+            }
+        });
+        id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+    }
+
+    // Submits a bug report (user initiated)
+    function sendBugReport(formData) {
+        fetch("https://jonazwetsloot.nl/somtoday-mod-error", { method: 'POST', body: formData }).then(function(response) {
+            if (response.ok) {
+                return response.text();
+            }
+            return Promise.reject(response);
+        }).then(text => {
+            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+            if (text == "Success") {
+                setTimeout(function() {
+                    modMessage('Verstuurd!', 'Je bugreport is verstuurd.', 'Oke');
+                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                }, 310);
+            } else {
+                setTimeout(function() {
+                    modMessage('Fout', 'De server kon de request niet verwerken.', 'Oke');
+                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                }, 310);
+            }
+        }).catch((response) => {
+            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+            setTimeout(function() {
+                modMessage('Fout', 'Je bugreport kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
+                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+            }, 310);
+        });
+    }
     }
     // Old version of Somtoday
     function oldVersion() {
@@ -2671,149 +2915,6 @@ function onload() {
 
 
     // 9 - SERVER REQUESTS
-
-    // Check if updates are available - userscript only (user initiated)
-    function checkUpdate() {
-        fetch("https://jonazwetsloot.nl/somtoday-mod-update-checker?v=" + version).then(function(response) {
-            if (response.ok) {
-                return response.text();
-            }
-            return Promise.reject(response);
-        }).then(text => {
-            if (text == "Newest") {
-                modMessage('Geen updates gevonden', 'Helaas, er zijn geen updates gevonden.', 'Oke');
-                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
-            } else if (text == "Optional") {
-                modMessage('Kleine update gevonden', 'Er is een kleine update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
-                id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/userscripts/SomtodayMod' + (minified ? '' : 'Unminified') + '.user.js'); });
-                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
-            } else if (text == "Update") {
-                modMessage('Update gevonden', 'Er is een update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
-                id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/userscripts/SomtodayMod' + (minified ? '' : 'Unminified') + '.user.js'); });
-                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
-            }
-            else {
-                modMessage('Fout', 'Somtoday Mod kan de reactie van de server niet begrijpen.', 'Oke');
-                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
-            }
-        }).catch((response) => {
-            modMessage('Fout', 'Er kon niet op updates worden gechecked. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
-        });
-    }
-
-    // Sends a feedback message (user initiated)
-    function feedback() {
-        modMessage('Feedback geven', 'Heb je suggesties voor verbeteringen of een heel goed idee voor Somtoday Mod? Dan kan je hier feedback geven.</p><textarea placeholder="Schrijf hier je feedback." id="feedbackmsg"></textarea><p>', 'Verstuur', 'Terug');
-        id('mod-message-action1').addEventListener("click", function() {
-            hide(id('mod-message-action1'));
-            hide(id('mod-message-action2'));
-            if (n(id('feedbackmsg').value)) {
-                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305);
-                setTimeout(function() {
-                    modMessage('Fout', 'Voer een tekst in.', 'Oke');
-                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('feedback'))) { id("feedback").click();} }, 305); });
-                }, 310);
-            }
-            else {
-                let formData = new FormData();
-                formData.append('message', id('feedbackmsg').value);
-                fetch("https://jonazwetsloot.nl/somtoday-mod-feedback", { method: 'POST', body: formData }).then(function(response) {
-                    if (response.ok) {
-                        return response.text();
-                    }
-                    return Promise.reject(response);
-                }).then(text => {
-                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
-                    if (text == "Sent") {
-                        setTimeout(function() {
-                        modMessage('Verstuurd!', 'Je feedback is verstuurd.', 'Oke');
-                            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                        }, 310);
-                    } else {
-                        setTimeout(function() {
-                            modMessage('Fout', 'De server kon je feedback niet verwerken.', 'Oke');
-                            id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                        }, 310);
-                    }
-                }).catch((response) => {
-                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
-                    setTimeout(function() {
-                        modMessage('Fout', 'Je feedback kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                        id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                        id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                    }, 310);
-                });
-            }
-        });
-        id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-    }
-
-    // Show message and prepare bug report server request (user initiated)
-    function prepareBugReport() {
-        modMessage('Bug melden', 'Heb je een bug ontdekt? Dan kan je die hier melden. Alle bugs zijn openbaar te bekijken <a href="https://jonazwetsloot.nl/bugs/somtoday-mod" target="_blank">op deze pagina</a>.</p><input type="text" placeholder="Korte beschrijving van bug" id="shortdescription"><textarea placeholder="Uitgebreidere beschrijving van bug" id="longdescription"></textarea><p style="margin-top: 20px; margin-bottom: -5px;">Screenshot (optioneel)</p><div><label style="margin-top: 15px;" class="mod-file-label" for="bug-screenshot">' + getIcon('upload', null, colors[7]) + '<p style="display: inline;">Kies een bestand</p></label><input oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input" type="file" accept="image/*" id="bug-screenshot"/></div><p>', 'Verstuur', 'Terug');
-        id('mod-message-action1').addEventListener("click", function() {
-            hide(id('mod-message-action1'));
-            hide(id('mod-message-action2'));
-            if (n(id('shortdescription').value) || n(id('longdescription').value)) {
-                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
-                setTimeout(function() {
-                    modMessage('Fout', 'Voer ten minste beide tekstvelden in.', 'Oke');
-                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('report-bug'))) { id("report-bug").click();} }, 305); });
-                }, 310);
-            }
-            else {
-                let formData = new FormData();
-                formData.append('title', id('shortdescription').value);
-                formData.append('message', id('longdescription').value);
-                formData.append('product', 'Somtoday Mod');
-                formData.append('version', version);
-                formData.append('platform', platform);
-                if (!n(id('bug-screenshot').files[0])) {
-                    let reader = new FileReader();
-                    reader.readAsDataURL(id('bug-screenshot').files[0]);
-                    reader.onload = function() {
-                        formData.append('screenshot', reader.result);
-                        sendBugReport(formData);
-                    };
-                }
-                else {
-                    sendBugReport(formData);
-                }
-            }
-        });
-        id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-    }
-
-    // Submits a bug report (user initiated)
-    function sendBugReport(formData) {
-        fetch("https://jonazwetsloot.nl/somtoday-mod-error", { method: 'POST', body: formData }).then(function(response) {
-            if (response.ok) {
-                return response.text();
-            }
-            return Promise.reject(response);
-        }).then(text => {
-            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
-            if (text == "Success") {
-                setTimeout(function() {
-                    modMessage('Verstuurd!', 'Je bugreport is verstuurd.', 'Oke');
-                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                }, 310);
-            } else {
-                setTimeout(function() {
-                    modMessage('Fout', 'De server kon de request niet verwerken.', 'Oke');
-                    id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                }, 310);
-            }
-        }).catch((response) => {
-            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
-            setTimeout(function() {
-                modMessage('Fout', 'Je bugreport kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-            }, 310);
-        });
-    }
 
     function stats() {
         if (get("bools").charAt(16) == "1") {
