@@ -350,18 +350,45 @@ const getRelativeLuminance = (rgb) => Math.round(0.2126 * rgb[0] + 0.7152 * rgb[
 // Change specific color channel
 function adjustColorChannel(channel, hex, value) {
     let rgb = hexToRgb(hex);
-    rgb[channel] = rgb[channel] + value;
-    hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
-    return hex;
+    rgb[channel] = Math.min(Math.max(rgb[channel] + value, 0), 255);
+    console.log(rgb[channel]);
+    return rgbToHex(rgb[0], rgb[1], rgb[2]);
 }
 
 // Change color brightness level
-function toBrightnessValue(color, target) {
+function toBrightnessValue(color, target, log) {
     let i;
     let brightness;
     for (i = 1; i <= 10; i++) {
         brightness = Math.round(getRelativeLuminance(hexToRgb(color)));
         color = adjust(color, target - brightness);
+    }
+    const rgbcolor = hexToRgb(color);
+    const factor = Math.round(target * -0.15);
+    // Color is mostly blue
+    if (rgbcolor[2] >= rgbcolor[0] && rgbcolor[2] >= rgbcolor[1]) {
+        if (log) {
+        console.log("1" + color);
+        //const factor = Math.min(Math.round(((rgbcolor[2] - rgbcolor[0]) + (rgbcolor[2] - rgbcolor[1])) / 10), 25);
+        color = adjustColorChannel(1, adjustColorChannel(0, color, factor), factor);
+        console.log("2" + color);
+        }
+    }
+    // Color is mostly red
+    else if (rgbcolor[0] >= rgbcolor[2] && rgbcolor[0] >= rgbcolor[1]) {
+    if (log) {
+        console.log('1' + log);
+    }
+        //const factor = Math.min(Math.round(((rgbcolor[0] - rgbcolor[2]) + (rgbcolor[0] - rgbcolor[1])) / 10), 25);
+        color = adjustColorChannel(2, adjustColorChannel(1, color, factor), factor);
+    }
+    // Color is mostly green
+    else if (rgbcolor[1] >= rgbcolor[0] && rgbcolor[1] >= rgbcolor[2]) {
+    if (log) {
+        console.log('2'+ log);
+    }
+        //const factor = Math.min(Math.round(((rgbcolor[1] - rgbcolor[0]) + (rgbcolor[1] - rgbcolor[2])) / 10), 25);
+        color = adjustColorChannel(2, adjustColorChannel(0, color, factor), factor);
     }
     return color;
 }
@@ -369,135 +396,7 @@ function toBrightnessValue(color, target) {
 // Define the colors used in CSS later
 let colors;
 function generateColors() {
-    colors = [get("primarycolor")];
-    // Make sure menu bar is not invisible on background
-    if (get('layout') == 1 || get('layout') == 4) {
-        if (get('bools').charAt(0) == "1") {
-            if (getRelativeLuminance(hexToRgb(colors[0])) <= 10) {
-                colors[0] = adjust(colors[0], 15);
-            }
-        }
-        else {
-            if (getRelativeLuminance(hexToRgb(colors[0])) >= 250) {
-                colors[0] = adjust(colors[0], -10);
-            }
-        }
-    }
-    if (getRelativeLuminance(hexToRgb(colors[0])) >= 160) {
-        colors[1] = adjust(colors[0], -35);
-    } else {
-        colors[1] = adjust(colors[0], 35);
-    }
-    if (getRelativeLuminance(hexToRgb(colors[0])) >= 240) {
-        colors[2] = adjust(colors[0], -170);
-    } else if (getRelativeLuminance(hexToRgb(colors[0])) >= 160) {
-        colors[2] = adjust(colors[0], -110);
-    } else {
-        colors[2] = "#fff";
-    }
-    if (get("bools").charAt(0) == "1") {
-        const rgbcolor = hexToRgb(colors[0]);
-        // Generate and adjust colors based on highest color channel value
-        // Color is mostly blue
-        if (rgbcolor[2] > rgbcolor[0] && rgbcolor[2] > rgbcolor[1]) {
-            const factor = Math.min(Math.round(((rgbcolor[2] - rgbcolor[0]) + (rgbcolor[2] - rgbcolor[1])) / 10), 25);
-            colors[3] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 20), factor), factor);
-            colors[4] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 25), factor), factor);
-            colors[5] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 35), factor), factor);
-        }
-        // Color is mostly red
-        else if (rgbcolor[0] > rgbcolor[2] && rgbcolor[0] > rgbcolor[1]) {
-            const factor = Math.min(Math.round(((rgbcolor[0] - rgbcolor[2]) + (rgbcolor[0] - rgbcolor[1])) / 10), 25);
-            colors[3] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 20), factor), factor);
-            colors[4] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 25), factor), factor);
-            colors[5] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 35), factor), factor);
-        }
-        // Color is mostly green
-        else if (rgbcolor[1] > rgbcolor[0] && rgbcolor[1] > rgbcolor[2]) {
-            const factor = Math.min(Math.round(((rgbcolor[1] - rgbcolor[0]) + (rgbcolor[1] - rgbcolor[2])) / 10), 25);
-            colors[3] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 20), factor), factor);
-            colors[4] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 25), factor), factor);
-            colors[5] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 35), factor), factor);
-        }
-        // Color is black, white or grey
-        else {
-            colors[3] = toBrightnessValue(colors[0], 20);
-            colors[4] = toBrightnessValue(colors[0], 25);
-            colors[5] = toBrightnessValue(colors[0], 35);
-        }
-        colors[6] = toBrightnessValue(colors[0], 165);
-        colors[7] = toBrightnessValue(colors[0], 195);
-        colors[8] = "rgba(255,255,255,0.1)";
-        colors[9] = "#fff";
-        colors[10] = colors[6];
-        colors[11] = "#fff";
-        colors[12] = "#000";
-        if (!n(get("background"))) {
-            colors[3] = "rgba(" + hexToRgb(colors[3]) + "," + get("transparency") + ")";
-            colors[8] = "rgba(0,0,0," + get("transparency") + ")";
-        }
-        colors[14] = "#000";
-    } else {
-        const rgbcolor = hexToRgb(colors[0]);
-        // Generate and adjust colors based on highest color channel value
-        // Color is mostly blue
-        if (rgbcolor[2] > rgbcolor[0] && rgbcolor[2] > rgbcolor[1]) {
-            const factor = -Math.min(Math.round(((rgbcolor[2] - rgbcolor[0]) + (rgbcolor[2] - rgbcolor[1])) / 10), 25);
-            colors[3] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 250), factor), factor);
-            colors[4] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 245), factor), factor);
-            colors[5] = adjustColorChannel(1, adjustColorChannel(0, toBrightnessValue(colors[0], 235), factor), factor);
-        }
-        // Color is mostly red
-        else if (rgbcolor[0] > rgbcolor[2] && rgbcolor[0] > rgbcolor[1]) {
-            const factor = -Math.min(Math.round(((rgbcolor[0] - rgbcolor[2]) + (rgbcolor[0] - rgbcolor[1])) / 10), 25);
-            colors[3] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 250), factor), factor);
-            colors[4] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 245), factor), factor);
-            colors[5] = adjustColorChannel(2, adjustColorChannel(1, toBrightnessValue(colors[0], 235), factor), factor);
-        }
-        // Color is mostly green
-        else if (rgbcolor[1] > rgbcolor[0] && rgbcolor[1] > rgbcolor[2]) {
-            const factor = -Math.min(Math.round(((rgbcolor[1] - rgbcolor[0]) + (rgbcolor[1] - rgbcolor[2])) / 10), 25);
-            colors[3] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 250), factor), factor);
-            colors[4] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 245), factor), factor);
-            colors[5] = adjustColorChannel(2, adjustColorChannel(0, toBrightnessValue(colors[0], 235), factor), factor);
-        }
-        // Color is black, white or grey
-        else {
-            colors[3] = toBrightnessValue(colors[0], 250);
-            colors[4] = toBrightnessValue(colors[0], 245);
-            colors[5] = toBrightnessValue(colors[0], 235);
-        }
-        colors[6] = toBrightnessValue(colors[0], 50);
-        colors[7] = toBrightnessValue(colors[0], 100);
-        colors[8] = "rgba(0,0,0,0.03)";
-        colors[9] = "#3b4d68";
-        colors[10] = "#000829";
-        colors[11] = "#000";
-        if (!n(get("background"))) {
-            colors[3] = "rgba(" + hexToRgb(colors[3]) + "," + get("transparency") + ")";
-            colors[8] = "rgba(255,255,255," + get("transparency") + ")";
-        }
-        colors[12] = "#fff";
-    }
-    if (getRelativeLuminance(hexToRgb(colors[0])) <= 50) {
-        colors[13] = adjust(colors[0], 100);
-    }
-    else {
-        if (getRelativeLuminance(hexToRgb(colors[0])) <= 100) {
-            colors[13] = adjust(colors[0], -50);
-        }
-        else {
-            colors[13] = adjust(colors[0], -100);
-        }
-    }
-    if (get("bools").charAt(0) == "1") {
-        colors[14] = toBrightnessValue(colors[0], 100);
-        colors[15] = toBrightnessValue(colors[0], 150);
-    }
-    else {
-        colors[14] = toBrightnessValue(colors[0], 200);
-        colors[15] = toBrightnessValue(colors[0], 150);
-    }
+    colors = [get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"), get("primarycolor"),get("primarycolor"), get("primarycolor"), get("primarycolor"),get("primarycolor"),get("primarycolor"), get("primarycolor"), get("primarycolor")];
 }
 
 
@@ -751,15 +650,15 @@ function onload() {
         } else if (type == "number") {
             code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '"/></div>';
         } else if (type == "color") {
-            code += '<div class="br"></div><label class="color" for="' + key + '" style="background: ' + get(key) + '"></label><input title="Voer een hex kleurencode in" style="outline: none; color: ' + colors[11] + '; display: inline-block; cursor: pointer; vertical-align: top; padding: 15px 10px; background: transparent;" value="' + get(key) + '" onchange="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'' + colors[11] + '\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'' + colors[11] + '\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'' + colors[11] + '\';" type="color"/></div>';
+            code += '<div class="br"></div><label class="color" for="' + key + '" style="background: ' + get(key) + '"></label><input title="Voer een hex kleurencode in" style="width:calc(100% - 61px);margin-left:20px;color:var(--fg-on-primary-weak);display:inline-block;cursor:pointer;vertical-align:top;padding:15px 10px;background:transparent;" value="' + get(key) + '" onchange="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color"/></div>';
         } else if (type == "file") {
-            code += '<label class="mod-file-label" for="' + key + '">' + getIcon('upload', null, colors[7]) + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.accept != \'image/*\' || this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
+            code += '<label class="mod-file-label" for="' + key + '">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.accept != \'image/*\' || this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
         }
         return code;
     }
 
     // Add a theme to the modsettings. Can only be called at the modsettings page.
-    function addTheme(name, url, color, transparency, dark) {
+    function addTheme(name, url, color, transparency) {
         // URL can be a URL to an image, but also a Pexels ID.
         let smallimg = url;
         let bigimg = url;
@@ -769,7 +668,7 @@ function onload() {
         }
         let themeclass = "";
         if (get("theme") == name) {
-            if (((get("bools").charAt(0) == "1" && dark == true) || (get("bools").charAt(0) == "0" && dark == false)) && get("primarycolor") == "#" + color) {
+            if (get("primarycolor") == "#" + color) {
                 themeclass = " theme-selected-set";
             } else {
                 set("theme", "");
@@ -779,7 +678,7 @@ function onload() {
         if (url == "") {
             smallimg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
-        id('theme-wrapper').insertAdjacentHTML('beforeend', '<div class="theme' + themeclass + '" id="' + name + '" data-name="' + name + '" data-url="' + bigimg + '" data-color="' + color + '" data-transparency="' + transparency + '" data-dark="' + dark + '"><img src="' + smallimg + '" alt="Achtergrondafbeelding: ' + name + '" loading="lazy"/><h3>' + name + '<div style="background:#' + color + ';" title="#' + color + '"></div>' + getIcon(dark ? "moon" : "sun", null, colors[11]) + '</h3></div>');
+        id('theme-wrapper').insertAdjacentHTML('beforeend', '<div class="theme' + themeclass + '" id="' + name + '" data-name="' + name + '" data-url="' + bigimg + '" data-color="' + color + '" data-transparency="' + transparency + '"><img src="' + smallimg + '" alt="Achtergrondafbeelding: ' + name + '" loading="lazy"/><h3><div style="background:#' + color + ';" title="#' + color + '"></div>' + name + '</h3></div>');
         id(name).addEventListener("click", function() {
             for (const element of cn('theme')) {
                 element.classList.remove('theme-selected-set');
@@ -856,12 +755,20 @@ function onload() {
         updateCssVariables();
         function updateCssVariables() {
             tryRemove(id('mod-css-variables'));
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">:root {--mod-semi-transparant: ' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';}</style>');
+            const rgbcolor = hexToRgb(colors[0]);
+            // Generate and adjust colors based on highest color channel value
+            //console.log(getRelativeLuminance(hexToRgb('#f7a86b')));
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">:root {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--blue-60:' + toBrightnessValue(colors[0], 89) + ';--blue-70:' + toBrightnessValue(colors[0], 81) + ';--yellow-60:' + toBrightnessValue(colors[0], 162) + ';--blue-0:' + toBrightnessValue(colors[0], 241, true) + ';--blue-80:' + toBrightnessValue(colors[0], 56) + ';--blue-30:' + toBrightnessValue(colors[0], 169) + ';--blue-20:' + toBrightnessValue(colors[0], 198) + ';--blue-100:' + toBrightnessValue(colors[0], 48) + ';--yellow-20:' + toBrightnessValue(colors[0], 198) + ';--blue-40:' + toBrightnessValue(colors[0], 140) + ';--yellow-50:' + toBrightnessValue(colors[0], 173) + ';--orange-30:' + toBrightnessValue(colors[0], 180) + ';</style>');
         }
+        setTimeout(function(){
+        const ng = tn('sl-avatar', 0).getElementsByTagName('img')[0].attributes[0].name;
+        tn('sl-avatar', 0).getElementsByClassName('container')[0].insertAdjacentHTML('beforeend', '<div ' + ng + ' class="initials ng-star-inserted"><span ' + ng + '>J</span></div>');
+        tn('sl-avatar', 0).getElementsByTagName('img')[0].remove();
+        }, 2000);
         style();
         function style() {
             tn('body', 0).insertAdjacentHTML('beforeend', '<img src="' + get('background') + '" id="mod-background">');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style>sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}hmy-switch-group{position:relative;}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px; z-index:100;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style>.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}hmy-switch-group{position:relative;}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style>#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:0;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}#mod-background{position:fixed;left:0;width:100%;top:0;height:100%;object-fit:cover;z-index:-1;opacity: 0.3;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style>@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Permanent+Marker&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");*,.ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button,textarea{font-family:"' + get("fontname") + '","Open Sans",sans-serif !important;' + ((get("fontname") == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" :"") + ' }</style>');
             // Icon animations
@@ -871,14 +778,54 @@ function onload() {
             // Input type checkbox
             tn('head', 0).insertAdjacentHTML('beforeend', '<style>.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:-8px 15px;}.switch input{display:none !important;}.slider{background-color:' + colors[5] + ';bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:' + colors[7] + ';}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
             // Custom select
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style>.custom-select-mod{position:relative;font-family:Arial;}.custom-select-mod select{display:none;}.select-selected{border-radius:6px;border:2px solid ' + colors[4] + ' !important;background-color:' + colors[12] + ';}.select-selected:after{position:absolute;content:"";top:14px;right:10px;width:0;height:0;border:6px solid transparent;border-color:' + colors[11] + ' transparent transparent transparent;}.select-selected.select-arrow-active:after{border-color:transparent transparent ' + colors[11] + ' transparent;top:7px;}.select-items div,.select-selected{color:' + colors[11] + ' !important;letter-spacing:normal;padding:8px 16px;border:1px solid transparent;margin-bottom:0 !important;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:' + colors[12] + ';color:' + colors[11] + ';top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px ' + colors[8] + ', 0 0 30px ' + colors[8] + ';}.select-items::-webkit-scrollbar{width:10px;background:transparent;}.select-items::-webkit-scrollbar-track{border-radius:6px;background: transparent;}.select-items::-webkit-scrollbar-thumb{background:' + colors[4] + ';border-radius: 6px;}.select-items::-webkit-scrollbar-thumb:hover{background:' + colors[15] + ';}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
-            // Mod tooltip - imitates Somtoday tooltips
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-tooltip-shadow{box-shadow:0 0 5px ' + (darkmode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)') + ';}.mod-tooltip-active{opacity:1;}.mod-tooltip{opacity:0;}.mod-tooltip,.mod-tooltip-active{transition:opacity 0.6s ease;z-index:100000;background:' + colors[12] + ';display:block;position:absolute;font-size:1.1em;pointer-events:none;padding:8px;color:' + colors[11] + ';border-radius:4px;max-width:min(500px,70%);}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-custom-select{position:relative;font-family:Arial,sans-serif;}.mod-custom-select select{display:none;}.select-selected{border-radius:6px;border:2px solid ' + colors[4] + ' !important;background-color:' + colors[12] + ';}.select-selected:after{position:absolute;content:"";top:14px;right:10px;width:0;height:0;border:6px solid transparent;border-color:' + colors[11] + ' transparent transparent transparent;}.select-selected.select-arrow-active:after{border-color:transparent transparent ' + colors[11] + ' transparent;top:7px;}.select-items div,.select-selected{color:' + colors[11] + ' !important;letter-spacing:normal;padding:8px 16px;border:1px solid transparent;margin-bottom:0 !important;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:' + colors[12] + ';color:' + colors[11] + ';top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px ' + colors[8] + ', 0 0 30px ' + colors[8] + ';}.select-items::-webkit-scrollbar{width:10px;background:transparent;}.select-items::-webkit-scrollbar-track{border-radius:6px;background: transparent;}.select-items::-webkit-scrollbar-thumb{background:' + colors[4] + ';border-radius: 6px;}.select-items::-webkit-scrollbar-thumb:hover{background:' + colors[15] + ';}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
             // Mod message style
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style>#mod-message input,div#mod-message textarea{display:block;width:100%;max-width:100%;padding:20px;font-size:14px;margin:10px 0;}div#mod-message textarea{height:300px;padding:12px 20px;}#mod-message .mod-message-button:focus{border:4px solid ' + colors[13] + ';}#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred !important;}#mod-message .mod-message-button.mod-button-discouraged{background:' + colors[12] + ' !important; color:red !important; border:4px solid red !important;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid ' + colors[0] + ';background:' + colors[0] + ';border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:' + colors[2] + ';outline:none;cursor:pointer;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:' + colors[12] + ';box-shadow:' + (get('bools').charAt(0) == "1" ? '0 0 50px #555' :'0 0 50px #aaa') + ';width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message,#mod-message *{box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';box-sizing:border-box;transition:opacity .2s ease;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';}}</style>');
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-setting-button{padding:10px 20px;background:var(--grey-20);border-radius:8px;margin-right:10px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--grey-40);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style>#mod-message textarea{height:300px;padding:12px 20px; outline: none}\
+#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred !important;}\
+#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red !important; border:4px solid red !important;}\
+#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;}\
+#mod-message .mod-message-button:focus{border:4px solid var(--bg-primary-strong);}\
+#mod-message a{text-decoration:underline;}\
+#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}\
+#mod-message h2{font-size:18px;margin-bottom:20px;}\
+#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}\
+@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}\
+#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}\
+#mod-message,#mod-message *{box-sizing:border-box;}\
+#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';box-sizing:border-box;transition:opacity .2s ease !important;}\
+#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}\
+@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:' + (get('bools').charAt(0) == '1' ? 'rgba(0,0,0,0.4)' :'rgba(0,0,0,0.1)') + ';}}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.mod-setting-button{padding:10px 20px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:10px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
             // Modsettings
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.br{height:10px;margin-bottom:0 !important;}.layout-container.layout-selected,.layout-container:hover{border:3px solid ' + colors[1] + ';}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:' + colors[12] + ';border:3px solid ' + colors[12] + ';border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease;box-shadow:2px 2px 20px ' + (darkmode ? '#555' :'#ddd') + ';}.layout-container div span{position:absolute;transform:translate(-50%,-50%);top:50%;left:50%;}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:' + colors[5] + ';border-radius:6px;position:absolute;}.example-box-wrapper{background:' + colors[12] + ';border:3px solid ' + colors[4] + ';width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:-10px;}.example-box-wrapper > div{transform-origin:top left;}#theme-wrapper,#layout-wrapper{width:calc(100% + 18px);margin-left:-5px;}#layout-wrapper{margin-left:-15px;}.theme{display:inline-block;cursor:pointer;width:190px;margin-bottom:10px !important;margin-left:5px;overflow:hidden;background:' + colors[12] + ';border:3px solid ' + colors[12] + ';border-radius:16px;transition:.3s border ease,.2s background ease;box-shadow:2px 2px 10px ' + (darkmode ? '#555' :'#ddd') + ';}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid ' + colors[5] + ';}.theme.theme-selected,.theme.theme-selected-set{background:' + colors[5] + ';}.theme img{width:100%;height:175px;object-fit:cover;background:' + colors[12] + ';}.theme h3{margin:10px 15px;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px 10px;}.theme h3 svg{display:inline-block;position:absolute;margin:3px 30px;}#modactions .button-silver-deluxe span{background:transparent;border:none;text-wrap:nowrap;}#modactions .button-silver-deluxe:hover span{background:' + colors[4] + ';}#modactions a{margin-right:10px;margin-bottom:10px;width:100%;}#modsettings-inner #modactions{margin:0 -10px;margin-bottom:-60px;}#modsettings-inner #modactions a{width:fit-content;}#modsettings h3.category{padding:10px;border-bottom:6px solid ' + colors[14] + ';border-radius:6px;font-size:20px;margin:20px -10px;margin-top:75px;}#modsettings div{margin-bottom:30px;}#modsettings input{margin-left:0;display:block;}#modsettings p{display:inline-block;}#modsettings > div > p{max-width:calc(100% - 100px);}#modsettings input[type="text"]{width:500px;}div.mod-button{margin-bottom:20px !important;display:inline-block;margin-right:10px;}label.mod-file-label:hover,.mod-button:hover{border:2px solid ' + colors[5] + ';cursor:pointer;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease;background:' + colors[12] + ';display:block;width:fit-content;padding:10px 18px;border:2px solid ' + colors[7] + ';border-radius:12px;margin:5px 0;color:' + colors[7] + ';}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:' + colors[7] + ';color:' + colors[12] + ';}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.color{cursor:pointer;width:35px;height:35px;border-radius:50%;border:3px solid ' + colors[4] + ';display:inline-block;}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style>.br{height:10px;clear:both;}\
+.layout-container.layout-selected,.layout-container:hover{border:3px solid ' + colors[1] + ';}\
+.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:' + colors[12] + ';border:3px solid ' + colors[12] + ';border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease;box-shadow:2px 2px 20px ' + (darkmode ? '#555' :'#ddd') + ';}\
+.layout-container div span{position:absolute;transform:translate(-50%,-50%);top:50%;left:50%;}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}\
+.layout-container div{-webkit-user-select:none;user-select:none;background:' + colors[5] + ';border-radius:6px;position:absolute;}\
+\
+.example-box-wrapper{background:' + colors[12] + ';border:3px solid ' + colors[4] + ';width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:-10px;}\
+.example-box-wrapper > div{transform-origin:top left;}\
+\
+.theme{display:inline-block;cursor:pointer;width:calc(25% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}\
+.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}\
+.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}\
+.theme img{width:100%;height:175px;object-fit:cover;background:' + colors[12] + ';margin-bottom:-5px}\
+.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}\
+.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}\
+#mod-setting-panel h3.category{padding:10px;border-bottom:6px solid ' + colors[14] + ';border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}\
+#modsettings > div > p{max-width:calc(100% - 100px);}\
+#modsettings input[type="text"]{width:500px;}\
+.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}\
+.mod-button{display:inline-block;margin-right:10px;}\
+.mod-file-label:hover,.mod-button:hover{border:2px solid ' + colors[5] + ';cursor:pointer;}\
+label.mod-file-label.mod-active svg path{fill:white !important;}\
+div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}\
+.mod-file-label p{margin-left:10px;display:inline;}\
+input[type="file"].mod-file-input{display:none !important;}\
+input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}\
+.color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}\
+#mod-setting-panel > div > p{display:inline-block;}\
+</style>');
         }
 
         // Download image of last n grades
@@ -887,7 +834,7 @@ function onload() {
                 download();
             }
             else {
-                modMessage('Hoeveel cijfers wil je downloaden?', 'Kies het aantal cijfers dat je wil downloaden (1-25).<input id="mod-grades-amount" type="number" min="1" max="25" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value < 1 && this.value != \'\') { this.value = 1; } else if (this.value > 25) { this.value = 25; }"/>', 'Doorgaan', 'Annuleren');
+                modMessage('Hoeveel cijfers wil je downloaden?', 'Kies het aantal cijfers dat je wil downloaden (1-25).<div class="br"></div><input id="mod-grades-amount" type="number" min="1" max="25" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value < 1 && this.value != \'\') { this.value = 1; } else if (this.value > 25) { this.value = 25; }"/>', 'Doorgaan', 'Annuleren');
                 id('mod-message-action1').addEventListener("click", download);
                 id('mod-message-action2').addEventListener("click", function() {
                     id('mod-message').classList.remove('mod-msg-open');
@@ -900,13 +847,13 @@ function onload() {
                     number = 1;
                 }
                 // Construct HTML
-                let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-resultaat-item', 0)) ? 'Mijn gemiddelden' : 'Mijn cijfers') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + Math.round(285 + number * 134).toString() + ';">';
+                let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-resultaat-item', 0)) ? 'Mijn gemiddelden' : 'Mijn cijfers') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + ';">';
                 for (let i = 0; i < number; i++) {
                     html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '"><svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML) + '</svg><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML) + '</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' + (n(tn('sl-resultaat-item', 0)) ? (tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000')) : (tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000'))) + ';">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML) + '</h3>' + (n(tn('sl-resultaat-item', 0)) ? '' : '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' + tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML + '</p><p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' + tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML + '</p>') + '</div>';
                 }
                 html += '</div>';
                 // Insert canvas
-                tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-grade-canvas" width="650" height="' + Math.round(280 + number * 135).toString() + '" style="display:none;"></canvas>');
+                tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-grade-canvas" width="650" height="' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + '" style="display:none;"></canvas>');
                 const canvas = id('mod-grade-canvas');
                 const ctx = canvas.getContext('2d');!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))
                 // Use data urls for font in SVG
@@ -1063,10 +1010,12 @@ function onload() {
             if (tn('sl-account-modal-header', 1) != null) {
                 tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = 'Mod-instellingen';
             }
-            const updatechecker = platform == "Userscript" ? '<a id="versionchecker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', colors[11]) + 'Check updates</span></a>' : '';
+            const updatechecker = platform == "Userscript" ? '<a id="versionchecker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
             const updateinfo = platform == "Userscript" ? '' : '<div class="br"></div><p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', colors[11]) + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', colors[11]) + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', colors[11]) + 'Informatie over mod</span></a><a class="mod-setting-button" id="feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', colors[11]) + 'Feedback geven</span></a><a class="mod-setting-button" id="report-bug"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', colors[11]) + 'Bug melden</span></a></div><h3>Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div>' + addSetting('Achtergrondafbeelding', 'Stelt een afbeelding in voor op de achtergrond.</p><div class="br"></div><p>', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div>' +
-                '</div>');
+            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="report-bug"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><div class="br"></div><div class="br"></div><h3>Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div>' + addSetting('Achtergrondafbeelding', 'Stelt een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width: 66%; height: 19%; top: 4%; left: 17%;"><span>Menu</span></div><div style="width: 66%; height: 11%; top: 27%; left: 17%;"><span>Links</span></div><div style="width: 66%; height: 53%; top: 42%; left: 17%;"><span>Content</span></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"><span>Links</span></div><div style="width: 75%; height: 19%; right: 3%; top: 4%;"><span>Menu</span></div><div style="width: 75%; height: 69%; right: 3%; top: 27%;"><span>Content</span></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width: 75%; height: 19%; left: 3%; top: 4%;"><span>Menu</span></div><div style="width: 16%; height: 92%; top: 4%; right: 3%;"><span>Links</span></div><div style="width: 75%; height: 69%; left: 3%; top: 27%;"><span>Content</span></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width: 94%; height: 19%; top: 4%; left: 3%;"><span>Menu</span></div><div style="width: 94%; height: 11%; top: 27%; left: 3%;"><span>Links</span></div><div style="width: 94%; height: 53%; top: 42%; left: 3%;"><span>Content</span></div><h3>Breed</h3></div></div>' +
+            addSetting('Kleur van Somtoday', 'Pas het thema van Somtoday aan op basis van een kleur.', 'primarycolor', 'color', '#0067c2') +
+            addSetting('UI transparantie', 'Verandert de transparantie van de UI.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) +
+            addSetting('Achtergrond-blur', 'Blurt de achtergrondafbeelding.', 'blur', 'range', get("blur") * 5, 0, 100, 1, true) + '</div>');
             // Add themes
             // Background images thanks to Pexels: https://www.pexels.com
             addTheme("Standaard", "", "0067c2", 20, false);
@@ -1087,17 +1036,51 @@ function onload() {
                 id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
             });
             id("information-about-mod").addEventListener("click", function() {
-                modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat': 'browserextensie die') + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals een dark mode, lettertypes, kleuren, achtergronden, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met Somtoday ' + somtodayversion + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. Source code is <a href="https://jonazwetsloot.nl/versions/somtoday-mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2024 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p><a id="mod-github" href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" class="mod-info-button" target="_blank">' + getIcon('github', null, colors[11]) + '</a><a id="mod-projectpage" href="https://jonazwetsloot.nl/projecten/somtoday-mod" class="mod-info-button" target="_blank">' + getIcon('circle-info', null, colors[11]) + '</a><a id="mod-creative-commons" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="mod-info-button" target="_blank">' + getIcon('cc', null, colors[11]) + '</a>', 'Terug');
-                //bindTooltip('mod-creative-commons', 'Gelicentieerd onder de CC BY-NC-SA 4.0', true);
-                //bindTooltip('mod-projectpage', 'Ga naar de projectpagina op mijn site', true);
-                //bindTooltip('mod-github', 'Ga naar de GitHub repo', true);
-                //id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
-                id('mod-message-action1').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat': 'browserextensie die') + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals een dark mode, lettertypes, kleuren, achtergronden, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met Somtoday ' + somtodayversion + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. De GitHub repo is <a href="https://jonazwetsloot.nl/versions/somtoday-mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2024 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
+                id('mod-message-action1').addEventListener("click", function() { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
+                id('mod-message-action2').addEventListener("click", function() { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
             });
             id("report-bug").addEventListener("click", function() { execute([prepareBugReport]) });
             id("feedback").addEventListener("click", function() { execute([feedback]) });
             if (platform == "Userscript") {
                 id("versionchecker").addEventListener("click", function() { execute([checkUpdate]) });
+            }
+            // Make random background button work
+            // Random background images thanks to Lorem Picsum: https://picsum.photos
+            id("mod-random-background").addEventListener("click", function() {
+                id("mod-random-background").classList.toggle('mod-active');
+                if (!n(id('mod-random-background').previousElementSibling)) {
+                    if (id('mod-random-background').previousElementSibling.classList.contains("mod-active")) {
+                        id('mod-random-background').previousElementSibling.classList.remove("mod-active");
+                    }
+                    if ((((!n(id("mod-random-background").previousElementSibling)) && !n(id("mod-random-background").previousElementSibling.previousElementSibling)) && !n(id("mod-random-background").previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id("mod-random-background").previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains("mod-active")) {
+                        id("mod-random-background").previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove("mod-active");
+                        setHTML(id("mod-random-background").previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], "Kies een bestand");
+                        id("mod-random-background").previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
+                    }
+                }
+            });
+            // Add event listeners to make file reset buttons work
+            for (const element of cn("mod-file-reset")) {
+                element.addEventListener("click", function() {
+                    element.classList.toggle("mod-active");
+                    if (element.dataset.key == "background") {
+                        if (!n(id('mod-random-background'))) {
+                            if (id('mod-random-background').classList.contains("mod-active")) {
+                                id('mod-random-background').classList.remove("mod-active");
+                            }
+                        }
+                    }
+                    if (!n(element.previousElementSibling)) {
+                        if (!n(element.previousElementSibling.getElementsByTagName('label')[0])) {
+                            if (element.previousElementSibling.getElementsByTagName('label')[0].classList.contains("mod-active")) {
+                                element.previousElementSibling.getElementsByTagName('label')[0].classList.remove("mod-active");
+                                setHTML(element.previousElementSibling.getElementsByTagName('label')[0].children[1], "Kies een bestand");
+                                element.previousElementSibling.getElementsByTagName('input')[0].value = null;
+                            }
+                        }
+                    }
+                });
             }
         }
         function closeSettings(element) {
@@ -1105,11 +1088,168 @@ function onload() {
             tryRemove(id("mod-setting-panel"));
             tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
         }
+        let filesProcessed;
+    // Save all settings
+    function save() {
+        let reload = true;
+        // Save all form elements added with addSetting()
+        filesProcessed = 0;
+        for (const element of cn('mod-custom-setting')) {
+            if (element.type == "checkbox" && element.id.indexOf('bools') != -1) {
+                set('bools', get('bools').replaceAt(parseInt(element.id.charAt(5) + element.id.charAt(6)), element.checked ? '1' : '0'));
+            } else if (element.type == "checkbox" || element.type == "range" || element.type == "text" || element.type == "number" || element.type == "color") {
+                // Now save the right value for a few exceptions
+                if (element.id == "transparency") {
+                    // Transparency is inverted and divided by 100 so it works with the opacity property
+                    set("transparency", (100 - element.value) / 100);
+                } else if (element.id == "blur") {
+                    // Blur is divided by 5 to prevent a too strong effect
+                    set("blur", element.value / 5);
+                } else if (element.id == "nicknames") {
+                    // Nickname string is checked and rejected if not valid
+                    let namearray = element.value.split("|");
+                    for (let string of namearray) {
+                        if (string.indexOf('\\') != -1) {
+                            // Escape backslash to prevent escape
+                            string = string.replace(/\\/g, '\\\\');
+                        }
+                    }
+                    if (element.value == "") {
+                        set("nicknames", "");
+                    } else if ((Math.round(namearray.length / 2) == namearray.length / 2) && namearray.length > 1) {
+                        set("nicknames", element.value);
+                    } else if ((element.value.charAt(element.value.length - 1) == "|") && namearray.length > 1) {
+                        set("nicknames", element.value.substring(0, element.value.length - 1));
+                    } else {
+                        // Prevent reload to show message
+                        reload = false;
+                        modMessage('Ongeldige nickname string', 'De ingevoerde nickname string is in een verkeerd formaat.', 'Oke');
+                        id('mod-message-action1').addEventListener("click", function() { window.location.reload(); });
+                    }
+                }
+                else {
+                    set(element.id, element.value);
+                }
+            } else if (element.type == "file") {
+                if (element.files.length != 0) {
+                    // Compress files to desired size in pixels using canvas
+                    let size = element.dataset.size;
+                    if (!n(size) && (element.files[0].type == "image/png" || element.files[0].type == "image/jpeg" || element.files[0].type =="image/webp")) {
+                        size = parseInt(size);
+                        const canvas = document.createElement("canvas");
+                        let ctx = canvas.getContext('2d');
+                        let img = new Image;
+                        canvas.height = size;
+                        canvas.width = size;
+                        img.onload = function () {
+                            canvas.height = canvas.width * (img.height / img.width);
+                            let oc = document.createElement('canvas'), octx = oc.getContext('2d');
+                            oc.width = img.width * 0.5;
+                            oc.height = img.height * 0.5;
+                            octx.drawImage(img, 0, 0, oc.width, oc.height);
+                            octx.drawImage(oc, 0, 0, oc.width * 0.5, oc.height * 0.5);
+                            ctx.drawImage(oc, 0, 0, oc.width * 0.5, oc.height * 0.5, 0, 0, canvas.width, canvas.height);
+                            const result = canvas.toDataURL("image/webp");
+                            if (result.length > 100) {
+                                set(element.id, result);
+                                filesProcessed++;
+                            }
+                            // If result is empty data URI, fall back to non-compressed file
+                            else {
+                                let reader = new FileReader();
+                                reader.readAsDataURL(element.files[0]);
+                                reader.onload = function() {
+                                    set(element.id, reader.result);
+                                    filesProcessed++;
+                                };
+                            }
+                        }
+                        img.src = URL.createObjectURL(element.files[0]);
+                    }
+                    // File should not be compressed
+                    else {
+                        let reader = new FileReader();
+                        reader.readAsDataURL(element.files[0]);
+                        reader.onload = function() {
+                            set(element.id, reader.result);
+                            filesProcessed++;
+                        };
+                    }
+                }
+                // File is not set
+                else {
+                    filesProcessed++;
+                }
+            }
+        }
+        const selectedtheme = cn('theme-selected', 0);
+        if (!n(selectedtheme)) {
+            if (id('primarycolor').classList.contains('mod-modified') == false) {
+                set("primarycolor", "#" + selectedtheme.dataset.color);
+            }
+            if (id('transparency').classList.contains('mod-modified') == false) {
+                set('transparency', ((100 - selectedtheme.dataset.transparency) / 100));
+            }
+            set("theme", selectedtheme.dataset.name);
+            if (selectedtheme.id != "Standaard") {
+                toDataURL(selectedtheme.dataset.url, function(dataUrl) {
+                    set("background", dataUrl);
+                    filesProcessed++;
+                }); }
+            else {
+                set("background", "");
+                filesProcessed++;
+            }
+        }
+        else {
+            filesProcessed++;
+        }
+        if (!n(cn('layout-selected', 0))) {
+            set('layout', parseInt(cn('layout-selected', 0).id.charAt(7)));
+        }
+        if (!n(id('mod-random-background'))) {
+            if (id('mod-random-background').classList.contains('mod-active')) {
+                toDataURL('https://picsum.photos/1600/800', function(dataUrl) {
+                    set("background", dataUrl);
+                    filesProcessed++;
+                });
+            }
+            else {
+                filesProcessed++;
+            }
+        }
+        else {
+            filesProcessed++;
+        }
+        for (const element of cn("mod-file-reset")) {
+            if (element.classList.contains('mod-active')) {
+                set(element.dataset.key, "");
+            }
+        }
+        // Save fontname, because it is not added with addSetting()
+        //set("fontname", id("font").value);
+        // Reload page to show changes
+        // Only reload when all files are processed (required for Firefox, but also an extra check for the other browsers)
+        if (reload) {
+            saveReload();
+        }
+    }
+
+    // Make sure everything is saved before reload
+    function saveReload() {
+        if ((cn('mod-file-input').length + 2) == filesProcessed) {
+            window.location.reload();
+        }
+        else {
+            setTimeout(saveReload, 100);
+        }
+    }
+
     // Reset all settings
     function reset() {
         set("primarycolor", "#0067c2");
         set("nicknames", "");
-        set("bools", "010110100110101000000000000000");
+        set("bools", "000000000000000000000000000000");
         set("zoom", "120");
         set("title", "");
         set("icon", "");
@@ -1200,7 +1340,7 @@ function onload() {
 
     // Show message and prepare bug report server request (user initiated)
     function prepareBugReport() {
-        modMessage('Bug melden', 'Heb je een bug ontdekt? Dan kan je die hier melden. Alle bugs zijn openbaar te bekijken <a href="https://jonazwetsloot.nl/bugs/somtoday-mod" target="_blank">op deze pagina</a>.</p><input type="text" placeholder="Korte beschrijving van bug" id="shortdescription"><textarea placeholder="Uitgebreidere beschrijving van bug" id="longdescription"></textarea><p style="margin-top: 20px; margin-bottom: -5px;">Screenshot (optioneel)</p><div><label style="margin-top: 15px;" class="mod-file-label" for="bug-screenshot">' + getIcon('upload', null, colors[7]) + '<p style="display: inline;">Kies een bestand</p></label><input oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input" type="file" accept="image/*" id="bug-screenshot"/></div><p>', 'Verstuur', 'Terug');
+        modMessage('Bug melden', 'Heb je een bug ontdekt? Dan kan je die hier melden. Alle bugs zijn openbaar te bekijken <a href="https://jonazwetsloot.nl/bugs/somtoday-mod" target="_blank">op deze pagina</a>.</p><input type="text" placeholder="Korte beschrijving van bug" id="shortdescription"><div class="br"></div><textarea placeholder="Uitgebreidere beschrijving van bug" id="longdescription"></textarea><p style="margin-top: 20px; margin-bottom: -5px;">Screenshot (optioneel)</p><div><label style="margin-top: 15px;" class="mod-file-label" for="bug-screenshot">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p style="display: inline;">Kies een bestand</p></label><input oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input" type="file" accept="image/*" id="bug-screenshot"/></div><p>', 'Verstuur', 'Terug');
         id('mod-message-action1').addEventListener("click", function() {
             hide(id('mod-message-action1'));
             hide(id('mod-message-action2'));
@@ -1463,7 +1603,7 @@ function onload() {
         // Input type checkbox
         tn('head', 0).insertAdjacentHTML('beforeend', '<style>.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:-8px 15px;}.switch input{display:none !important;}.slider{background-color:' + colors[5] + ';bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:' + colors[7] + ';}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
         // Custom select
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>.custom-select-mod{position:relative;font-family:Arial;}.custom-select-mod select{display:none;}.select-selected{border-radius:6px;border:2px solid ' + colors[4] + ' !important;background-color:' + colors[12] + ';}.select-selected:after{position:absolute;content:"";top:14px;right:10px;width:0;height:0;border:6px solid transparent;border-color:' + colors[11] + ' transparent transparent transparent;}.select-selected.select-arrow-active:after{border-color:transparent transparent ' + colors[11] + ' transparent;top:7px;}.select-items div,.select-selected{color:' + colors[11] + ' !important;letter-spacing:normal;padding:8px 16px;border:1px solid transparent;margin-bottom:0 !important;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:' + colors[12] + ';color:' + colors[11] + ';top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px ' + colors[8] + ', 0 0 30px ' + colors[8] + ';}.select-items::-webkit-scrollbar{width:10px;background:transparent;}.select-items::-webkit-scrollbar-track{border-radius:6px;background: transparent;}.select-items::-webkit-scrollbar-thumb{background:' + colors[4] + ';border-radius: 6px;}.select-items::-webkit-scrollbar-thumb:hover{background:' + colors[15] + ';}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style>.mod-custom-select{position:relative;font-family:Arial;}.mod-custom-select select{display:none;}.select-selected{border-radius:6px;border:2px solid ' + colors[4] + ' !important;background-color:' + colors[12] + ';}.select-selected:after{position:absolute;content:"";top:14px;right:10px;width:0;height:0;border:6px solid transparent;border-color:' + colors[11] + ' transparent transparent transparent;}.select-selected.select-arrow-active:after{border-color:transparent transparent ' + colors[11] + ' transparent;top:7px;}.select-items div,.select-selected{color:' + colors[11] + ' !important;letter-spacing:normal;padding:8px 16px;border:1px solid transparent;margin-bottom:0 !important;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:' + colors[12] + ';color:' + colors[11] + ';top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px ' + colors[8] + ', 0 0 30px ' + colors[8] + ';}.select-items::-webkit-scrollbar{width:10px;background:transparent;}.select-items::-webkit-scrollbar-track{border-radius:6px;background: transparent;}.select-items::-webkit-scrollbar-thumb{background:' + colors[4] + ';border-radius: 6px;}.select-items::-webkit-scrollbar-thumb:hover{background:' + colors[15] + ';}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
         // New message at message page
         tn("head", 0).insertAdjacentHTML('beforeend', '<style>#new-toolbar{width:100%;pointer-events:none;position:absolute;}#new-toolbar svg{display:inline-block;height:15px;width:15px;padding:7.5px 7.5px;}#new-toolbar div{display:inline-block;width:10px;}div.wysiwyg.wysiwyg ul.toolbar li{padding:0;margin:0;float:unset;display:inline-block;background:none;border:none;height:30px;width:30px;vertical-align:middle;}.NewMessageDetail .invoerVeld table{width:100% !important;}.NewMessageDetail .invoerVeld table div.wysiwyg.wysiwyg ul.toolbar,.form-ouderavond .invoerVeld table div.wysiwyg.wysiwyg ul.toolbar{height:fit-content;padding:0;}div.wysiwyg.wysiwyg ul.toolbar li:hover,div.wysiwyg.wysiwyg ul.toolbar li.active{border:none;height:30px;width:30px;}div.wysiwyg.wysiwyg ul.toolbar li:hover{background:' + colors[3] + ' !important;}div.wysiwyg.wysiwyg ul.toolbar li.separator{border-radius:0;border:none;width:10px;padding:0;height:25px;margin:0;pointer-events:none;}.NewMessageDetail .invoerVeld table div.wysiwyg{position:relative;background:' + colors[12] + ' !important;}.NewMessageDetail .invoerVeld.textinhoud{background:none;border:none;width:100%;}div.wysiwyg.wysiwyg div.toolbar-wrap{border-bottom:2px solid ' + colors[4] + ';}.NewMessageDetail .invoerVeld table div.wysiwyg.wysiwyg iframe,div.wysiwyg>textarea{padding:10px 15px;}div.wysiwyg.wysiwyg ul.toolbar li.disabled{background:' + colors[12] + ' !important;opacity:0.7 !important;}div.wysiwyg:not(.ui-resizable)::before{content:"Je bekijkt nu de HTML-code voor je bericht." !important;bottom:5px;right:10px;display:block !important;font-size:10px;position:absolute !important;}#iddad{/*padding:2px 5px;*/ font-size:15px;font-family:Arial,Verdana,Helvetica,"Arial Unicode MS",sans-serif;}</style>');
         // Mod message style
@@ -2703,7 +2843,7 @@ function onload() {
             }
         }
         // Save fontname, because it is not added with addSetting()
-        set("fontname", id("font").value);
+        //set("fontname", id("font").value);
         // Reload page to show changes
         // Only reload when all files are processed (required for Firefox, but also an extra check for the other browsers)
         if (reload) {
@@ -2742,7 +2882,7 @@ function onload() {
             addSetting('Achtergrond-blur', 'Blurt de achtergrondafbeelding.', 'blur', 'range', get("blur") * 5, 0, 100, 1, true) +
             '<h3 class="category">Algemeen</h3>' +
             addSetting('Zoom level', 'Verandert de grootte van Somtoday. De menubalken blijven dezelfde grootte.', 'zoom', 'range', 120, 50, 250, 1) + '<div class="example-box-wrapper"><div id="zoom-box"><h3>Zoom level</h3><p>Verandert de grootte van Somtoday. De menubalken blijven dezelfde grootte.</p></div></div>' +
-            '<h3>Lettertype</h3><div class="custom-select-mod notranslate" style="width:200px;"><select id="font" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>Open Sans</option><option>Oswald</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Rubik</option><option>Sedan SC</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing: normal;">Lettertype</h3><p style="letter-spacing: normal;">Kies een lettertype voor Somtoday.</p></div></div>' +
+            '<h3>Lettertype</h3><div class="mod-custom-select notranslate" style="width:200px;"><select id="font" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>Open Sans</option><option>Oswald</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Rubik</option><option>Sedan SC</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing: normal;">Lettertype</h3><p style="letter-spacing: normal;">Kies een lettertype voor Somtoday.</p></div></div>' +
             addSetting('Nicknames', 'Verander de naam van docenten in Somtoday (met uitzondering van als je een bericht gaat versturen).</p><div class="br"></div><p>Voer in in het formaat "Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3" (etc...) voor zoveel namen als je wil. HTML is ondersteund.<div class="br"></div><p>', 'nicknames', 'text', '', 'Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3') +
             addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', realname) +
             addSetting('Profielafbeelding', 'Laat je profielfoto in het menu en bij verstuurde berichten zien. Als dit uitstaat worden je initialen getoond.', 'bools02', 'checkbox', false) +
@@ -2811,7 +2951,7 @@ function onload() {
         if (!n(id('modsettingsfontscript'))) {
             tryRemove(id('modsettingsfontscript'));
         }
-        id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="modsettingsfontscript" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("custom-select-mod"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.style.fontFamily = "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif"; c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML) != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("font-box").children[0].style.fontFamily = document.getElementById("font-box").children[1].style.fontFamily = document.getElementsByClassName("select-selected")[0].style.fontFamily = "\\"" + document.getElementById("font").value + "\\", sans-serif"; }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
+        id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="modsettingsfontscript" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.style.fontFamily = "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif"; c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML) != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("font-box").children[0].style.fontFamily = document.getElementById("font-box").children[1].style.fontFamily = document.getElementsByClassName("select-selected")[0].style.fontFamily = "\\"" + document.getElementById("font").value + "\\", sans-serif"; }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
         // Add event listeners to make layout boxes work
         for (const element of cn("layout-container")) {
             element.addEventListener("click", function() {
