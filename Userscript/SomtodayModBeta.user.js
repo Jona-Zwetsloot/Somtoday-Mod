@@ -4,9 +4,7 @@
 // @version      4.0
 // @description  Give Somtoday a new look with this script.
 // @author       Jona Zwetsloot
-// @match        https://*.somtoday.nl/home/*
-// @match        https://leerling.somtoday.nl/*
-// @match        https://*.somtoday.nl/error*
+// @match        https://*.somtoday.nl/*
 // @match        https://som.today/*
 // @icon         https://jonazwetsloot.nl/images/SomtodayModIcon.png
 // @grant        GM_getValue
@@ -68,7 +66,6 @@
 const version = 4.0;
 const platform = "Userscript";
 const minified = false;
-const initialLoad = performance.now();
 let isloaded = false;
 let loadInterval;
 let data;
@@ -301,8 +298,10 @@ function tryLoad() {
         if (platform == "Userscript" || (data != null && data.enabled)) {
             tn('html', 0).style.opacity = "1";
             if (n(tn('sl-home', 0)) && n(tn('sl-error', 0))) {
-                tn('html', 0).removeAttribute('style');
-                execute([legacy]);
+                if (window.location.href.indexOf('/home/') != -1 || window.location.href.indexOf('/error') != -1) {
+                    tn('html', 0).removeAttribute('style');
+                    execute([legacy]);
+                }
             }
             else {
                 execute([onload]);
@@ -552,6 +551,7 @@ function onload() {
             modMessage('Somtoday update!', 'Somtoday heeft een grote update gekregen! Somtoday Mod is hier op voorbereid en heeft aanpassingen gemaakt. De mod-instellingen zijn nu te vinden in een apart tabblad in de instellingen van Somtoday. Het is mogelijk dat je sommige instellingen opnieuw moet instellen.', 'Doorgaan');
             id('mod-message-action1').addEventListener("click", function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
             set("bools", "110101110111000000000000000000");
+            set("secondarycolor", "#e69b22");
         }
         set('version', version);
     }

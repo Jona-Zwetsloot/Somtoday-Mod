@@ -3,7 +3,7 @@
     "message": "Somtoday Mod"
   },
   "extDescription": {
-    "message": "Adjust the appearance of Somtoday. Adds a dark mode, background images, fonts, colors and more."
+    "message": "Adjust the appearance of Somtoday. Adds background images, fonts, colors and more."
   },
   "activeText": {
     "message": "Somtoday Mod is activated!"
@@ -15,13 +15,13 @@
     "message": "Settings"
   },
   "newOne": {
-    "message": "Fixed nicknames bug"
+    "message": "Added support for Somtoday update in august"
   },
   "newTwo": {
-    "message": "Improved change username function"
+    "message": "Fixed nicknames, calendar and settings bug"
   },
   "newThree": {
-    "message": "Fixed bugs at profile page"
+    "message": "Grade and roster text problems fixed"
   },
   "whatsNew": {
     "message": "See what's new"
