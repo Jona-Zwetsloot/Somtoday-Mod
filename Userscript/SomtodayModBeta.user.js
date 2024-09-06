@@ -12,7 +12,7 @@
 // @run-at       document-start
 // ==/UserScript==
 
-// SOMTODAY MOD FULL VERSION
+// SOMTODAY MOD BETAVERSION (SOME THINGS MAY NOT WORK)
 // Somtoday Mod (c) 2023-2024 by Jona Zwetsloot is licensed under CC BY-NC-SA 4.0
 // This means you are free to edit and share this code if you attribute the maker. You also have to use the same license and you are not allowed to use this software for commercial purposes.
 // See https://jonazwetsloot.nl/projecten/somtoday-mod for more information about Somtoday Mod.
@@ -63,7 +63,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 4.2;
+const version = 4.3;
 const platform = "Userscript";
 const minified = false;
 let isloaded = false;
@@ -315,7 +315,14 @@ function tryLoad() {
 
 // Report bug if user has given permission (when error happens)
 let somtodayversion;
+let rateLimitDate;
 function sendDebugData(name, error) {
+    // Rate limit: 1 debug data request per 20 seconds
+    // This is to prevent flooding the log
+    if (rateLimitDate != null && (Date.now() - rateLimitDate) / 1000 < 20) {
+        return;
+    }
+    rateLimitDate = Date.now();
     if (get("bools") == null || get("bools").charAt(5) == "1") {
         fetch("https://jonazwetsloot.nl/reporterror?product=Somtoday%20Mod%20" + platform + "&function=" + name.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0') + "&cause=" + error.toString().replace(/\n/g, '%0A').replace(/[\\"']/g, '\$&').replace(/\u0000/g, '\0') + "&page=" + window.location.href.split('/').pop().split('?')[0] + "&version=" + somtodayversion + "&productversion=" + version + "&settings=" + get("bools") + "");
     }
@@ -368,7 +375,7 @@ function toBrightnessValue(color, target) {
     let i;
     let brightness;
     const startColor = color;
-    for (i = 1; i <= 10; i++) {
+    for (i = 1; i <= 5; i++) {
         brightness = Math.round(getRelativeLuminance(hexToRgb(color)));
         color = adjust(color, target - brightness);
     }
@@ -452,20 +459,97 @@ function onload() {
         setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\n© Jona Zwetsloot | Versie " + somtodayversion + " van Somtoday | Versie " + version + " van Somtoday Mod " + platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
     }
 
+    let isRecapping = false;
     // Executes when page changes
-    function pageUpdate() {
-        if (isCollectingRecapData) {
+    function pageUpdate(updateStyle = true, updateLogo = true) {
+        if (busy || isCollectingRecapData || isRecapping) {
             return;
         }
         darkmode = tn('html', 0).classList.contains('dark');
         busy = true;
-        execute([profilePicture, teacherNicknames, userName, modLogo, updateCssVariables, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap]);
+        execute([profilePicture, teacherNicknames, userName, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify]);
+        if (updateStyle) {
+            execute([updateCssVariables]);
+        }
+        if (updateLogo) {
+            execute([modLogo]);
+        }
         // Execute resize event
-        window.dispatchEvent(new Event('resize'));
-        // Allow this function to be executed again after 100ms
+        //window.dispatchEvent(new Event('resize'));
+        // Allow this function to be executed again after 50ms
         setTimeout(function () {
             busy = false;
-        }, 100);
+        }, 50);
+    }
+
+    // Simplify the roster page
+    function rosterSimplify() {
+        if (get('bools').charAt(3) == "1") {
+            let timeIndicatorPositioned = false;
+            // Position time indicator at end if it is past the last
+            if (!n(cn('tijdlijn', 0))) {
+                let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
+                if (!n(elements[0])) {
+                    let hour = elements[elements.length - 1].getElementsByClassName('opacity-80')[0].innerHTML;
+                    hour = parseInt(hour.substring(0, hour.length - 1));
+                    if (isNaN(hour)) {
+                    }
+                    else {
+                        cn('tijdlijn', 0).style.top = (hour * 84 + 84) + 'px';
+                    }
+                    timeIndicatorPositioned = true;
+                }
+            }
+            if (!n(tn('sl-rooster-tijden', 0))) {
+                let i = 0;
+                for (const element of tn('sl-rooster-tijden', 0).children) {
+                    if (!n(element.getElementsByTagName('span')[0])) {
+                        element.getElementsByTagName('span')[0].innerHTML = i.toString() + 'e uur';
+                    }
+                    i++;
+                }
+            }
+            tn('sl-rooster-weken', 0).style.marginTop = '-60px';
+            let currentTime = today.getHours() + (today.getMinutes() / 60);
+            for (const parent of tn('sl-rooster-week')) {
+                if (!parent.ariaHidden) {
+                    let prevHour = 1;
+                    let prevHeight = 0;
+                    let lastHour = 1;
+                    for (const element of parent.getElementsByTagName('sl-rooster-item')) {
+                        if (!n(element.getElementsByClassName('opacity-80')[0])) {
+                            let hour = element.getElementsByClassName('opacity-80')[0].innerHTML;
+                            hour = parseInt(hour.substring(0, hour.length - 1));
+                            let lessonTime = element.getElementsByClassName('opacity-80')[0].parentElement.children[1].innerHTML.split(':');
+                            lessonTime = lessonTime[0] + (lessonTime[1] / 60);
+                            let top;
+                            if (isNaN(hour)) {
+                                top = prevHour * 84 + prevHeight;
+                                prevHour++;
+                                if (prevHour > lastHour) {
+                                    lastHour = prevHour;
+                                }
+                            }
+                            else {
+                                prevHour = hour;
+                                top = hour * 84;
+                                if (hour > lastHour) {
+                                    lastHour = hour;
+                                }
+                            }
+                            element.style.top = top + 'px';
+                            if (!isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && currentTime < lessonTime && !timeIndicatorPositioned) {
+                                cn('tijdlijn', 0).style.top = (top - 84) + 'px';
+                            }
+                            prevHeight = element.clientHeight;
+                        }
+                    }
+                    tn('sl-rooster-weken', 0).style.height = (Math.max(lastHour + 2, 5) * 84 + 30) + 'px';
+                    tn('sl-rooster-weken', 0).style.overflow = 'hidden';
+                }
+            }
+            tn('sl-vakantie-header', 0).style.borderTop = 'none';
+        }
     }
 
     // Execute pageUpdate when page changes
@@ -476,12 +560,14 @@ function onload() {
                 setTimeout(function () { execute([pageUpdate]); }, 5);
             }
         });
-        setInterval(function () { if (!busy) { execute([pageUpdate]); } }, 250);
+        //setInterval(function () { if (!busy) { pageUpdate(false, false) } }, 1000);
         pageobserver.observe(tn('html', 0), {
             attributes: true,
             subtree: true,
             childList: true
         });
+        window.addEventListener("resize", function() { pageUpdate(false, true) });
+        window.addEventListener("click", function() { pageUpdate(false, true) });
     }
 
     // Apply style
@@ -505,11 +591,14 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">html, body{scrollbar-width:none !important;}</style>');
         }
         // General style
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}hmy-switch-group{position:relative;}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;}.mod-info-notice svg{height:20px;position:absolute;margin-left:-30px;margin-top:-4px }#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:0;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
+        /*if (get('bools').charAt(3) == "1") {
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-week .uur:first-of-type{border-bottom:0 !important;}</style>');
+        }*/
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}hmy-switch-group,sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;position:relative;background-color:var(--bg-elevated-weakest);}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;}.mod-info-notice svg{height:20px;position:absolute;margin-left:-30px;margin-top:-4px }#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}</style>');
         // Somtoday Recap
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:91px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;top:50%;transform:translateY(-50%);position:absolute;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:52px;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:32px;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:32px;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:24px;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{margin-left:10px;display:inline-block;color:#fff;vertical-align:middle;font-size:26px;margin-top:0;}#somtoday-recap-wrapper label.wrong p{color:#ff0000;}#somtoday-recap-wrapper label.right p{color:#00ff00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(14.2857% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:70px;right:30px;cursor:pointer;color:#fff;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;top:50%;transform:translateY(-50%);position:absolute;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:52px;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:32px;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:32px;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:24px;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{margin-left:10px;display:inline-block;color:#fff;vertical-align:middle;font-size:26px;margin-top:0;}#somtoday-recap-wrapper label.wrong p{color:#ff0000;}#somtoday-recap-wrapper label.right p{color:#00ff00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(14.2857% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:70px;right:30px;cursor:pointer;color:#fff;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.circles{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; } .circles li{ position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px; } .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; } .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; } .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; } .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; } .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; } .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; } .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; } .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; } .circles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; } .circles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; } @keyframes animate { 0%{ transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }</style>');
         // Font
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=Grenze+Gotisch&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Oswald&family=Permanent+Marker&family=Pixelify+Sans&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");*:not(.mod-custom-select *):not(#font-box *){font-family:"' + get("fontname") + '","Open Sans",sans-serif !important;' + ((get("fontname") == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + ' }</style>');
@@ -527,14 +616,18 @@ function onload() {
         tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-setting-button{padding:10px 20px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:10px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
         // Modsettings
         tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}}</style>');
+        // Make sure everything is readable with background with 100% ui transparency
+        if (!n(get("background")) && get('layout') != 4) {
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week{border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-studiewijzer-dag{border-right:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.uur{border-left:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-vakresultaten{background-color:' + (tn('html', 0).classList.contains('dark') ? '#000' : '#fff') + ';padding:20px !important;}sl-geen-data .action-primary-normal{color:' + (tn('html', 0).classList.contains('dark') ? '#3aa1ff' : '#8dc9ff') + ';}sl-geen-data > span{text-shadow:0 0 10px black;color:white !important;margin-top:20px;}sl-geen-data{background:rgba(' + (tn('html', 0).classList.contains('dark') ? '0,0,0' : '255,255,255') + ',0.5);padding:30px 60px;border-radius:24px;}</style>');
+        }
         // Adjust menu for layout 2, 3 and 4
         if (get('layout') == 2 || get('layout') == 3) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') == 2 ? 'left' : 'right') + ':120px !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}#mod-logo{width:100%;height:60px;margin:20px 0;}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') == 2 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;width:120px !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:100px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') == 2 ? 'left' : 'right') + ':0;border-top:none;width:100px;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;padding-top:25px;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{position:fixed;bottom:20px;' + (get('layout') == 2 ? 'left' : 'right') + ':23px;pointer-events:all;--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) {.header,.headers-container{top:0 !important;}.berichten-lijst{height:calc(100vh - 160px + 96px) !important;}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) and (max-width: 1279px) {sl-header{background:none !important;pointer-events:none !important;}sl-header > div:first-of-type,sl-header .back-button{pointer-events:all !important;}sl-berichten > .container{margin-top:-64px !important;}.berichten-lijst{margin-top:64px !important;margin-bottom:0 !important;}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width: 766px) {sl-header:not(.with-back-button){border-bottom:none !important;--column-width: 100% !important;}sl-header.with-back-button .title{margin-left:30px;}sl-header .title{position:absolute !important; left: 20px;}sl-dagen-header{top:calc(64px + var(--safe-area-inset-top)) !important;border-bottom:none !important;}.container > sl-scrollable-title{display:none !important;}.berichten-lijst{margin-top:64px !important;margin-bottom:0 !important;}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-sidebar{height:100% !important;}sl-berichten > .container{position:absolute;top:0;height:100%;width:calc(100% - 100px);}.berichten-lijst{height:calc(100vh - 64px) !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-header{top:0 !important;}sl-bericht-detail{padding-top:84px !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{--fg-on-primary-weak:' + menuColor + ';}.beta{display:none !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){.header,.headers-container{top:0 !important;}div.berichten-lijst{height:calc(100vh - 64px) !important;}:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:120px' : 'right:135px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}#mod-logo{width:100%;height:60px;margin:20px 0;}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') == 2 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;width:120px !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:100px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') == 2 ? 'left' : 'right') + ':0;border-top:none;width:100px;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) {.berichten-lijst{height:calc(100vh - 129px) !important;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) and (max-width: 1279px) {}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width: 766px) {sl-header:not(.with-back-button){border-bottom:none !important;--column-width: 100% !important;}sl-dagen-header{top:calc(64px + var(--safe-area-inset-top)) !important;border-bottom:none !important;}sl-berichten{background-color:var(--bg-neutral-none);}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:3px !important;position:absolute;' + (get('layout') == 2 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-normal:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
         }
         else if (get('layout') == 4) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">:root{--safe-area-inset-left:calc((100% - 1200px) / 2);--safe-area-inset-right:calc((100% - 1200px) / 2);}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
@@ -542,7 +635,7 @@ function onload() {
         // Position menu relatively
         if (get('layout') == 1 || get('layout') == 4) {
             if (get('bools').charAt(0) == "0") {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.beta{display:none !important;}body{margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
             }
         }
         // Hide unread message indicator
@@ -723,7 +816,7 @@ function onload() {
 
     // Change profile pictures when enabled
     function profilePicture() {
-        if (!n(get('profilepic')) && get('bools').charAt(3) == "1") {
+        if (!n(get('profilepic'))) {
             setTimeout(function () {
                 for (const element of cn('foto')) {
                     element.src = get('profilepic');
@@ -741,19 +834,32 @@ function onload() {
                 let nick = namearray[i * 2 + 1];
                 if (real != "") {
                     let regex = new RegExp("(.*?)" + real.replace(/\\/g, '\\\\') + "(.*?)", "g");
-                    nick = "$1" + nick + "$2";
+                    // Sender field in message list (is always a teacher name)
                     for (const element of cn('afzenders')) {
-                        const text = element.innerHTML.replace(regex, nick);
+                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
                         element.innerHTML = "";
                         element.append(document.createRange().createContextualFragment(text));
                     }
+                    // Receiver field in message list (can be a teacher name or "Somtoday (automatisch)")
                     for (const element of cn('ontvangers ellipsis')) {
-                        const text = element.innerHTML.replace(regex, nick);
+                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
                         element.innerHTML = "";
                         element.append(document.createRange().createContextualFragment(text));
                     }
+                    // Receiver field in opened message (can be a teacher name, student name, group name or "Somtoday (automatisch)")
+                    // This field is complicated because everything is stored under child elements and it is just a mess.
+                    // Everything is stored as "<span>FirstName&nbsp;</span> <span>Lastname</span>" and this needs to be parsed
+                    for (const element of cn('ontvangers')) {
+                        if (!element.classList.contains('ellipsis')) {
+                            const search = real.replaceAll(' ', '&nbsp;</span> <span>');
+                            if (element.innerHTML.indexOf(search) != -1) {
+                                element.innerHTML = element.innerHTML.replaceAll(search, nick.replaceAll(' ', '&nbsp</span> <span>'));
+                            }
+                        }
+                    }
+                    // Sender field in opened message (can be a teacher name or student name)
                     for (const element of cn('van')) {
-                        const text = element.innerHTML.replace(regex, nick);
+                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
                         element.innerHTML = "";
                         element.append(document.createRange().createContextualFragment(text));
                     }
@@ -765,22 +871,27 @@ function onload() {
     // Change username when enabled
     function userName() {
         if (!n(get('username'))) {
+            // Sender field in opened message (can be a teacher name or student name)
             for (const element of cn('van')) {
                 if (element.innerHTML.indexOf(get('realname')) != -1) {
                     element.innerHTML = "";
                     element.append(document.createRange().createContextualFragment(get('username')));
                 }
             }
-            for (const element of cn('ontvanger-naam')) {
-                if (element.innerHTML.indexOf(get('realname')) != -1) {
-                    element.innerHTML = "";
-                    element.append(document.createRange().createContextualFragment(get('username')));
+            // Receiver field in opened message (can be a teacher name, student name, group name or "Somtoday (automatisch)")
+            // This field is complicated because everything is stored under child elements and it is just a mess.
+            // Everything is stored as "<span>FirstName&nbsp;</span> <span>Lastname</span>" and this needs to be parsed
+            for (const element of cn('ontvangers')) {
+                const search = get('realname').replaceAll(' ', '&nbsp;</span> <span>');
+                if (element.innerHTML.indexOf(search) != -1) {
+                    element.innerHTML = element.innerHTML.replaceAll(search, get('username').replaceAll(' ', '&nbsp</span> <span>'));
                 }
             }
         }
     }
 
     // Insert modlogo into menu when enabled
+    // This should happen on start and when resizing (because the menu type can change)
     function modLogo() {
         tryRemove(id('mod-logo'))
         if (get('layout') == 2 || get('layout') == 3) {
@@ -791,17 +902,6 @@ function onload() {
             else if (n(id('mod-logo')) && !n(tn('sl-tab-bar', 0))) {
                 tn('sl-tab-bar', 0).insertAdjacentHTML('afterbegin', logo);
             }
-        }
-    }
-
-    // Show user initials instead of profile picture
-    function showInitials() {
-        if (get('bools').charAt(3) == "0" && !n(tn('sl-avatar', 0))) {
-            setTimeout(function () {
-                const ng = tn('sl-avatar', 0).getElementsByTagName('img')[0].attributes[0].name;
-                tn('sl-avatar', 0).getElementsByClassName('container')[0].insertAdjacentHTML('beforeend', '<div ' + ng + ' class="initials ng-star-inserted"><span ' + ng + '>' + get('username').replace(/[^A-Z]+/g, "") + '</span></div>');
-                tn('sl-avatar', 0).getElementsByTagName('img')[0].remove();
-            }, 1000);
         }
     }
 
@@ -827,46 +927,6 @@ function onload() {
                 }
             }
         }
-    }
-
-    // Show confetti when it is the users birthday or when the user uses Somtoday Mod for n years
-    function congratulations() {
-        // Only activate it when enabled in settings and if it is the first time Somtoday is used on the current day (months are zero-based)
-        if (get("bools").charAt(6) == "1" && (year + "-" + (month + 1) + "-" + dayInt) != get("lastused")) {
-            // Get years since first use
-            const firstused = new Date(get("firstused"));
-            const lastused = new Date(get("lastused"));
-            const yeardifference = parseInt((lastused - firstused) / 1000 / 60 / 60 / 24 / 365);
-            // Get birthday date
-            const date = new Date();
-            const birthdayday = parseInt(get("birthday").charAt(0) + get("birthday").charAt(1));
-            const birthdaymonth = parseInt(get("birthday").charAt(3) + get("birthday").charAt(4));
-            // Check if confetti should be shown
-            let congratstext = [""];
-            if (yeardifference > get('lastjubileum')) {
-                congratstext = ["Bedankt" + (n(get('username')) ? '' : ', ' + get('username').replace(/ .*/, '')) + "!", "Je gebruikt Somtoday mod nu al " + yeardifference + " jaar. Bedankt!"];
-                set('lastjubileum', yeardifference);
-            }
-            if (birthdayday == dayInt && birthdaymonth == (month + 1)) {
-                congratstext = ["Fijne verjaardag!", "Maak er maar een mooie dag van!"];
-            }
-            if (congratstext[1] != null) {
-                // Confetti should be shown, so insert the confetti
-                tn("html", 0).style.overflow = "hidden";
-                tn('body', 0).insertAdjacentHTML('afterbegin', '<style>#verjaardag{width:100%;height:100%;position:fixed;top:0;left:0;z-index:10000;background:var(--bg-elevated-none);text-align:center;transition:0.3s opacity ease;}#verjaardag div{top:50%;left:50%;transform:translate(-50%, -50%);position:absolute;}.bouncetext{animation:bounce 0.3s ease forwards;color:var(--action-primary-normal);}.bouncetext.small{font-size:0;animation:bouncesmall 0.5s ease forwards 0.3s;margin-top:35px;}@keyframes bouncesmall{0%{font-size:0px;}80%{font-size:29px;}100%{font-size:24px;}}@keyframes bounce{0%{font-size:0px;}80%{font-size:58px;}100%{font-size:48px;}}.verjaardagbtn{background:var(--action-primary-normal);padding:25px 40px;width:fit-content;color:var(--bg-elevated-none) !important;margin-top:50px;opacity:0;display:block;animation:2s fadein ease 0.6s forwards;font-size:16px;border-radius:16px;transition:0.3s background ease !important;}.verjaardagbtn:hover{cursor:pointer;background:var(--action-primary-strong);}@keyframes fadein{0%{opacity:0;}100%{opacity:1;}}</style><div id="verjaardag"><div><h2 class="bouncetext">' + congratstext[0] + '</h2><h2 class="bouncetext small">' + congratstext[1] + '</h2><center><a class="verjaardagbtn" id="congrats-continue">Doorgaan</a></center></div></div>');
-                id("congrats-continue").addEventListener("click", function () {
-                    id("confetti-canvas").style.opacity = '0';
-                    id("verjaardag").style.opacity = '0';
-                    setTimeout(function () {
-                        tryRemove(id("confetti-canvas"));
-                        tryRemove(id("verjaardag"));
-                        tn("html", 0).style.overflowY = "scroll"
-                    }, 350);
-                });
-                setTimeout(startConfetti, 500);
-            }
-        }
-        set("lastused", year + "-" + (month + 1) + "-" + dayInt);
     }
 
                 // Confetti effect thanks to CSS Script: https://www.cssscript.com/demo/confetti-falling-animation/
@@ -997,6 +1057,46 @@ function onload() {
                     }
                 })();
 
+    // Show confetti when it is the users birthday or when the user uses Somtoday Mod for n years
+    function congratulations() {
+        // Only activate it when enabled in settings and if it is the first time Somtoday is used on the current day (months are zero-based)
+        if (get("bools").charAt(6) == "1" && (year + "-" + (month + 1) + "-" + dayInt) != get("lastused")) {
+            // Get years since first use
+            const firstused = new Date(get("firstused"));
+            const lastused = new Date(get("lastused"));
+            const yeardifference = parseInt((lastused - firstused) / 1000 / 60 / 60 / 24 / 365);
+            // Get birthday date
+            const date = new Date();
+            const birthdayday = parseInt(get("birthday").charAt(0) + get("birthday").charAt(1));
+            const birthdaymonth = parseInt(get("birthday").charAt(3) + get("birthday").charAt(4));
+            // Check if confetti should be shown
+            let congratstext = [""];
+            if (yeardifference > get('lastjubileum')) {
+                congratstext = ["Bedankt" + (n(get('username')) ? '' : ', ' + get('username').replace(/ .*/, '')) + "!", "Je gebruikt Somtoday mod nu al " + yeardifference + " jaar. Bedankt!"];
+                set('lastjubileum', yeardifference);
+            }
+            if (birthdayday == dayInt && birthdaymonth == (month + 1)) {
+                congratstext = ["Fijne verjaardag!", "Maak er maar een mooie dag van!"];
+            }
+            if (congratstext[1] != null) {
+                // Confetti should be shown, so insert the confetti
+                tn("html", 0).style.overflow = "hidden";
+                tn('body', 0).insertAdjacentHTML('afterbegin', '<style>#verjaardag{width:100%;height:100%;position:fixed;top:0;left:0;z-index:10000;background:var(--bg-elevated-none);text-align:center;transition:0.3s opacity ease;}#verjaardag div{top:50%;left:50%;transform:translate(-50%, -50%);position:absolute;}.bouncetext{animation:bounce 0.3s ease forwards;color:var(--action-primary-normal);}.bouncetext.small{font-size:0;animation:bouncesmall 0.5s ease forwards 0.3s;margin-top:35px;}@keyframes bouncesmall{0%{font-size:0px;}80%{font-size:29px;}100%{font-size:24px;}}@keyframes bounce{0%{font-size:0px;}80%{font-size:58px;}100%{font-size:48px;}}.verjaardagbtn{background:var(--action-primary-normal);padding:25px 40px;width:fit-content;color:var(--bg-elevated-none) !important;margin-top:50px;opacity:0;display:block;animation:2s fadein ease 0.6s forwards;font-size:16px;border-radius:16px;transition:0.3s background ease !important;}.verjaardagbtn:hover{cursor:pointer;background:var(--action-primary-strong);}@keyframes fadein{0%{opacity:0;}100%{opacity:1;}}</style><div id="verjaardag"><div><h2 class="bouncetext">' + congratstext[0] + '</h2><h2 class="bouncetext small">' + congratstext[1] + '</h2><center><a class="verjaardagbtn" id="congrats-continue">Doorgaan</a></center></div></div>');
+                id("congrats-continue").addEventListener("click", function () {
+                    id("confetti-canvas").style.opacity = '0';
+                    id("verjaardag").style.opacity = '0';
+                    setTimeout(function () {
+                        tryRemove(id("confetti-canvas"));
+                        tryRemove(id("verjaardag"));
+                        tn("html", 0).style.overflowY = "scroll"
+                    }, 350);
+                });
+                setTimeout(startConfetti, 500);
+            }
+        }
+        set("lastused", year + "-" + (month + 1) + "-" + dayInt);
+    }
+
 
 
 
@@ -1024,12 +1124,52 @@ function onload() {
             // Show a loading message
             modMessage('Downloaden...', 'Somtoday Mod is bezig met het genereren van je afbeelding. Dit kan even duren...')
             // Construct HTML
-            let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-resultaat-item', 0)) ? 'Mijn gemiddelden' : 'Mijn cijfers') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + ';">';
+            let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-vakgemiddelde-item', 0)) ? 'Mijn cijfers' : 'Mijn gemiddelden') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + ';">';
             for (let i = 0; i < number; i++) {
-                html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '"><svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML) + '</svg><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML) + '</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' + (n(tn('sl-resultaat-item', 0)) ? (tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000')) : (tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000'))) + ';">' + (n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].innerHTML : tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML) + '</h3>' + (n(tn('sl-resultaat-item', 0)) ? '' : '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' + tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML + '</p><p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' + tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML + '</p>') + '</div>';
+                html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '">' +
+                /* Subject icon */
+                '<svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' +
+                    (n(tn('sl-resultaat-item', 0)) ?
+                     tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML :
+                     tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML
+                    ) +
+                '</svg>' +
+                /* Subject name */
+                '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
+                    (n(tn('sl-resultaat-item', 0)) ?
+                     tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML :
+                     tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML
+                    ) +
+                '</h3>' +
+                /* Subject grade */
+                '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' + (n(tn('sl-resultaat-item', 0)) ? (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000')) : (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ? '#d32f0d' : (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ? '#a7b3be' : '#000'))) + ';">' +
+                    (n(tn('sl-resultaat-item', 0)) ?
+                     (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) ?
+                      '' :
+                      tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].innerHTML
+                     ) :
+                     tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
+                    ) +
+                '</h3>' +
+                (n(tn('sl-resultaat-item', 0)) ?
+                 '' :
+                 /* Grade weight */
+                 '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' +
+                 tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML +
+                 '</p>' +
+                 /* Grade description */
+                 '<p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' +
+                 tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML +
+                 '</p>'
+                ) +
+                '</div>';
             }
-            if (n(tn('sl-resultaat-item', 0))) {
+            if (n(tn('sl-resultaat-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
+                 /* Year average */
                 html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);background:#f3f5f6;border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;height:95px;"><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">Totaalgemiddelden</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;">' + cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML + '</h3></div>';
+            }
+            else if (n(tn('sl-resultaat-item', 0)) && n(tn('sl-vakgemiddelde-item', 0))) {
+                html += '<h3 style="font-family:KanitBold;font-size:30px;margin:0;">Er zijn geen cijfers voor deze periode</h3>';
             }
             html += '</div>';
             // Insert canvas
@@ -1063,6 +1203,8 @@ function onload() {
 
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
+        console.log(recapData);
+        console.log(isCollectingRecapData);
         if (isCollectingRecapData){
             return;
         }
@@ -1335,6 +1477,9 @@ function onload() {
         if (get('bools').charAt(12) == "0") {
             return;
         }
+        if (!((month == 5 && dayInt > 25) || month == 6)) {
+            return;
+        }
         // Set amount of viewed pages to zero
         let pages = 0;
         // Data object which will contain an array of the grades of every subject
@@ -1349,69 +1494,83 @@ function onload() {
             tryRemove(id('somtoday-recap'));
         }
         if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
-            if ((month == 5 && dayInt > 25) || month == 6) {
-                tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van ' + year + '.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
-                // Open recap on click
-                id('somtoday-recap').addEventListener('click', function () {
-                    // Set isCollectingRecapData to true to prevent insertion of graphs and stuff on the grades page
-                    isCollectingRecapData = true;
-                    // Request fullscreen (to hide URL changes when collecting grades)
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen();
-                    }
-                    // Insert recap HTML
-                    tn('html', 0).style.overflowY = 'hidden';
-                    id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) +'</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
-                    id('recap-close').addEventListener('click', function () {
-                        closing = true;
-                        id('somtoday-recap-wrapper').remove();
-                        stopConfetti();
-                        tn('html', 0).style.overflowX = 'hidden';
-                        tn('html', 0).style.overflowY = 'scroll';
-                        setTimeout(function () { closing = false; }, 200);
-                    });
-                    // After recap is opened, collect grade data
-                    setTimeout(function () {
-                        if (closing) {
-                            return;
-                        }
-                        // Open average page
-                        if (!n(tn('sl-resultaat-item', 0))) {
-                            document.getElementsByTagName('hmy-tab')[1].click();
-                        }
-                        let checkAveragePageDone = setInterval(function () {
-                            if (!n(tn('sl-vakgemiddelde-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
-                                // If average page is opened, get number of subjects and year average
-                                subjects = tn('sl-vakgemiddelde-item').length;
-                                totalAverage = parseFloat(cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML.substring(2).replace(',', '.'));
-                                clearInterval(checkAveragePageDone);
-                                // Click link to every subject to get all grades
-                                let checkPageDone = setInterval(function(){
-                                    if (subjectsVisited < subjects) {
-                                        if (subjectDone) {
-                                            getSubjectInfo(subjectsVisited);
-                                            subjectsVisited++;
-                                        }
-                                    }
-                                    else {
-                                        // All grades are collected, allow user to continue
-                                        clearInterval(checkPageDone);
-                                        id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
-                                        id('recap-nextpage').addEventListener('click', closeRecapPage);
-                                        isCollectingRecapData = false;
-                                    }
-                                    if (closing) {
-                                        clearInterval(checkPageDone);
-                                    }
-                                }, 10);
-                            }
-                            if (closing) {
-                                clearInterval(checkAveragePageDone);
-                            }
-                        }, 10);
-                    }, 510);
+            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van ' + year + '.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
+            // Open recap on click
+            id('somtoday-recap').addEventListener('click', function () {
+                isRecapping = true;
+                // Set isCollectingRecapData to true to prevent insertion of graphs and stuff on the grades page
+                isCollectingRecapData = true;
+                // Request fullscreen (to hide URL changes when collecting grades)
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                }
+                // Insert recap HTML
+                tn('html', 0).style.overflowY = 'hidden';
+                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) +'</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
+                id('recap-close').addEventListener('click', function () {
+                    closing = true;
+                    id('somtoday-recap-wrapper').remove();
+                    stopConfetti();
+                    tn('html', 0).style.overflowX = 'hidden';
+                    tn('html', 0).style.overflowY = 'scroll';
+                    isRecapping = false;
+                    setTimeout(function () { closing = false; }, 200);
+                    return;
                 });
-            }
+                // After recap is opened, collect grade data
+                let tries = 0;
+                setTimeout(function () {
+                    if (closing) {
+                        return;
+                    }
+                    // Open average page
+                    if (!n(tn('sl-resultaat-item', 0))) {
+                        document.getElementsByTagName('hmy-tab')[1].click();
+                    }
+                    let checkAveragePageDone = setInterval(function () {
+                        if (!n(tn('sl-vakgemiddelde-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
+                            // If average page is opened, get number of subjects and year average
+                            subjects = tn('sl-vakgemiddelde-item').length;
+                            totalAverage = parseFloat(cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML.substring(2).replace(',', '.'));
+                            clearInterval(checkAveragePageDone);
+                            // Click link to every subject to get all grades
+                            let checkPageDone = setInterval(function(){
+                                if (subjectsVisited < subjects) {
+                                    if (subjectDone) {
+                                        getSubjectInfo(subjectsVisited);
+                                        subjectsVisited++;
+                                    }
+                                }
+                                else {
+                                    // All grades are collected, allow user to continue
+                                    clearInterval(checkPageDone);
+                                    id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
+                                    id('recap-nextpage').addEventListener('click', closeRecapPage);
+                                    isCollectingRecapData = false;
+                                    console.log(data);
+                                }
+                                if (closing) {
+                                    clearInterval(checkPageDone);
+                                }
+                            }, 10);
+                        }
+                        else if (!n(tn('sl-vakgemiddelde-item', 0)) && n(cn('totaalgemiddelden', 0)) && tries > 100 * 3) {
+                            // No grades yet this year
+                            clearInterval(checkAveragePageDone);
+                            tryRemove(id('somtoday-recap-wrapper'));
+                            tn('html', 0).style.overflowX = 'hidden';
+                            tn('html', 0).style.overflowY = 'scroll';
+                            modMessage('Whoops...', 'Somtoday Mod kon je jaargemiddelde niet vinden. Misschien heeft je school dit uitgezet, of heb je nog geen cijfers gehaald dit jaar.', 'Doorgaan');
+                            id('mod-message-action1').addEventListener("click", function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                            document.exitFullscreen();
+                        }
+                        if (closing) {
+                            clearInterval(checkAveragePageDone);
+                        }
+                        tries++;
+                    }, 10);
+                }, 510);
+            });
         }
         // Go to subject grades page, collect grades and go back to average page once done
         function getSubjectInfo(number) {
@@ -1426,11 +1585,14 @@ function onload() {
                     clearInterval(waitTillSubjectPageLoads);
                     let subject = [];
                     if (!n(cn('title', 0).getElementsByTagName('span')[0])) {
-                        subject.push(cn('title', 0).getElementsByTagName('span')[0].innerHTML);
+                        subject.push(cn('title', 0).getElementsByTagName('span')[cn('title', 0).getElementsByTagName('span').length - 1].innerHTML);
                     }
                     else {
                         subject.push(cn('title', 0).innerHTML);
                     }
+                    //console.log(subject[0]);
+                    //console.log(cn('title', 0).innerHTML);
+                    //console.log(cn('title', 1).innerHTML);
                     subject.push(cn('cijfer', 0).innerHTML.replace(',', '.').replace(' ', '').replace(' ', ''));
                     for (const element of tn('sl-resultaat-item')) {
                         subject.push(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
@@ -1502,7 +1664,8 @@ function onload() {
         function finish() {
             setTimeout(startConfetti, 100);
             cn('recap-page', 0).innerHTML = '<h1>Gefeliciteerd!</h1><h2>Het jaar zit erop en de vakantie is al in zicht.</h2><h3>Veel plezier in de vakantie en hopelijk tot volgend jaar!</h3><a id="recap-nextpage">Sluiten</a>';
-            id('recap-nextpage').addEventListener('click', function () { setTimeout(function(){ id('somtoday-recap-wrapper').remove(); stopConfetti(); tn('html', 0).style.overflowX = 'hidden'; tn('html', 0).style.overflowY = 'scroll'; }, 550); });
+            id('recap-nextpage').addEventListener('click', function () { setTimeout(function(){ tryRemove(id('somtoday-recap-wrapper')); stopConfetti(); tn('html', 0).style.overflowX = 'hidden'; tn('html', 0).style.overflowY = 'scroll'; }, 550); isRecapping = false; });
+            return;
         }
         function award() {
             let award = "none";
@@ -1570,7 +1733,7 @@ function onload() {
                         subject = -1;
                         i = 0;
                         while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('wis') != -1) {
+                            if (data[i][0].toLowerCase().indexOf('sch') != -1) {
                                 subject = i;
                             }
                             i++;
@@ -1945,7 +2108,7 @@ function onload() {
         }
         const updatechecker = platform == "Userscript" ? '<a id="mod-update-checker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
         const updateinfo = platform == "Userscript" ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><h3 class="category">Kleuren</h3>' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '<h3 class="category">Achtergrond</h3>' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '<h3 class="category">Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div><h3 class="category">Menu</h3>' + ((get('layout') == 1 || get('layout') == 4) ? addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) : '') + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '<h3 class="category">Algemeen</h3>' + addSetting('Nicknames', 'Verander de naam van docenten in Somtoday. Voer in in het formaat "Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3" (etc...) voor zoveel namen als je wil. HTML is ondersteund.', 'nicknames', 'text', '', 'Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Laat je profielfoto in het menu en bij verstuurde berichten zien. Als dit uitstaat worden je initialen getoond.', 'bools03', 'checkbox', true) + addSetting('Aangepaste profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b>Profielafbeelding</b> moet aanstaan.', 'profilepic', 'file', null, 'image/*', '120') + '<h3 class="category">Aanvullende opties</h3>' + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '<h3 class="category">Browser</h3>' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '<h3 class="category">Autologin</h3><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
+        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><h3 class="category">Kleuren</h3>' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '<h3 class="category">Achtergrond</h3>' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '<h3 class="category">Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div><h3 class="category">Menu</h3>' + ((get('layout') == 1 || get('layout') == 4) ? addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) : '') + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '<h3 class="category">Algemeen</h3>' + addSetting('Nicknames', 'Verander de naam van docenten in Somtoday. Voer in in het formaat "Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3" (etc...) voor zoveel namen als je wil. HTML is ondersteund.', 'nicknames', 'text', '', 'Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.', 'profilepic', 'file', null, 'image/*', '120') + '<h3 class="category">Aanvullende opties</h3>' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '<h3 class="category">Browser</h3>' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '<h3 class="category">Autologin</h3><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
         // Add themes
         // Background images thanks to Pexels: https://www.pexels.com
         addTheme("Standaard", "", "0067c2", 20, false);
@@ -2204,7 +2367,7 @@ function onload() {
         set("primarycolor", "#0067c2");
         set("secondarycolor", "#e69b22");
         set("nicknames", "");
-        set("bools", "110101110111100000000000000000");
+        set("bools", "110001110111100000000000000000");
         set("zoom", "120");
         set("title", "");
         set("icon", "");
@@ -2218,7 +2381,9 @@ function onload() {
         set("loginschool", "");
         set("loginname", "");
         set("loginpass", "");
-        openSettings();
+        if (!n(tn('sl-account-modal', 0))) {
+            openSettings();
+        }
     }
 
     // Constructs HTML code for the setting page
@@ -2496,7 +2661,7 @@ function onload() {
     }
 
     // Execute everything
-    execute([updateCheck, checkNewUser, setBackground, updateCssVariables, style, addMutationObserver, browserSettings, congratulations, openModSettingsDirectly, showInitials, consoleMessage]);
+    execute([updateCheck, checkNewUser, setBackground, updateCssVariables, style, addMutationObserver, browserSettings, congratulations, openModSettingsDirectly, consoleMessage]);
 
     // Allow transitions after 0.4s
     setTimeout(function () {
@@ -2781,7 +2946,7 @@ function legacy() {
             if (!n(id('user').getElementsByTagName('a')[0])) {
                 if (!n(id('user').getElementsByTagName('a')[0].children[1])) {
                     // Username is in expected element
-                    if (id('user').getElementsByTagName('a')[0].href.indexOf('profile') != -1 && id('user').getElementsByTagName('a')[1].href.indexOf('profile?') == -1) {
+                    if (id('user').getElementsByTagName('a')[0].href.indexOf('profile') != -1 && !n(id('user').getElementsByTagName('a')[1]) && id('user').getElementsByTagName('a')[1].href.indexOf('profile?') == -1) {
                         username = id('user').getElementsByTagName('a')[0].children[1].innerHTML;
                     }
                     // Username is in an other, unknown element
@@ -3786,7 +3951,9 @@ function legacy() {
     // Get user birthday from profile page and save it in storage
     // Also change username if user has set different username
     function settingData() {
-        id('detail-panel-wrapper').setAttribute('style', 'visibility: hidden;');
+        if (!n(id('detail-panel-wrapper'))) {
+            id('detail-panel-wrapper').setAttribute('style', 'visibility: hidden;');
+        }
         for (const element of cn('label twopartfields')) {
             if (((!n(element.parentElement.parentElement.children[1])) && !n(element.parentElement.parentElement.children[1].children[0])) && !n(element.parentElement.parentElement.children[1].children[0].children[0])) {
                 if (element.textContent.includes("Geboortedatum")) {
@@ -4059,7 +4226,7 @@ function legacy() {
 
     // Inserts a calendar into the homework page when enabled
     function insertCalendar() {
-        if (get("bools").charAt(11) == "0") {
+        if (get("bools").charAt(11) == "0" && !n(id("detail-panel-wrapper"))) {
             id("detail-panel-wrapper").style.opacity = '1';
             if ((id('detail-panel').clientHeight < 100) || (id('detail-panel').clientHeight < 200 && (get('layout') == 1 || get('layout') == 4))) {
                 tryRemove(id("calendar"));
