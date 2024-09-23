@@ -63,7 +63,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 4.3;
+const version = 4.2;
 const platform = "Userscript";
 const minified = false;
 let isloaded = false;
@@ -467,7 +467,7 @@ function onload() {
         }
         darkmode = tn('html', 0).classList.contains('dark');
         busy = true;
-        execute([profilePicture, teacherNicknames, userName, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify]);
+        execute([profilePicture, userName, teacherNicknames, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify]);
         if (updateStyle) {
             execute([updateCssVariables]);
         }
@@ -484,22 +484,7 @@ function onload() {
 
     // Simplify the roster page
     function rosterSimplify() {
-        if (get('bools').charAt(3) == "1") {
-            let timeIndicatorPositioned = false;
-            // Position time indicator at end if it is past the last
-            if (!n(cn('tijdlijn', 0))) {
-                let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
-                if (!n(elements[0])) {
-                    let hour = elements[elements.length - 1].getElementsByClassName('opacity-80')[0].innerHTML;
-                    hour = parseInt(hour.substring(0, hour.length - 1));
-                    if (isNaN(hour)) {
-                    }
-                    else {
-                        cn('tijdlijn', 0).style.top = (hour * 84 + 84) + 'px';
-                    }
-                    timeIndicatorPositioned = true;
-                }
-            }
+        if (get('bools').charAt(3) == "1" && !n(tn('sl-rooster-weken', 0))) {
             if (!n(tn('sl-rooster-tijden', 0))) {
                 let i = 0;
                 for (const element of tn('sl-rooster-tijden', 0).children) {
@@ -513,6 +498,24 @@ function onload() {
             let currentTime = today.getHours() + (today.getMinutes() / 60);
             for (const parent of tn('sl-rooster-week')) {
                 if (!parent.ariaHidden) {
+                    let timeIndicatorPositioned = false;
+                    // Position time indicator at end if it is past the last
+                    if (!n(cn('tijdlijn', 0))) {
+                        let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
+                        if (!n(elements[0])) {
+                            let hour = elements[elements.length - 1].getElementsByClassName('opacity-80')[0].innerHTML;
+                            hour = parseInt(hour.substring(0, hour.length - 1));
+                            let lastHourTop = elements[elements.length - 1].style.top;
+                            lastHourTop = parseInt(lastHourTop.substring(0, lastHourTop.length - 2));
+                            let timeIndicatorTop = cn('tijdlijn', 0).style.top;
+                            timeIndicatorTop = parseInt(timeIndicatorTop.substring(0, timeIndicatorTop.length - 2));
+                            //console.log(hour + ", " + lastHourTop + ", " + timeIndicatorTop);
+                            if (!isNaN(hour) && !isNaN(lastHourTop) && !isNaN(timeIndicatorTop) && lastHourTop < timeIndicatorTop) {
+                                cn('tijdlijn', 0).style.top = (hour * 84 + 84) + 'px';
+                                timeIndicatorPositioned = true;
+                            }
+                        }
+                    }
                     let prevHour = 1;
                     let prevHeight = 0;
                     let lastHour = 1;
@@ -521,7 +524,7 @@ function onload() {
                             let hour = element.getElementsByClassName('opacity-80')[0].innerHTML;
                             hour = parseInt(hour.substring(0, hour.length - 1));
                             let lessonTime = element.getElementsByClassName('opacity-80')[0].parentElement.children[1].innerHTML.split(':');
-                            lessonTime = lessonTime[0] + (lessonTime[1] / 60);
+                            lessonTime = parseFloat(lessonTime[0]) + (parseFloat(lessonTime[1]) / 60);
                             let top;
                             if (isNaN(hour)) {
                                 top = prevHour * 84 + prevHeight;
@@ -538,8 +541,10 @@ function onload() {
                                 }
                             }
                             element.style.top = top + 'px';
-                            if (!isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && currentTime < lessonTime && !timeIndicatorPositioned) {
-                                cn('tijdlijn', 0).style.top = (top - 84) + 'px';
+                            if (!isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
+                                cn('tijdlijn', 0).style.top = top + 'px';
+                                console.log('wtf');
+                                timeIndicatorPositioned = true;
                             }
                             prevHeight = element.clientHeight;
                         }
@@ -557,7 +562,8 @@ function onload() {
         // If the page panel changes, do pageUpdate.
         const pageobserver = new MutationObserver(() => {
             if (!busy) {
-                setTimeout(function () { execute([pageUpdate]); }, 5);
+                setTimeout(function () { execute([pageUpdate]);
+        console.log('changeupdate'); }, 5);
             }
         });
         //setInterval(function () { if (!busy) { pageUpdate(false, false) } }, 1000);
@@ -566,7 +572,6 @@ function onload() {
             subtree: true,
             childList: true
         });
-        window.addEventListener("resize", function() { pageUpdate(false, true) });
         window.addEventListener("click", function() { pageUpdate(false, true) });
     }
 
@@ -594,7 +599,7 @@ function onload() {
         /*if (get('bools').charAt(3) == "1") {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-week .uur:first-of-type{border-bottom:0 !important;}</style>');
         }*/
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}hmy-switch-group,sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;position:relative;background-color:var(--bg-elevated-weakest);}sl-account-modal .content,.tabs .filler{position:relative;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}hmy-switch-group,sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;position:relative;background-color:var(--bg-elevated-weakest);}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;}.mod-info-notice svg{height:20px;position:absolute;margin-left:-30px;margin-top:-4px }#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}</style>');
         // Somtoday Recap
@@ -618,7 +623,7 @@ function onload() {
         tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}}</style>');
         // Make sure everything is readable with background with 100% ui transparency
         if (!n(get("background")) && get('layout') != 4) {
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week{border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-studiewijzer-dag{border-right:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.uur{border-left:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-vakresultaten{background-color:' + (tn('html', 0).classList.contains('dark') ? '#000' : '#fff') + ';padding:20px !important;}sl-geen-data .action-primary-normal{color:' + (tn('html', 0).classList.contains('dark') ? '#3aa1ff' : '#8dc9ff') + ';}sl-geen-data > span{text-shadow:0 0 10px black;color:white !important;margin-top:20px;}sl-geen-data{background:rgba(' + (tn('html', 0).classList.contains('dark') ? '0,0,0' : '255,255,255') + ',0.5);padding:30px 60px;border-radius:24px;}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week{border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-studiewijzer-dag{border-right:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.uur{border-left:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:' + (tn('html', 0).classList.contains('dark') ? '#000' : '#fff') + ';padding:20px !important; padding-bottom:40px !important;}sl-geen-data .action-primary-normal{color:' + (tn('html', 0).classList.contains('dark') ? '#3aa1ff' : '#8dc9ff') + ';}sl-geen-data > span{margin-top:20px;}sl-geen-data{background:rgba(' + (tn('html', 0).classList.contains('dark') ? '0,0,0' : '255,255,255') + ',0.5);padding:30px 60px;border-radius:24px;}</style>');
         }
         // Adjust menu for layout 2, 3 and 4
         if (get('layout') == 2 || get('layout') == 3) {
@@ -633,10 +638,11 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">:root{--safe-area-inset-left:calc((100% - 1200px) / 2);--safe-area-inset-right:calc((100% - 1200px) / 2);}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
         }
         // Position menu relatively
-        if (get('layout') == 1 || get('layout') == 4) {
-            if (get('bools').charAt(0) == "0") {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
+        if (get('bools').charAt(0) == "0") {
+            if (get('layout') == 1 || get('layout') == 4) {
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body:has(sl-cijfers),body:has(sl-berichten){margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}</style>');
             }
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-berichten div.berichten-lijst{height:fit-content !important;}.main,sl-berichten div.tabs{position:relative !important;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
         }
         // Hide unread message indicator
         if (get('bools').charAt(2) == "1") {
@@ -652,7 +658,7 @@ function onload() {
     function updateCheck() {
         // Check if user has used the old version of Somtoday and is using new version for the first time
         if (n(get('version')) && !n(get('primarycolor'))) {
-            modMessage('Somtoday update!', 'Somtoday heeft een grote update gekregen! Somtoday Mod is hier op voorbereid en heeft aanpassingen gemaakt. De mod-instellingen zijn nu te vinden in een apart tabblad in de instellingen van Somtoday. Het is mogelijk dat je sommige instellingen opnieuw moet instellen.', 'Doorgaan');
+            modMessage('Somtoday update!', 'Somtoday heeft een grote update gekregen! Somtoday Mod is hier op voorbereid en heeft ook een update gekregen. De mod-instellingen zijn nu te vinden in een apart tabblad in de instellingen van Somtoday. Het is mogelijk dat je sommige instellingen opnieuw moet instellen.', 'Doorgaan');
             id('mod-message-action1').addEventListener("click", function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
             set("bools", "110101110111000000000000000000");
             set("secondarycolor", "#e69b22");
@@ -691,10 +697,18 @@ function onload() {
 
     // Update the CSS variables used by Somtoday and Somtoday Mod
     function updateCssVariables() {
-        tryRemove(id('mod-css-variables'));
-        const rgbcolor = hexToRgb(get('primarycolor'));
-        // Generate and adjust colors based on highest color channel value
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">:root, :root.dark.dark {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--thinnest-solid-neutral-strong:var(--b-thinnest) solid var(--border-neutral-normal);--blue-60:' + toBrightnessValue(get("primarycolor"), 89) + ';--blue-70:' + toBrightnessValue(get("primarycolor"), 81) + ';--yellow-60:' + toBrightnessValue(get("secondarycolor"), 162) + ';--blue-0:' + toBrightnessValue(get("primarycolor"), 241) + ';--blue-80:' + toBrightnessValue(get("primarycolor"), 56) + ';--blue-30:' + toBrightnessValue(get("primarycolor"), 169) + ';--blue-20:' + toBrightnessValue(get("primarycolor"), 198) + ';--blue-100:' + toBrightnessValue(get("primarycolor"), 48) + ';--yellow-20:' + toBrightnessValue(get("secondarycolor"), 198) + ';--blue-40:' + toBrightnessValue(get("primarycolor"), 140) + ';--yellow-50:' + toBrightnessValue(get("secondarycolor"), 173) + ';--orange-30:' + toBrightnessValue(get("secondarycolor"), 180) + ';--orange-60:' + toBrightnessValue(get("secondarycolor"), 141) + ';</style>');
+        // If at least one of the colors is not set to the default value, modify Somtoday color variables
+        if (get('primarycolor') != '#0067c2' || get("secondarycolor") != "#e69b22") {
+            tryRemove(id('mod-css-variables'));
+            const rgbcolor = hexToRgb(get('primarycolor'));
+            //console.log("gr 80: " + getRelativeLuminance(hexToRgb('#3f8541')));
+            //console.log("gr 0: " + getRelativeLuminance(hexToRgb('#ebf9ec')));
+            // Generate and adjust colors based on highest color channel value
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">:root, :root.dark.dark {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--green-100:' + toBrightnessValue(get("secondarycolor"), 46) + ';--green-90:' + toBrightnessValue(get("secondarycolor"), 68) + ';--green-80:' + toBrightnessValue(get("secondarycolor"), 113) + ';--green-50:' + toBrightnessValue(get("secondarycolor"), 183) + ';--green-20:' + toBrightnessValue(get("secondarycolor"), 209) + ';--green-10:' + toBrightnessValue(get("secondarycolor"), 228) + ';--green-0:' + toBrightnessValue(get("secondarycolor"), 245) + ';--thinnest-solid-neutral-strong:var(--b-thinnest) solid var(--border-neutral-normal);--blue-60:' + toBrightnessValue(get("primarycolor"), 89) + ';--blue-70:' + toBrightnessValue(get("primarycolor"), 81) + ';--yellow-60:' + toBrightnessValue(get("secondarycolor"), 162) + ';--blue-0:' + toBrightnessValue(get("primarycolor"), 241) + ';--blue-80:' + toBrightnessValue(get("primarycolor"), 56) + ';--blue-30:' + toBrightnessValue(get("primarycolor"), 169) + ';--blue-20:' + toBrightnessValue(get("primarycolor"), 198) + ';--blue-100:' + toBrightnessValue(get("primarycolor"), 48) + ';--yellow-20:' + toBrightnessValue(get("secondarycolor"), 198) + ';--blue-40:' + toBrightnessValue(get("primarycolor"), 140) + ';--yellow-50:' + toBrightnessValue(get("secondarycolor"), 173) + ';--orange-30:' + toBrightnessValue(get("secondarycolor"), 180) + ';--orange-60:' + toBrightnessValue(get("secondarycolor"), 141) + ';</style>');
+        }
+        else {
+            tryRemove(id('mod-css-variables'));
+        }
     }
 
     // Construct an icon in SVG format. Only contains icons used by this mod. Icons thanks to Font Awesome: https://fontawesome.com/
@@ -834,36 +848,52 @@ function onload() {
                 let nick = namearray[i * 2 + 1];
                 if (real != "") {
                     let regex = new RegExp("(.*?)" + real.replace(/\\/g, '\\\\') + "(.*?)", "g");
+                    let regexWhichPreservesIcons = new RegExp("(.*?)" + real.replace(/\\/g, '\\\\') + "(.*?<hmy-?.*)", "g");
                     // Sender field in message list (is always a teacher name)
                     for (const element of cn('afzenders')) {
-                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
-                        element.innerHTML = "";
-                        element.append(document.createRange().createContextualFragment(text));
+                        if (!element.classList.contains('mod-nickname')) {
+                            const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
+                            element.innerHTML = "";
+                            element.append(document.createRange().createContextualFragment(text));
+                        }
                     }
                     // Receiver field in message list (can be a teacher name or "Somtoday (automatisch)")
                     for (const element of cn('ontvangers ellipsis')) {
-                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
-                        element.innerHTML = "";
-                        element.append(document.createRange().createContextualFragment(text));
+                        if (!element.classList.contains('mod-nickname')) {
+                            const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
+                            element.innerHTML = "";
+                            element.append(document.createRange().createContextualFragment(text));
+                        }
                     }
                     // Receiver field in opened message (can be a teacher name, student name, group name or "Somtoday (automatisch)")
                     // This field is complicated because everything is stored under child elements and it is just a mess.
                     // Everything is stored as "<span>FirstName&nbsp;</span> <span>Lastname</span>" and this needs to be parsed
                     for (const element of cn('ontvangers')) {
-                        if (!element.classList.contains('ellipsis')) {
-                            const search = real.replaceAll(' ', '&nbsp;</span> <span>');
-                            if (element.innerHTML.indexOf(search) != -1) {
-                                element.innerHTML = element.innerHTML.replaceAll(search, nick.replaceAll(' ', '&nbsp</span> <span>'));
-                            }
+                        if (!element.classList.contains('mod-nickname') && !element.classList.contains('ellipsis')) {
+                            element.innerHTML = element.innerHTML.replaceAll('&nbsp;</span> <span>', ' ').replaceAll('<span>', '').replaceAll('</span><!---->', '');
+                            const text = element.innerHTML.replace(element.innerHTML.indexOf('<hmy-') != -1 ? regexWhichPreservesIcons : regex, "$1" + nick + "$2");
+                            element.innerHTML = "";
+                            element.append(document.createRange().createContextualFragment(text));
                         }
                     }
                     // Sender field in opened message (can be a teacher name or student name)
                     for (const element of cn('van')) {
-                        const text = element.innerHTML.replace(regex, "$1" + nick + "$2");
-                        element.innerHTML = "";
-                        element.append(document.createRange().createContextualFragment(text));
+                        if (!element.classList.contains('mod-nickname')) {
+                            const text = element.innerHTML.replace(element.innerHTML.indexOf('<hmy-') != -1 ? regexWhichPreservesIcons : regex, "$1" + nick + "$2");
+                            element.innerHTML = "";
+                            element.append(document.createRange().createContextualFragment(text));
+                        }
                     }
                 }
+            }
+            for (const element of cn('afzenders')) {
+                element.classList.add('mod-nickname');
+            }
+            for (const element of cn('ontvangers')) {
+                element.classList.add('mod-nickname');
+            }
+            for (const element of cn('van')) {
+                element.classList.add('mod-nickname');
             }
         }
     }
@@ -1203,8 +1233,6 @@ function onload() {
 
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
-        console.log(recapData);
-        console.log(isCollectingRecapData);
         if (isCollectingRecapData){
             return;
         }
@@ -2106,9 +2134,17 @@ function onload() {
         if (tn('sl-account-modal-header', 1) != null) {
             tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = 'Mod-instellingen';
         }
+        let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><div id="nickname-wrapper">';
+        const nicknameArray = get("nicknames").split("|");
+        let i = 0;
+        while (i + 1 < nicknameArray.length) {
+            nicknames += '<div><input type="text" value="' + nicknameArray[i].replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;") + '"/><input type="text" value="' + nicknameArray[i + 1].replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;") + '"/></div>';
+            i += 2;
+        }
+        nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
         const updatechecker = platform == "Userscript" ? '<a id="mod-update-checker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
         const updateinfo = platform == "Userscript" ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><h3 class="category">Kleuren</h3>' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '<h3 class="category">Achtergrond</h3>' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '<h3 class="category">Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div><h3 class="category">Menu</h3>' + ((get('layout') == 1 || get('layout') == 4) ? addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) : '') + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '<h3 class="category">Algemeen</h3>' + addSetting('Nicknames', 'Verander de naam van docenten in Somtoday. Voer in in het formaat "Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3" (etc...) voor zoveel namen als je wil. HTML is ondersteund.', 'nicknames', 'text', '', 'Echte naam|Nickname|Echte naam 2|Nickname 2|Echte naam 3|Nickname 3') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.', 'profilepic', 'file', null, 'image/*', '120') + '<h3 class="category">Aanvullende opties</h3>' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '<h3 class="category">Browser</h3>' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '<h3 class="category">Autologin</h3><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
+        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><h3 class="category">Kleuren</h3>' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '<h3 class="category">Achtergrond</h3>' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '<h3 class="category">Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div><h3 class="category">Menu</h3>' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '<h3 class="category">Algemeen</h3>' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.', 'profilepic', 'file', null, 'image/*', '120') + '<h3 class="category">Aanvullende opties</h3>' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '<h3 class="category">Browser</h3>' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '<h3 class="category">Autologin</h3><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
         // Add themes
         // Background images thanks to Pexels: https://www.pexels.com
         addTheme("Standaard", "", "0067c2", 20, false);
@@ -2201,6 +2237,16 @@ function onload() {
     // Save all modsettings
     function save() {
         let reload = true;
+        let nicknames = '';
+        for (const element of id('nickname-wrapper').children) {
+            let docentname = element.getElementsByTagName('input')[0].value.replaceAll('\\', '\\\\').replaceAll('|', '');
+            let nickname = element.getElementsByTagName('input')[1].value.replaceAll('\\', '\\\\').replaceAll('|', '');
+            // Docent name can't be empty
+            if (!n(docentname)) {
+                nicknames += docentname + '|' + nickname + '|';
+            }
+        }
+        set('nicknames', nicknames);
         // Save all form elements added with addSetting()
         filesProcessed = 0;
         for (const element of cn('mod-custom-setting')) {
@@ -2214,27 +2260,6 @@ function onload() {
                 } else if (element.id == "blur") {
                     // Blur is divided by 2 to prevent a too strong effect
                     set("blur", element.value / 2);
-                } else if (element.id == "nicknames") {
-                    // Nickname string is checked and rejected if not valid
-                    let namearray = element.value.split("|");
-                    for (let string of namearray) {
-                        if (string.indexOf('\\') != -1) {
-                            // Escape backslash to prevent escape
-                            string = string.replace(/\\/g, '\\\\');
-                        }
-                    }
-                    if (element.value == "") {
-                        set("nicknames", "");
-                    } else if ((Math.round(namearray.length / 2) == namearray.length / 2) && namearray.length > 1) {
-                        set("nicknames", element.value);
-                    } else if ((element.value.charAt(element.value.length - 1) == "|") && namearray.length > 1) {
-                        set("nicknames", element.value.substring(0, element.value.length - 1));
-                    } else {
-                        // Prevent reload to show message
-                        reload = false;
-                        modMessage('Ongeldige nickname string', 'De ingevoerde nickname string is in een verkeerd formaat.', 'Oke');
-                        id('mod-message-action1').addEventListener("click", function () { window.location.reload(); });
-                    }
                 }
                 else {
                     set(element.id, element.value);
@@ -3165,7 +3190,6 @@ function legacy() {
                         tn("html", 0).style.overflowY = "scroll"
                     }, 350);
                 });
-                setTimeout(startConfetti, 500);
 
                 // Confetti effect thanks to CSS Script: https://www.cssscript.com/demo/confetti-falling-animation/
                 let maxParticleCount = 150;
@@ -3294,6 +3318,7 @@ function legacy() {
                         }
                     }
                 })();
+                setTimeout(startConfetti, 500);
             }
         }
         set("lastused", year + "-" + (month + 1) + "-" + dayInt);
