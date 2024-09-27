@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Somtoday Mod
 // @namespace    https://jonazwetsloot.nl/projecten/somtoday-mod
-// @version      4.2
+// @version      4.3
 // @description  Give Somtoday a new look with this script.
 // @author       Jona Zwetsloot
 // @match        https://*.somtoday.nl/*
@@ -63,7 +63,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 4.2;
+const version = 4.3;
 const platform = "Userscript";
 const minified = false;
 let isloaded = false;
@@ -317,9 +317,9 @@ function tryLoad() {
 let somtodayversion;
 let rateLimitDate;
 function sendDebugData(name, error) {
-    // Rate limit: 1 debug data request per 20 seconds
+    // Rate limit: 1 debug data request per 60 seconds
     // This is to prevent flooding the log
-    if (rateLimitDate != null && (Date.now() - rateLimitDate) / 1000 < 20) {
+    if (rateLimitDate != null && (Date.now() - rateLimitDate) / 1000 < 60) {
         return;
     }
     rateLimitDate = Date.now();
@@ -474,86 +474,128 @@ function onload() {
         if (updateLogo) {
             execute([modLogo]);
         }
-        // Execute resize event
-        //window.dispatchEvent(new Event('resize'));
         // Allow this function to be executed again after 50ms
         setTimeout(function () {
             busy = false;
         }, 50);
     }
 
-    // Simplify the roster page
+    // Simplify the roster page, by aligning the lessons in a grid
+    let timeIndicatorTop = 0;
+    let normalRosterHeight = 0;
     function rosterSimplify() {
+        // Only execute roster simplify when enabled and on roster page
         if (get('bools').charAt(3) == "1" && !n(tn('sl-rooster-weken', 0))) {
+            // Get the height the roster takes up normally
+            normalRosterHeight = Math.max(tn('sl-rooster-weken', 0).clientHeight, normalRosterHeight);
+            // Loop through all loaded weeks and simplify them
+            let currentTime = today.getHours() + (today.getMinutes() / 60);
+            for (const parent of tn('sl-rooster-week')) {
+                const isWeekShown = !parent.ariaHidden;
+                let timeIndicatorPositioned = false;
+                // Position time indicator at end if it is past the last lesson
+                if (isWeekShown && !n(cn('tijdlijn', 0))) {
+                    let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
+                    if (!n(elements[0])) {
+                        // Get hour number from last hour
+                        let hour = elements[elements.length - 1].getElementsByClassName('opacity-80')[0].innerHTML;
+                        hour = parseInt(hour.substring(0, hour.length - 1));
+                        // Get top value of last hour
+                        let lastHourTop = elements[elements.length - 1].style.top;
+                        lastHourTop = parseInt(lastHourTop.substring(0, lastHourTop.length - 2));
+                        // Get top value of time indicator
+                        let timeIndicatorTop = cn('tijdlijn', 0).style.top;
+                        timeIndicatorTop = parseInt(timeIndicatorTop.substring(0, timeIndicatorTop.length - 2));
+                        // If the top value of the last hour is less than the top value of the time indicator the time indicator should be repositioned
+                        if (!isNaN(hour) && !isNaN(lastHourTop) && !isNaN(timeIndicatorTop) && lastHourTop < timeIndicatorTop) {
+                            cn('tijdlijn', 0).style.top = (hour * 84) + 'px';
+                            timeIndicatorTop = (hour * 84);
+                            timeIndicatorPositioned = true;
+                        }
+                    }
+                }
+                // Check if this week contains lessons without an hour number, if so just leave it like it is to prevent confusion (overlapping/aligning with different hour)
+                for (const element of parent.getElementsByTagName('sl-rooster-item')) {
+                    if (n(element.getElementsByClassName('opacity-80')[0])) {
+                        tn('sl-rooster-weken', 0).style.height = normalRosterHeight + 'px';
+                        tn('sl-rooster-weken', 0).style.overflowY = 'visible';
+                        // Update the time text at the left to display 'hh:mm' instead of 'nth hour'
+                        if (!n(tn('sl-rooster-tijden', 0))) {
+                            let i = 0;
+                            for (const element of tn('sl-rooster-tijden', 0).children) {
+                                const span = element.getElementsByTagName('span')[0];
+                                if (!n(span) && !n(span.dataset.modOriginalContent)) {
+                                    span.innerHTML = span.dataset.modOriginalContent;
+                                }
+                                i++;
+                            }
+                        }
+                        return;
+                    }
+                }
+                // Loop through every lesson in the week and reposition it
+                let prevHour = 1;
+                let prevHeight = 0;
+                let lastHour = 1;
+                for (const element of parent.getElementsByTagName('sl-rooster-item')) {
+                    if (!n(element.getElementsByClassName('opacity-80')[0])) {
+                        let hour = element.getElementsByClassName('opacity-80')[0].innerHTML;
+                        hour = parseInt(hour.substring(0, hour.length - 1));
+                        let lessonTime = element.getElementsByClassName('opacity-80')[0].parentElement.children[1].innerHTML.split(':');
+                        lessonTime = parseFloat(lessonTime[0]) + (parseFloat(lessonTime[1]) / 60);
+                        let top;
+                        if (isNaN(hour)) {
+                            top = prevHour * 84 + prevHeight - 84;
+                            prevHour++;
+                            if (prevHour > lastHour) {
+                                lastHour = prevHour;
+                            }
+                        }
+                        else {
+                            prevHour = hour;
+                            top = hour * 84 - 84;
+                            if (hour > lastHour) {
+                                lastHour = hour;
+                            }
+                        }
+                        element.style.top = top + 'px';
+                        if (isWeekShown && !isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
+                            cn('tijdlijn', 0).style.top = top + 'px';
+                            timeIndicatorTop = top;
+                            timeIndicatorPositioned = true;
+                        }
+                        prevHeight = element.clientHeight;
+                    }
+                }
+                if (isWeekShown) {
+                    tn('sl-rooster-weken', 0).style.height = (Math.max(lastHour + 2, 5) * 84 - 54) + 'px';
+                    tn('sl-rooster-weken', 0).style.overflowY = 'hidden';
+                }
+            }
+            tn('sl-vakantie-header', 0).style.borderTop = 'none';
+            // Update the time text at the left to display 'nth hour' instead of 'hh:mm'
             if (!n(tn('sl-rooster-tijden', 0))) {
-                let i = 0;
+                let i = 1;
                 for (const element of tn('sl-rooster-tijden', 0).children) {
-                    if (!n(element.getElementsByTagName('span')[0])) {
-                        element.getElementsByTagName('span')[0].innerHTML = i.toString() + 'e uur';
+                    let span = element.getElementsByTagName('span')[0];
+                    if (n(span)) {
+                        if (!n(tn('sl-rooster-tijden', 0).children[1])) {
+                            element.innerHTML = tn('sl-rooster-tijden', 0).children[1].innerHTML;
+                            span = element.getElementsByTagName('span')[0];
+                            if (!n(span)) {
+                                span.innerHTML = ' ';
+                            }
+                        }
+                    }
+                    if (!n(span)) {
+                        if (span.innerHTML.indexOf('uur') == -1) {
+                            span.dataset.modOriginalContent = span.innerHTML;
+                        }
+                        span.innerHTML = i.toString() + 'e uur';
                     }
                     i++;
                 }
             }
-            tn('sl-rooster-weken', 0).style.marginTop = '-60px';
-            let currentTime = today.getHours() + (today.getMinutes() / 60);
-            for (const parent of tn('sl-rooster-week')) {
-                if (!parent.ariaHidden) {
-                    let timeIndicatorPositioned = false;
-                    // Position time indicator at end if it is past the last
-                    if (!n(cn('tijdlijn', 0))) {
-                        let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
-                        if (!n(elements[0])) {
-                            let hour = elements[elements.length - 1].getElementsByClassName('opacity-80')[0].innerHTML;
-                            hour = parseInt(hour.substring(0, hour.length - 1));
-                            let lastHourTop = elements[elements.length - 1].style.top;
-                            lastHourTop = parseInt(lastHourTop.substring(0, lastHourTop.length - 2));
-                            let timeIndicatorTop = cn('tijdlijn', 0).style.top;
-                            timeIndicatorTop = parseInt(timeIndicatorTop.substring(0, timeIndicatorTop.length - 2));
-                            //console.log(hour + ", " + lastHourTop + ", " + timeIndicatorTop);
-                            if (!isNaN(hour) && !isNaN(lastHourTop) && !isNaN(timeIndicatorTop) && lastHourTop < timeIndicatorTop) {
-                                cn('tijdlijn', 0).style.top = (hour * 84 + 84) + 'px';
-                                timeIndicatorPositioned = true;
-                            }
-                        }
-                    }
-                    let prevHour = 1;
-                    let prevHeight = 0;
-                    let lastHour = 1;
-                    for (const element of parent.getElementsByTagName('sl-rooster-item')) {
-                        if (!n(element.getElementsByClassName('opacity-80')[0])) {
-                            let hour = element.getElementsByClassName('opacity-80')[0].innerHTML;
-                            hour = parseInt(hour.substring(0, hour.length - 1));
-                            let lessonTime = element.getElementsByClassName('opacity-80')[0].parentElement.children[1].innerHTML.split(':');
-                            lessonTime = parseFloat(lessonTime[0]) + (parseFloat(lessonTime[1]) / 60);
-                            let top;
-                            if (isNaN(hour)) {
-                                top = prevHour * 84 + prevHeight;
-                                prevHour++;
-                                if (prevHour > lastHour) {
-                                    lastHour = prevHour;
-                                }
-                            }
-                            else {
-                                prevHour = hour;
-                                top = hour * 84;
-                                if (hour > lastHour) {
-                                    lastHour = hour;
-                                }
-                            }
-                            element.style.top = top + 'px';
-                            if (!isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
-                                cn('tijdlijn', 0).style.top = top + 'px';
-                                console.log('wtf');
-                                timeIndicatorPositioned = true;
-                            }
-                            prevHeight = element.clientHeight;
-                        }
-                    }
-                    tn('sl-rooster-weken', 0).style.height = (Math.max(lastHour + 2, 5) * 84 + 30) + 'px';
-                    tn('sl-rooster-weken', 0).style.overflow = 'hidden';
-                }
-            }
-            tn('sl-vakantie-header', 0).style.borderTop = 'none';
         }
     }
 
@@ -562,11 +604,9 @@ function onload() {
         // If the page panel changes, do pageUpdate.
         const pageobserver = new MutationObserver(() => {
             if (!busy) {
-                setTimeout(function () { execute([pageUpdate]);
-        console.log('changeupdate'); }, 5);
+                setTimeout(function () { execute([pageUpdate]); }, 5);
             }
         });
-        //setInterval(function () { if (!busy) { pageUpdate(false, false) } }, 1000);
         pageobserver.observe(tn('html', 0), {
             attributes: true,
             subtree: true,
@@ -596,10 +636,7 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">html, body{scrollbar-width:none !important;}</style>');
         }
         // General style
-        /*if (get('bools').charAt(3) == "1") {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-week .uur:first-of-type{border-bottom:0 !important;}</style>');
-        }*/
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}hmy-switch-group,sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;position:relative;background-color:var(--bg-elevated-weakest);}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:0;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}hmy-switch-group,sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;position:relative;background-color:var(--bg-elevated-weakest);}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:10px 30px;box-sizing:border-box;z-index:100;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;}.mod-info-notice svg{height:20px;position:absolute;margin-left:-30px;margin-top:-4px }#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-elevated-none) !important;}sl-laatste-resultaat-item:hover{}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}</style>');
         // Somtoday Recap
@@ -612,7 +649,7 @@ function onload() {
         // Input type range
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;max-width:100%;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}</style>');
         // Input type checkbox
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0;margin-bottom:30px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0 30px 10px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
         // Custom select
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;}.mod-custom-select select{display:none;}.select-selected{border-radius:6px;border:2px solid var(--blue-0)mportant;background-color:var(--bg-elevated-none);}.select-selected:after{position:absolute;content:"";top:14px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--blue-0) transparent transparent transparent;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--blue-0) transparent;top:7px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
         // Mod message style
@@ -620,29 +657,29 @@ function onload() {
         // mod-setting-button
         tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-setting-button{padding:10px 20px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:10px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
         // Modsettings
-        tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}}</style>');
+        tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;height:130px;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{cursor:pointer;user-select:none;padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel .category:after{content:"";transform:rotate(45deg);border:solid var(--bg-primary-normal);border-width:0 3px 3px 0;display:inline-block;padding:3px;margin-left:15px;margin-top:8px;position:absolute;}#mod-setting-panel .category.collapsed{margin-bottom:-40px;}#mod-setting-panel .category:last-of-type{margin-bottom:20px;}#mod-setting-panel .category.collapsed:after{transform:rotate(225deg);margin-top:11px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}}</style>');
         // Make sure everything is readable with background with 100% ui transparency
         if (!n(get("background")) && get('layout') != 4) {
-            tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week{border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-studiewijzer-dag{border-right:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.uur{border-left:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:' + (tn('html', 0).classList.contains('dark') ? '#000' : '#fff') + ';padding:20px !important; padding-bottom:40px !important;}sl-geen-data .action-primary-normal{color:' + (tn('html', 0).classList.contains('dark') ? '#3aa1ff' : '#8dc9ff') + ';}sl-geen-data > span{margin-top:20px;}sl-geen-data{background:rgba(' + (tn('html', 0).classList.contains('dark') ? '0,0,0' : '255,255,255') + ',0.5);padding:30px 60px;border-radius:24px;}</style>');
+            tn("head", 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week{border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}sl-studiewijzer-dag{border-right:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.uur{border-left:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;border-bottom:2px solid ' + (tn('html', 0).classList.contains('dark') ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)') + ' !important;}.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:var(--bg-neutral-none);padding:20px !important; padding-bottom:40px !important;}sl-geen-data > span{margin-top:20px;}sl-geen-data{background:rgba(' + (tn('html', 0).classList.contains('dark') ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');padding:30px 60px;border-radius:24px;}</style>');
         }
         // Adjust menu for layout 2, 3 and 4
         if (get('layout') == 2 || get('layout') == 3) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){.header,.headers-container{top:0 !important;}div.berichten-lijst{height:calc(100vh - 64px) !important;}:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:120px' : 'right:135px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}#mod-logo{width:100%;height:60px;margin:20px 0;}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') == 2 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;width:120px !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:100px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') == 2 ? 'left' : 'right') + ':0;border-top:none;width:100px;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){.header,.headers-container{top:0 !important;}div.berichten-lijst{height:calc(100vh - 64px) !important;}:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:120px !important;--safe-area-inset-right:10px' : 'right:135px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}#mod-logo{width:100%;height:60px;margin:20px 0;}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') == 2 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:120px !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){:root{--safe-area-inset-' + (get('layout') == 2 ? 'left:100px !important;--safe-area-inset-right:15px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') == 2 ? 'left' : 'right') + ':0;border-top:none;width:100px;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) {.berichten-lijst{height:calc(100vh - 129px) !important;}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px) and (max-width: 1279px) {}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width: 766px) {sl-header:not(.with-back-button){border-bottom:none !important;--column-width: 100% !important;}sl-dagen-header{top:calc(64px + var(--safe-area-inset-top)) !important;border-bottom:none !important;}sl-berichten{background-color:var(--bg-neutral-none);}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:3px !important;position:absolute;' + (get('layout') == 2 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-normal:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px;margin:0 !important;}sl-rooster-item{left:8px !important;}sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:4px !important;position:absolute;' + (get('layout') == 2 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-normal:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
         }
         else if (get('layout') == 4) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">:root{--safe-area-inset-left:calc((100% - 1200px) / 2);--safe-area-inset-right:calc((100% - 1200px) / 2);}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-home{position:relative;}:root{--safe-area-inset-left:calc((100% - 1200px) / 2);--safe-area-inset-right:calc((100% - 1200px) / 2);}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
         }
         // Position menu relatively
         if (get('bools').charAt(0) == "0") {
             if (get('layout') == 1 || get('layout') == 4) {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body:has(sl-cijfers),body:has(sl-berichten){margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}</style>');
             }
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-berichten div.berichten-lijst{height:fit-content !important;}.main,sl-berichten div.tabs{position:relative !important;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-weken{margin-top:64px;}sl-berichten div.berichten-lijst{height:fit-content !important;}.main,sl-berichten div.tabs{position:relative !important;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
         }
         // Hide unread message indicator
         if (get('bools').charAt(2) == "1") {
@@ -696,13 +733,25 @@ function onload() {
     }
 
     // Update the CSS variables used by Somtoday and Somtoday Mod
+    let primaryColorValue;
+    let secondaryColorValue;
+    let darkModeValue;
     function updateCssVariables() {
+        tryRemove(id('mod-css-variables-2'));
+        if (get("ui") != 0) {
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">:root, :root.dark.dark {--text-weakest:var(--text-weak);--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get("ui") / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get("ui") / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get("ui") / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get("ui") / 100)) + ')') + ';}</style>');
+        }
+        // Do not update CSS variables when nothing relevant changed
+        if (!n(primaryColorValue) && primaryColorValue == get('primarycolor') && secondaryColorValue == get('secondarycolor') && darkModeValue == tn('html', 0).classList.contains('dark')) {
+            return;
+        }
+        primaryColorValue = get('primarycolor');
+        secondaryColorValue = get('secondarycolor');
+        darkModeValue = tn('html', 0).classList.contains('dark');
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
         if (get('primarycolor') != '#0067c2' || get("secondarycolor") != "#e69b22") {
             tryRemove(id('mod-css-variables'));
             const rgbcolor = hexToRgb(get('primarycolor'));
-            //console.log("gr 80: " + getRelativeLuminance(hexToRgb('#3f8541')));
-            //console.log("gr 0: " + getRelativeLuminance(hexToRgb('#ebf9ec')));
             // Generate and adjust colors based on highest color channel value
             tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">:root, :root.dark.dark {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--green-100:' + toBrightnessValue(get("secondarycolor"), 46) + ';--green-90:' + toBrightnessValue(get("secondarycolor"), 68) + ';--green-80:' + toBrightnessValue(get("secondarycolor"), 113) + ';--green-50:' + toBrightnessValue(get("secondarycolor"), 183) + ';--green-20:' + toBrightnessValue(get("secondarycolor"), 209) + ';--green-10:' + toBrightnessValue(get("secondarycolor"), 228) + ';--green-0:' + toBrightnessValue(get("secondarycolor"), 245) + ';--thinnest-solid-neutral-strong:var(--b-thinnest) solid var(--border-neutral-normal);--blue-60:' + toBrightnessValue(get("primarycolor"), 89) + ';--blue-70:' + toBrightnessValue(get("primarycolor"), 81) + ';--yellow-60:' + toBrightnessValue(get("secondarycolor"), 162) + ';--blue-0:' + toBrightnessValue(get("primarycolor"), 241) + ';--blue-80:' + toBrightnessValue(get("primarycolor"), 56) + ';--blue-30:' + toBrightnessValue(get("primarycolor"), 169) + ';--blue-20:' + toBrightnessValue(get("primarycolor"), 198) + ';--blue-100:' + toBrightnessValue(get("primarycolor"), 48) + ';--yellow-20:' + toBrightnessValue(get("secondarycolor"), 198) + ';--blue-40:' + toBrightnessValue(get("primarycolor"), 140) + ';--yellow-50:' + toBrightnessValue(get("secondarycolor"), 173) + ';--orange-30:' + toBrightnessValue(get("secondarycolor"), 180) + ';--orange-60:' + toBrightnessValue(get("secondarycolor"), 141) + ';</style>');
         }
@@ -802,6 +851,10 @@ function onload() {
 
     // Show a message on top of the page. Similair to browser confirm().
     function modMessage(title, description, link1, link2, red1, red2, noBackgroundClick) {
+        tn('sl-root', 0).inert = true;
+        if (!n(tn('sl-modal', 0))) {
+            tn('sl-modal', 0).inert = true;
+        }
         while (!n(id('mod-message'))) {
             tryRemove(id('mod-message'));
         }
@@ -809,16 +862,22 @@ function onload() {
         element.insertAdjacentHTML('afterbegin', '<div id="mod-message" class="mod-msg-open"><center><div onclick="event.stopPropagation();"><h2>' + title + '</h2><p>' + description + '</p>' + (n(link1) ? '' : '<a id="mod-message-action1" class="mod-message-button' + (red1 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link1 + '</a>') + (n(link2) ? '' : '<a id="mod-message-action2" class="mod-message-button' + (red2 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link2 + '</a>') + '</div></center></div>');
         if (!n(link1)) {
             id('mod-message-action1').focus();
-            id('mod-message-action1').addEventListener("keydown", (event) => { if (event.keyCode === 13) { id('mod-message-action1').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); if (!n(id('mod-message-action2'))) { id('mod-message-action2').focus(); } } });
+            setTimeout(function () {
+                id('mod-message-action1').addEventListener("keyup", (event) => { if (event.keyCode === 13) { id('mod-message-action1').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); if (!n(id('mod-message-action2'))) { id('mod-message-action2').focus(); } } }, { once: true });
+            }, 50);
+            id('mod-message-action1').addEventListener("click", function () { tn('sl-root', 0).inert = false; if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).inert = false; } }, { once: true });
         }
         if (!n(link2)) {
-            id('mod-message-action2').addEventListener("keydown", (event) => { if (event.keyCode === 13) { id('mod-message-action2').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); id('mod-message-action1').focus(); } });
+            setTimeout(function () {
+                id('mod-message-action2').addEventListener("keyup", (event) => { if (event.keyCode === 13) { id('mod-message-action2').click(); } else if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) { event.preventDefault(); id('mod-message-action1').focus(); } }, { once: true });
+            }, 50);
+            id('mod-message-action2').addEventListener("click", function () { tn('sl-root', 0).inert = false; if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).inert = false; } }, { once: true });
             if (noBackgroundClick == null) {
-                id('mod-message').addEventListener("click", function () { if (!n('mod-message-action2')) { id('mod-message-action2').click(); } });
+                id('mod-message').addEventListener("click", function () { if (!n('mod-message-action2')) { id('mod-message-action2').click(); } }, { once: true });
             }
         }
         else if (!n(link1) && noBackgroundClick == null) {
-            id('mod-message').addEventListener("click", function () { if (!n('mod-message-action1')) { id('mod-message-action1').click(); } });
+            id('mod-message').addEventListener("click", function () { if (!n('mod-message-action1')) { id('mod-message-action1').click(); } }, { once: true });
         }
     }
 
@@ -829,13 +888,24 @@ function onload() {
     // 7 - CUSTOMIZATION
 
     // Change profile pictures when enabled
+    const profilePictureSource = n(cn('foto', 0)) ? '' : cn('foto', 0).src;
+    let profilePictureChanged = false;
     function profilePicture() {
+        // Change all profile pictures if custome one is set
         if (!n(get('profilepic'))) {
             setTimeout(function () {
                 for (const element of cn('foto')) {
+                    profilePictureChanged = true;
                     element.src = get('profilepic');
                 }
             }, 1000);
+        }
+        // Reset all profile pictures when profile picture is reset
+        else if (profilePictureChanged) {
+            for (const element of cn('foto')) {
+                profilePictureChanged = false;
+                element.src = profilePictureSource;
+            }
         }
     }
 
@@ -847,8 +917,8 @@ function onload() {
                 let real = namearray[i * 2];
                 let nick = namearray[i * 2 + 1];
                 if (real != "") {
-                    let regex = new RegExp("(.*?)" + real.replace(/\\/g, '\\\\') + "(.*?)", "g");
-                    let regexWhichPreservesIcons = new RegExp("(.*?)" + real.replace(/\\/g, '\\\\') + "(.*?<hmy-?.*)", "g");
+                    let regex = new RegExp("(.*?)" + real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "(.*?)", "g");
+                    let regexWhichPreservesIcons = new RegExp("(.*?)" + real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "(.*?<hmy-?.*)", "g");
                     // Sender field in message list (is always a teacher name)
                     for (const element of cn('afzenders')) {
                         if (!element.classList.contains('mod-nickname')) {
@@ -941,7 +1011,7 @@ function onload() {
         tryRemove(id('mod-background-style'));
         if (!n(get('background'))) {
             id('somtoday-mod', 0).insertAdjacentHTML('beforeend', '<img id="mod-background" src="' + get('background') + '">');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-background-style">#mod-background{position:fixed;left:-' + get('blur') + 'px;width:calc(100% + ' + (get('blur') * 2) + 'px);top:-' + get('blur') + 'px;height:calc(100% + ' + (get('blur') * 2) + 'px);object-fit:cover;z-index:-1;opacity:' + (1 - get("transparency")) + ';filter:blur(' + get("blur") + 'px);}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-background-style">#mod-background{pointer-events:none;user-select:none;position:fixed;left:-' + get('blur') + 'px;width:calc(100% + ' + (get('blur') * 2) + 'px);top:-' + get('blur') + 'px;height:calc(100% + ' + (get('blur') * 2) + 'px);object-fit:cover;z-index:-1;opacity:' + (1 - get("transparency")) + ';filter:blur(' + get("blur") + 'px);}</style>');
         }
     }
 
@@ -1146,6 +1216,7 @@ function onload() {
                 setTimeout(function () { tryRemove(id('mod-message')); }, 355);
             });
         }
+        tn('sl-root', 0).inert = false;
         function download() {
             let number = n(tn('sl-resultaat-item', 0)) ? tn('sl-vakgemiddelde-item').length : Math.round(parseFloat(id('mod-grades-amount').value));
             if (isNaN(number)) {
@@ -1575,7 +1646,6 @@ function onload() {
                                     id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
                                     id('recap-nextpage').addEventListener('click', closeRecapPage);
                                     isCollectingRecapData = false;
-                                    console.log(data);
                                 }
                                 if (closing) {
                                     clearInterval(checkPageDone);
@@ -1618,9 +1688,6 @@ function onload() {
                     else {
                         subject.push(cn('title', 0).innerHTML);
                     }
-                    //console.log(subject[0]);
-                    //console.log(cn('title', 0).innerHTML);
-                    //console.log(cn('title', 1).innerHTML);
                     subject.push(cn('cijfer', 0).innerHTML.replace(',', '.').replace(' ', '').replace(' ', ''));
                     for (const element of tn('sl-resultaat-item')) {
                         subject.push(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
@@ -2118,6 +2185,19 @@ function onload() {
     // Open modsettings
     function openSettings() {
         tryRemove(id('mod-setting-panel'));
+        if (!n(tn('sl-account-modal', 0))) {
+            if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+                tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText = tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML;
+                tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML = "Mod-instellingen";
+            }
+            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
+                if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
+                    if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+                        tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = true;
+                    }
+                }
+            }
+        }
         if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
             tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
         }
@@ -2131,9 +2211,6 @@ function onload() {
             }
         }
         id("mod-setting-button").classList.add('active');
-        if (tn('sl-account-modal-header', 1) != null) {
-            tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = 'Mod-instellingen';
-        }
         let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><div id="nickname-wrapper">';
         const nicknameArray = get("nicknames").split("|");
         let i = 0;
@@ -2142,9 +2219,19 @@ function onload() {
             i += 2;
         }
         nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
-        const updatechecker = platform == "Userscript" ? '<a id="mod-update-checker" class="mod-setting-button"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
+        const updatechecker = platform == "Userscript" ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
         const updateinfo = platform == "Userscript" ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div><h3 class="category">Kleuren</h3>' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '<h3 class="category">Achtergrond</h3>' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '<h3 class="category">Thema\'s</h3><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div><h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div><h3 class="category">Menu</h3>' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '<h3 class="category">Algemeen</h3>' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.', 'profilepic', 'file', null, 'image/*', '120') + '<h3 class="category">Aanvullende opties</h3>' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '<h3 class="category">Browser</h3>' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '<h3 class="category">Autologin</h3><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
+        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" tabindex="0" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
+            '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
+            '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-transparantie', 'Verander de transparantie van de achtergrond.', 'transparency', 'range', Math.round(Math.abs(1 - get("transparency")) * 100), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get("ui"), 0, 100, 1, true) + '<div class="br"></div><div class="br"></div>' + addSetting('Achtergrond-blur', 'Blur de achtergrondafbeelding.', 'blur', 'range', get("blur") * 2, 0, 100, 1, true) + '</div>' +
+            '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
+            '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div></div></div>' +
+            '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
+            '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3><div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>Abhaya Libre</option><option>Aleo</option><option>Archivo</option><option>Assistant</option><option>B612</option><option>Bebas Neue</option><option>Black Ops One</option><option>Brawler</option><option>Cabin</option><option>Caladea</option><option>Cardo</option><option>Chivo</option><option>Comic Sans MS</option><option>Crimson Text</option><option>DM Serif Text</option><option>Enriqueta</option><option>Fira Sans</option><option>Frank Ruhl Libre</option><option>Gabarito</option><option>Gelasio</option><option>Grenze Gotisch</option><option>IBM Plex Sans</option><option>Inconsolata</option><option>Inter</option><option>Josefin Sans</option><option>Kanit</option><option>Karla</option><option>Lato</option><option>Libre Baskerville</option><option>Libre Franklin</option><option>Lora</option><option>Merriweather</option><option>Montserrat</option><option>Neuton</option><option>Noto Serif</option><option>Nunito</option><option>OpenDyslexic2</option><option>Open Sans</option><option>Oswald</option><option>Permanent Marker</option><option>Pixelify Sans</option><option>Playfair Display</option><option>Poetsen One</option><option>Poppins</option><option>PT Sans</option><option>PT Serif</option><option>Quicksand</option><option>Raleway</option><option>Roboto</option><option>Roboto Slab</option><option>Rubik Doodle Shadow</option><option>Rubik</option><option>Sedan SC</option><option>Shadows Into Light</option><option>Single Day</option><option>Source Sans 3</option><option>Source Serif 4</option><option>Spectral</option><option>Titillium Web</option><option>Ubuntu</option><option>Work Sans</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto. De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.', 'profilepic', 'file', null, 'image/*', '120') + '</div>' +
+            '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '</div>' +
+            '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday Leerling') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div><p>', 'icon', 'file', null, 'image/*', '300') + '</div>' +
+            '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt via Microsoft).', 'loginpass', 'text', '', '') + '</div>' +
+            '<div class="br"></div><p>Versie ' + somtodayversion + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p>Bedankt voor het gebruiken van Somtoday Mod ' + platform + '!</p>' + updateinfo + '<div class="br"></div></div>');
         // Add themes
         // Background images thanks to Pexels: https://www.pexels.com
         addTheme("Standaard", "", "0067c2", 20, false);
@@ -2157,6 +2244,40 @@ function onload() {
         addTheme("Bergen en ruimte", "1624504", "6489a0", 50, true);
         addTheme("Stad", "2246476", "18202d", 25, true);
         addTheme("Weg", "1820563", "de3c22", 65, true);
+        // Make section collapsing work
+        let number = 0;
+        if (n(get('category'))) {
+            set('category', '111111111');
+        }
+        const categories = get('category');
+        for (const element of cn('mod-setting-button')) {
+            element.addEventListener("keyup", (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
+        }
+        for (const element of id('mod-setting-panel').getElementsByClassName('category')) {
+            const index = number;
+            id('category-' + element.dataset.category).style.display = categories.charAt(index) == '1' ? 'block' : 'none';
+            if (categories.charAt(index) == '1') {
+                element.classList.remove('collapsed');
+            }
+            else {
+                element.classList.add('collapsed');
+            }
+            element.addEventListener('click', function () {
+                // Collapsed: whether the category was collapsed before toggling
+                // So if collapsed == true, then the category should be shown
+                const collapsed = id('category-' + element.dataset.category).style.display == 'none';
+                set('category', get('category').replaceAt(index, collapsed ? '1' : '0'));
+                if (collapsed) {
+                    element.classList.remove('collapsed');
+                }
+                else {
+                    element.classList.add('collapsed');
+                }
+                id('category-' + element.dataset.category).style.display = collapsed ? 'block' : 'none';
+            });
+            element.addEventListener("keyup", (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
+            number++;
+        }
         // Add event listeners to make layout boxes work
         for (const element of cn("layout-container")) {
             element.addEventListener("click", function () {
@@ -2170,7 +2291,19 @@ function onload() {
         id("save").addEventListener("click", function () { execute([save]); modMessage('Opgeslagen!', 'Al je instellingen zijn opgeslagen.', 'Doorgaan'); id('mod-message-action1').addEventListener("click", function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); }); });
         id("reset").addEventListener("click", function () {
             modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
-            id('mod-message-action1').addEventListener("click", function () { reset(); setBackground(); style(); pageUpdate(); if (!n(id('mod-grades-graphs')) && get("bools").charAt(7) == "1" && !n(tn('sl-vakresultaten', 0))) { tryRemove(id('mod-grades-graphs')); tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>'); setTimeout(gradeGraphs, 500); } id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+            id('mod-message-action1').addEventListener("click", function () {
+                reset();
+                setBackground();
+                style();
+                pageUpdate();
+                if (!n(id('mod-grades-graphs')) && get("bools").charAt(7) == "1" && !n(tn('sl-vakresultaten', 0))) {
+                    tryRemove(id('mod-grades-graphs'));
+                    tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                    setTimeout(gradeGraphs, 500);
+                }
+                id('mod-message').classList.remove('mod-msg-open');
+                setTimeout(function () { tryRemove(id('mod-message')) }, 350);
+            });
             id('mod-message-action2').addEventListener("click", function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
         });
         id("information-about-mod").addEventListener("click", function () {
@@ -2231,7 +2364,19 @@ function onload() {
     function closeSettings(element) {
         id("mod-setting-button").classList.remove('active');
         tryRemove(id("mod-setting-panel"));
-        tn('sl-account-modal-header', 1).getElementsByClassName('ng-star-inserted')[1].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
+        if (!n(tn('sl-account-modal', 0))) {
+            if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+                tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText;
+            }
+            tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
+            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
+                if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
+                    if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+                        tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = false;
+                    }
+                }
+            }
+        }
     }
 
     // Save all modsettings
@@ -2398,6 +2543,7 @@ function onload() {
         set("icon", "");
         set("background", "");
         set("transparency", 0.8);
+        set("ui", 0);
         set("fontname", "Open Sans");
         set("theme", "Standaard");
         set("layout", 1);
@@ -2471,14 +2617,36 @@ function onload() {
     // Open modsettings directly when hash is #mod-settings
     function openModSettingsDirectly() {
         if (window.location.hash == "#mod-settings") {
-            tn('sl-header', 0).getElementsByTagName('div')[0].click();
             setTimeout(function () {
-                cn('selector-option instellingen', 0).click();
-            }, 100);
-            setTimeout(function () {
-                id('mod-setting-button').click();
-                history.replaceState("", document.title, window.location.pathname + window.location.search);
-            }, 500);
+                tn('sl-header', 0).getElementsByTagName('div')[0].click();
+                let tries = 0;
+                let tryTries = 0;
+                let checkPopupLoaded = setInterval(function(){
+                    if (!n(cn('selector-option instellingen', 0))) {
+                        cn('selector-option instellingen', 0).click();
+                        let checkSettingsLoaded = setInterval(function(){
+                            if (!n(id('mod-setting-button'))) {
+                                id('mod-setting-button').click();
+                                history.replaceState("", document.title, window.location.pathname + window.location.search);
+                            }
+                            clearInterval(checkSettingsLoaded);
+                        }, 500);
+                        clearInterval(checkPopupLoaded);
+                    }
+                    // Wait on popup for 20 x 100 = 2000ms, then try clicking element again
+                    if (tries > 20) {
+                        tries = 0;
+                        tryTries++;
+                        // Stop after 3 retries
+                        if (tryTries > 3) {
+                            clearInterval(checkPopupLoaded);
+                            return;
+                        }
+                        tn('sl-header', 0).getElementsByTagName('div')[0].click();
+                    }
+                    tries++;
+                }, 100);
+            }, 1500);
         }
     }
 
@@ -2518,6 +2686,15 @@ function onload() {
         // Update background of modsetting link in settings menu
         else if (!n(id("mod-setting-button"))) {
             id("mod-setting-button").getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
+        }
+        if (!n(cn('setting-preview dyslexie', 0))) {
+            if (!n(cn('setting-preview dyslexie', 0).parentElement.getElementsByClassName('settings-subtext')[0])) {
+                cn('setting-preview dyslexie', 0).parentElement.getElementsByClassName('settings-subtext')[0].innerHTML = 'Deze functie is verplaatst. Selecteer in de <b>Mod-instellingen</b> bij <b>Algemeen > Lettertype</b> het lettertype <b>OpenDyslexic2</b>.';
+                if (!n(cn('setting-preview dyslexie', 0).parentElement.getElementsByClassName('toggle')[0])) {
+                    cn('setting-preview dyslexie', 0).parentElement.getElementsByClassName('toggle')[0].style.pointerEvents = 'none';
+                    cn('setting-preview dyslexie', 0).parentElement.getElementsByClassName('toggle')[0].style.visibility = 'hidden';
+                }
+            }
         }
     }
 
@@ -2704,7 +2881,7 @@ function onload() {
 
 
 // LEGACY-SCRIPT
-// WILL BE REMOVED WHEN SOMTODAY V17 IS RELEASED IN AUGUST 2024
+// WILL BE REMOVED WHEN SOMTODAY V17 IS RELEASED IN 2024
 
 function legacy() {
     // Show a message on top of the page. Similair to browser confirm().
@@ -4003,7 +4180,7 @@ function legacy() {
                 real = namearray[i * 2];
                 nick = namearray[i * 2 + 1];
                 if (real != "") {
-                    let regex = new RegExp("((<span>)(.*?))" + real.replace(/\\/g, '\\\\') + "((.*?)(<\/span>)+?)", "g");
+                    let regex = new RegExp("((<span>)(.*?))" + real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "((.*?)(<\/span>)+?)", "g");
                     nick = "$1" + nick + "$4";
                     // Replace at message list in master panel
                     for (const element of cn("r_content sub")) {
@@ -4603,7 +4780,7 @@ function legacy() {
         // Construct mod settings
         // To add your own settings, you can use the addSetting() function.
         // Copy one of the settings, change the 3rd parameter to be something else - it should be unique, for example uniquekey - and then you can access the value with get(uniquekey) once the user has saved the form.
-        const form = '<h3 class="category">Thema</h3><h3>Snelle thema\'s</h3><div id="theme-wrapper"></div>' +
+        const form = '<style>#new-version-somtoday svg{position:absolute;right:10px;width:70px;height:70px;bottom:-10px;transform:rotate(-20deg);}#new-version-somtoday *{color:#fff;}a#new-version-somtoday{display:block;margin-top:60px;margin-bottom:-50px !important;margin-left:-10px;width:calc(100% - 20px);cursor:pointer;overflow:hidden;background:linear-gradient(145deg, ' + colors[6] + ' 0%, ' + colors[5] + ' 100%);background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}</style><a id="new-version-somtoday" href="https://leerling.somtoday.nl/" target="_blank"><h3>Probeer de nieuwe versie van Somtoday!</h3><p style="padding-right:60px;">Zin in n&oacute;g beter design? Bekijk alvast de vernieuwde Somtoday! Werkt ook met Somtoday Mod!</p>' + getIcon('logo', null, '#fff') + '</a><h3 class="category">Thema</h3><h3>Snelle thema\'s</h3><div id="theme-wrapper"></div>' +
             addSetting('Kleur van Somtoday', 'Pas het thema van Somtoday aan op basis van een kleur.', 'primarycolor', 'color', '#0067c2') +
             addSetting('Dark mode', 'Geef Somtoday een donkere look.', 'bools00', 'checkbox', false) +
             '<h3 class="category">Layout</h3><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width: 66%; height: 19%; top: 4%; left: 17%;"><span>Menu</span></div><div style="width: 66%; height: 11%; top: 27%; left: 17%;"><span>Links</span></div><div style="width: 66%; height: 53%; top: 42%; left: 17%;"><span>Content</span></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"><span>Links</span></div><div style="width: 75%; height: 19%; right: 3%; top: 4%;"><span>Menu</span></div><div style="width: 75%; height: 69%; right: 3%; top: 27%;"><span>Content</span></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width: 75%; height: 19%; left: 3%; top: 4%;"><span>Menu</span></div><div style="width: 16%; height: 92%; top: 4%; right: 3%;"><span>Links</span></div><div style="width: 75%; height: 69%; left: 3%; top: 27%;"><span>Content</span></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width: 94%; height: 19%; top: 4%; left: 3%;"><span>Menu</span></div><div style="width: 94%; height: 11%; top: 27%; left: 3%;"><span>Links</span></div><div style="width: 94%; height: 53%; top: 42%; left: 3%;"><span>Content</span></div><h3>Breed</h3></div></div><h3 class="category">Achtergrond</h3>' +
