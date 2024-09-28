@@ -7,6 +7,7 @@ chrome.storage.local.get(["enabled"]).then((result) => {
 document.getElementById('reset-all').addEventListener('click', function() { if (confirm("Wil je echt alle opslagdata wissen?")) { chrome.storage.local.clear(); chrome.storage.local.set({ enabled: true }); somtodayEnabled = true; updateCheckbox(); } });
 document.getElementById('enable-disable').addEventListener('click', function() { somtodayEnabled = !somtodayEnabled; updateCheckbox(); chrome.storage.local.set({enabled:somtodayEnabled}); });
 function updateCheckbox() {
+    chrome.action.setBadgeText({text: somtodayEnabled ? 'on' : 'off'});
     document.getElementById('icon-checked').style.display = somtodayEnabled ? 'inline-block' : 'none';
     document.getElementById('icon-unchecked').style.display = somtodayEnabled ? 'none' : 'inline-block';
 }

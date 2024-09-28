@@ -83,7 +83,7 @@ if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
 }
 // Check if extension allows storage access
 else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.local) {
-    chrome.storage.local.get(["background", "birthday", "blur", "bools", "enabled", "firstused", "fontname", "icon", "lastjubileum", "lastused", "layout", "loginschool", "loginname", "loginpass", "nicknames", "primarycolor", "profilepic", "realname", "secondarycolor", "theme", "title", "transparency", "username", "version", "zoom"]).then((result) => {
+    chrome.storage.local.get(null).then((result) => {
         data = result;
     });
     chrome.storage.onChanged.addListener((changes) => {

@@ -16,7 +16,7 @@ You can install the official release of Somtoday Mod in the extension stores (se
 <br>
 
 Userscript:
-1. Install an userscriptmanager (<a href="https://tampermonkey.net/">Tampermonkey</a> - alle browsers, <a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a> - Firefox, <a href="https://apps.apple.com/us/app/userscripts/id1463298887">Userscripts</a> - Safari)
+1. Install an userscriptmanager (<a href="https://tampermonkey.net/">Tampermonkey</a> - all browsers, <a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a> - Firefox, <a href="https://apps.apple.com/us/app/userscripts/id1463298887">Userscripts</a> - Safari)
 2. Add <a href="https://github.com/Jona-Zwetsloot/Somtoday-Mod/blob/main/Userscript/SomtodayMod.user.js">this userscript</a> to the userscript manager
 <br>
 
@@ -69,8 +69,8 @@ You can always edit the code for yourself. If you fixed a bug (or added some kin
 
 <!---------------------------------------------------------------------------->
 [Button Chrome]: https://jonazwetsloot.nl/images/chrome-webstore.svg
-[ChromeLink]: https://chromewebstore.google.com/detail/somtoday-mod/gehilkhfalphnhpidceocgmdijplpkbn 'Installeer in de Chrome Webstore.'
+[ChromeLink]: https://chromewebstore.google.com/detail/somtoday-mod/gehilkhfalphnhpidceocgmdijplpkbn 'Install in the Chrome Webstore.'
 [Button Edge]: https://jonazwetsloot.nl/images/edge-addons.svg
-[EdgeLink]: https://microsoftedge.microsoft.com/addons/detail/somtoday-mod/ldhlddmnhkkjnocncckkencgcmgmffme 'Installeer in de Edge Addons Store.'
+[EdgeLink]: https://microsoftedge.microsoft.com/addons/detail/somtoday-mod/ldhlddmnhkkjnocncckkencgcmgmffme 'Install in the Edge Addons Store.'
 [Button Firefox]: https://jonazwetsloot.nl/images/firefox-addons.svg
-[FirefoxLink]: https://addons.mozilla.org/nl/firefox/addon/somtoday-mod/ 'Installeer in de Firefox Addons Store.'
+[FirefoxLink]: https://addons.mozilla.org/nl/firefox/addon/somtoday-mod/ 'Install in the Firefox Addons Store.'
