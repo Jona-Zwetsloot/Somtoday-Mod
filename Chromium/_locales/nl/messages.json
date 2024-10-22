@@ -15,13 +15,13 @@
     "message": "Instellingen"
   },
   "newOne": {
-    "message": "Collapsable sections bij instellingen toegevoegd"
+    "message": "Easter eggs toegevoegd (minigame op <a href='https://leerling.somtoday.nl/error' target='_blank'>error pagina</a> etc)"
   },
   "newTwo": {
-    "message": "Compact rooster optie toegevoegd"
+    "message": "Preview toegevoegd voor range inputs"
   },
   "newThree": {
-    "message": "Kleine bugs opgelost en verbeteringen toegevoegd"
+    "message": "Compact rooster bug en ook nog wat kleinere bugs gefixt"
   },
   "whatsNew": {
     "message": "Bekijk wat er nieuw is"
