@@ -1,5 +1,6 @@
 // MANAGE OPTIONS PAGE AND CHECK IF USERSCRIPTS ARE AVAILABLE
 document.getElementById('name').innerHTML=chrome.i18n.getMessage("extName");
+document.getElementById('version').innerHTML=chrome.i18n.getMessage("extVersion");
 document.getElementById('activetext').innerHTML=chrome.i18n.getMessage("activeText");
 document.getElementById('btn-1').innerHTML=chrome.i18n.getMessage("btnOne");
 document.getElementById('btn-2').innerHTML=chrome.i18n.getMessage("btnTwo");

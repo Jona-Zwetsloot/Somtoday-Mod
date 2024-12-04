@@ -1,4 +1,16 @@
 {
+  "extVersion": {
+    "message": "Somtoday Mod Chromium v4.5"
+  },
+  "newOne": {
+    "message": "Gelijktijdige lessen worden nu correct weergegeven"
+  },
+  "newTwo": {
+    "message": "Er is een cijfer reveal functie toegevoegd"
+  },
+  "newThree": {
+    "message": "Er zijn een aantal kleine bugs gefixt en verbeteringen gemaakt"
+  },
   "extName": {
     "message": "Somtoday Mod"
   },
@@ -13,15 +25,6 @@
   },
   "btnTwo": {
     "message": "Instellingen"
-  },
-  "newOne": {
-    "message": "Easter eggs toegevoegd (minigame op <a href='https://leerling.somtoday.nl/error' target='_blank'>error pagina</a> etc)"
-  },
-  "newTwo": {
-    "message": "Preview toegevoegd voor range inputs"
-  },
-  "newThree": {
-    "message": "Compact rooster bug en ook nog wat kleinere bugs gefixt"
   },
   "whatsNew": {
     "message": "Bekijk wat er nieuw is"
@@ -40,5 +43,14 @@
   },
   "resetAll": {
     "message": "Reset alles"
+  },
+  "confirmReset": {
+    "message": "Wil je echt alle opslagdata wissen?"
+  },
+  "yes": {
+    "message": "Ja"
+  },
+  "no": {
+    "message": "Nee"
   }
 }

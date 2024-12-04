@@ -1,4 +1,16 @@
 {
+  "extVersion": {
+    "message": "Somtoday Mod Chromium v4.5"
+  },
+  "newOne": {
+    "message": "Simultaneous lessons are now displayed correctly"
+  },
+  "newTwo": {
+    "message": "A grade reveal function has been added"
+  },
+  "newThree": {
+    "message": "Some small bugs have been fixed and improvements have been made"
+  },
   "extName": {
     "message": "Somtoday Mod"
   },
@@ -13,15 +25,6 @@
   },
   "btnTwo": {
     "message": "Settings"
-  },
-  "newOne": {
-    "message": "Easter eggs added (minigame on <a href='https://leerling.somtoday.nl/error' target='_blank'>error page</a> etc)"
-  },
-  "newTwo": {
-    "message": "Added preview for range inputs"
-  },
-  "newThree": {
-    "message": "Fixed compact roster bug and also some smaller bugs"
   },
   "whatsNew": {
     "message": "See what's new"
@@ -40,5 +43,14 @@
   },
   "resetAll": {
     "message": "Reset all"
+  },
+  "confirmReset": {
+    "message": "Are you sure you want to erase all storage data?"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "no": {
+    "message": "No"
   }
 }
