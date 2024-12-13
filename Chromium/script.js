@@ -4,7 +4,7 @@
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
 const version = 4.6;
-const platform = "Chromium";
+const platform = "Edge";
 const minified = false;
 let isloaded = false;
 let loadInterval;
@@ -1353,7 +1353,7 @@ function onload() {
             if (get('uiblur') == null) {
                 set('uiblur', 0);
             }
-            if (n(get('ui'))) {
+            if (get('ui') == null) {
                 set('ui', 20);
             }
             // Check if user has used the old version of Somtoday and is using new version for the first time
