@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v4.5"
+    "message": "Somtoday Mod Firefox v4.6"
   },
   "newOne": {
-    "message": "Gelijktijdige lessen worden nu correct weergegeven"
+    "message": "Je kan nu meerdere achtergrondafbeeldingen selecteren"
   },
   "newTwo": {
-    "message": "Er is een cijfer reveal functie toegevoegd"
+    "message": "Er zijn achtergrondfilters toegevoegd"
   },
   "newThree": {
-    "message": "Er zijn een aantal kleine bugs gefixt en verbeteringen gemaakt"
+    "message": "Het raster achter het rooster kan nu uitgezet worden"
   },
   "extName": {
     "message": "Somtoday Mod"

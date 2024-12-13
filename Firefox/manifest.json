@@ -15,10 +15,8 @@
     "matches": ["*://*.somtoday.nl/*", "*://som.today/*"],
     "run_at": "document_start"
   }],
-  "permissions": [
-    "storage"
-  ],
-  "host_permissions": ["*://*.somtoday.nl/*","*://som.today/*"],
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": ["*://*.somtoday.nl/*", "*://som.today/*"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false

@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v4.5"
+    "message": "Somtoday Mod Firefox v4.6"
   },
   "newOne": {
-    "message": "Simultaneous lessons are now displayed correctly"
+    "message": "You can now select multiple background images"
   },
   "newTwo": {
-    "message": "A grade reveal function has been added"
+    "message": "Background filters have been added"
   },
   "newThree": {
-    "message": "Some small bugs have been fixed and improvements have been made"
+    "message": "The grid on the schedule page can now be turned off"
   },
   "extName": {
     "message": "Somtoday Mod"
