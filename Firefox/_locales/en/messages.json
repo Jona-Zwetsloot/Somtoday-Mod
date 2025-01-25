@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v4.6"
+    "message": "Somtoday Mod Firefox v4.8"
   },
   "newOne": {
-    "message": "You can now select multiple background images"
+    "message": "User name bug in homework description fixed"
   },
   "newTwo": {
-    "message": "Background filters have been added"
+    "message": "Somtoday Recap bugs fixed (try typing \"recap\" when on the grades page to try it out ahead of time)"
   },
   "newThree": {
-    "message": "The grid on the schedule page can now be turned off"
+    "message": "Sidebar is now resizable in layouts that have a sidebar"
   },
   "extName": {
     "message": "Somtoday Mod"

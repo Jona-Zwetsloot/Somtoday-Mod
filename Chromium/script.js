@@ -3,8 +3,8 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 4.6;
-const platform = "Edge";
+const version = 4.8;
+const platform = "Chromium";
 const minified = false;
 let isloaded = false;
 let loadInterval;
@@ -180,49 +180,94 @@ String.prototype.replaceAt = function (index, replacement) {
 
 // 3 - EXECUTE MOD AFTER PAGE LOAD
 
-// Autologin user if enabled
-if (window.location.origin.indexOf("inloggen") != -1) {
-    if (!n(get('loginschool'))) {
-        window.addEventListener('load', function () {
-            let loadInterval = setInterval(function(){
-                // First, fill in the school name
-                if (!n(id('organisatieSearchField'))) {
-                    clearInterval(loadInterval);
-                    id('organisatieSearchField').value = get('loginschool');
-                    // Always use this school
-                    if (!n(cn('form--checkbox checkbox-label', 0))) {
-                        cn('form--checkbox checkbox-label', 0).click();
-                    }
-                    // Proceed to next step
-                    if (!n(cn('button--stpanel primary-button', 0))) {
-                        cn('button--stpanel primary-button', 0).click();
-                    }
-                }
-                // Then, fill in the username (and password if set)
-                else if (!n(id('usernameField'))) {
-                    clearInterval(loadInterval);
-                    id('usernameField').value = get('loginname');
-                    if (!n(id('passwordField'))) {
-                        id('passwordField').value = get('loginpass');
-                    }
-                    // Remember username
-                    if (!n(cn('form--checkbox checkbox-label', 0))) {
-                        cn('form--checkbox checkbox-label', 0).click();
-                    }
-                    // Login
-                    if (!n(cn('button--stpanel primary-button', 0))) {
-                        cn('button--stpanel primary-button', 0).click();
-                    }
-                }
-            }, 10);
-        });
+async function autoLogin() {
+    // Wait until data is loaded
+    for (let i = 0; true; i++) {
+        if (platform == 'Userscript' || platform == 'Android' || data != null) {
+            break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 10));
     }
+
+    if (n(get('loginschool')) || (data != null && !data.enabled)) {
+        return;
+    }
+
+    // Wait until school input field is loaded
+    for (let i = 0; true; i++) {
+        if (!n(id('organisatieSearchField')) || !n(id('organisatieInput'))) {
+            break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    // Fill in the school name
+    if (!n(id('organisatieSearchField'))) {
+        id('organisatieSearchField').value = get('loginschool');
+        // Always use this school
+        if (!n(cn('form--checkbox checkbox-label', 0))) {
+            cn('form--checkbox checkbox-label', 0).click();
+        }
+        // Proceed to next step
+        if (!n(cn('button--stpanel primary-button', 0))) {
+            cn('button--stpanel primary-button', 0).click();
+        }
+    }
+
+    // Wait until username input field is loaded
+    for (let i = 0; true; i++) {
+        if (!n(id('usernameField'))) {
+            break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    // Fill in the username (and password if set)
+    id('usernameField').value = get('loginname');
+    if (!n(id('passwordField'))) {
+        id('passwordField').value = get('loginpass');
+    }
+    // Remember username
+    if (!n(cn('form--checkbox checkbox-label', 0))) {
+        cn('form--checkbox checkbox-label', 0).click();
+    }
+
+    // Wait until submit button event is added
+    for (let i = 0; true; i++) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        if (!n(cn('button--stpanel primary-button', 0))) {
+            break;
+        }
+    }
+
+    // Login
+    cn('button--stpanel primary-button', 0).click();
+}
+
+async function redirectToLogin() {
+    for (let i = 0; true; i++) {
+        if (platform == 'Userscript' || platform == 'Android' || data != null) {
+            break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    if (data != null && !data.enabled) {
+        return;
+    }
+
+    if (get('bools') == null || get('bools').charAt(9) == '1') {
+        window.location.replace('https://inloggen.somtoday.nl');
+    }
+}
+
+// Autologin user if enabled
+if (window.location.origin.indexOf('inloggen') != -1) {
+    autoLogin();
 }
 // Redirect user to login page if enabled
 else if (window.location.origin.indexOf('som.today') != -1) {
-    if ((get('bools') == null) || get('bools').charAt(9) == '1') {
-        window.location.replace('https://inloggen.somtoday.nl');
-    }
+    redirectToLogin();
 }
 else {
     // Stop transitions while loading
@@ -245,7 +290,6 @@ function tryLoad() {
         isloaded = true;
         // Show page
         if ((platform == 'Userscript' || platform == 'Android') || (data != null && data.enabled)) {
-            tn('html', 0).style.opacity = '1';
             if (n(tn('sl-home', 0)) && n(tn('sl-error', 0))) {
                 if (window.location.href.indexOf('/home/') != -1 || window.location.href.indexOf('/error') != -1) {
                     tn('html', 0).removeAttribute('style');
@@ -262,7 +306,6 @@ function tryLoad() {
         clearInterval(loadInterval);
         // Page has loaded
         isloaded = true;
-        tn('html', 0).style.opacity = '1';
     }
 }
 
@@ -798,12 +841,14 @@ function onload() {
     let username;
     let realname;
     let busy = false;
+    let ignoreRecapConditions = false;
     if (!n(tn('sl-root', 0))) {
         somtodayversion = tn('sl-root', 0).getAttribute('ng-version');
     }
     let menuColor;
     let highLightColor;
     let isCollectingRecapData = false;
+    let menuWidth = n(get('menuwidth')) ? 110 : get('menuwidth');
 
     // List of all Google Fonts to be loaded
     const fonts = ['Abhaya Libre', 'Aleo', 'Archivo', 'Assistant', 'B612', 'Bebas Neue', 'Black Ops One', 'Brawler', 'Cabin', 'Caladea', 'Cardo', 'Chivo', 'Comic Sans MS', 'Crimson Text', 'DM Serif Text', 'Enriqueta', 'Fira Sans', 'Frank Ruhl Libre', 'Gabarito', 'Gelasio', 'Grenze Gotisch', 'IBM Plex Sans', 'Inconsolata', 'Inter', 'Josefin Sans', 'Kanit', 'Karla', 'Lato', 'Libre Baskerville', 'Libre Franklin', 'Lora', 'Merriweather', 'Montserrat', 'Neuton', 'Noto Serif', 'Nunito', 'Open Sans', 'OpenDyslexic2', 'Oswald', 'Permanent Marker', 'Pixelify Sans', 'Playfair Display', 'Poetsen One', 'Poppins', 'PT Sans', 'PT Serif', 'Quicksand', 'Raleway', 'Roboto', 'Roboto Slab', 'Rubik', 'Rubik Doodle Shadow', 'Sedan SC', 'Shadows Into Light', 'Single Day', 'Source Sans 3', 'Source Serif 4', 'Spectral', 'Titillium Web', 'Ubuntu', 'Work Sans'];
@@ -868,11 +913,12 @@ function onload() {
 
     function easterEggs() {
         if (n(id('mod-easter-eggs'))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;}100%{transform:rotate(-140deg);left:-90px;top:75px;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:10000;animation:8s logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:10000;animation:8s logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
             let i = 0;
             let j = 0;
             let k = 0;
             let l = 0;
+            let m = 0;
             document.addEventListener('keydown', function (e) {
                 let konamikeys = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
                 if (e.key.toLowerCase() == konamikeys[i]) {
@@ -932,6 +978,18 @@ function onload() {
                         id('mod-message').classList.remove('mod-msg-open');
                         setTimeout(function () { tryRemove(id('mod-message')); }, 355);
                     });
+                }
+                // Somtoday recap
+                let recapkeys = 'recap';
+                if (e.key.toLowerCase() == recapkeys.charAt(m)) {
+                    m++;
+                }
+                else {
+                    m = 0;
+                }
+                if (m == recapkeys.length) {
+                    ignoreRecapConditions = true;
+                    somtodayRecap();
                 }
             });
         }
@@ -996,6 +1054,7 @@ function onload() {
             element.style.transform = 'translate(' + (Math.random() * (xMax - xMin) + xMin).toString() + 'px, ' + (Math.random() * (yMax - yMin) + yMin).toString() + 'px)';
         }
     }
+
     // Add a menu bar on top of the page
     function topMenu() {
         if (get('layout') == 5 && n(id('mod-top-menu'))) {
@@ -1020,17 +1079,17 @@ function onload() {
         else if (get('layout') != 5) {
             tryRemove(id('mod-top-menu'));
         }
-        else if (!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0])) {
-            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + (((!n(cn('avatar', 0).getElementsByClassName('initials')[0]) && !n(cn('avatar', 0).getElementsByClassName('initials')[0].children[0]))) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + cn('avatar', 0).getElementsByClassName('foto')[0].src + '" />') + '</div>';
+        else if (!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && !n(id('mod-profile-link'))) {
+            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + ((!n(cn('avatar', 0).getElementsByClassName('initials')[0]) && !n(cn('avatar', 0).getElementsByClassName('initials')[0].children[0])) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + cn('avatar', 0).getElementsByClassName('foto')[0].src + '" />') + '</div>';
         }
         if (!n(id('mod-top-menu-title'))) {
-            let headerText = 'Onbekende pagina';
+            let headerText = '';
             for (const element of tn('sl-tab-item')) {
                 if (element.classList.contains('active')) {
                     headerText = element.getElementsByTagName('span')[0].innerHTML;
                 }
             }
-            if (headerText == 'Onbekende pagina') {
+            if (n(headerText)) {
                 if (!n(cn('desktop-title', 0))) {
                     headerText = cn('desktop-title', 0).innerHTML;
                 }
@@ -1055,7 +1114,7 @@ function onload() {
                         break;
                     }
                     if (!n(element.children[0])) {
-                        if (element.children[0].innerHTML == lastGrade && element.parentElement.parentElement.parentElement.getElementsByClassName('titel')[0].innerHTML == lastGradeTitle && element.parentElement.parentElement.parentElement.getElementsByClassName('subtitel')[0].innerHTML.split('• ')[1] == lastGradeDescription) {
+                        if (element.children[0].innerHTML == lastGrade && (n(element.parentElement.parentElement.parentElement.getElementsByClassName('titel')[0]) || element.parentElement.parentElement.parentElement.getElementsByClassName('titel')[0].innerHTML == lastGradeTitle) && (n(element.parentElement.parentElement.parentElement.getElementsByClassName('subtitel')[0]) || element.parentElement.parentElement.parentElement.getElementsByClassName('subtitel')[0].innerHTML.split('• ')[1] == lastGradeDescription)) {
                             break;
                         }
                         else if (i == 0) {
@@ -1063,7 +1122,7 @@ function onload() {
                             set('lastgradetitle', element.parentElement.parentElement.parentElement.getElementsByClassName('titel')[0].innerHTML);
                             set('lastgradedescription', element.parentElement.parentElement.parentElement.getElementsByClassName('subtitel')[0].innerHTML.split('• ')[1]);
                         }
-                        if (!isNaN(element.children[0].innerHTML)) {
+                        if (!isNaN(parseFloat(element.children[0].innerHTML))) {
                             countanimation(element.children[0], 0, parseFloat(element.children[0].innerHTML.replace(',', '.')), 2500, 50);
                         }
                         element.classList.add('mod-animation-finished');
@@ -1276,48 +1335,48 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">*{user-select:auto !important;}</style>');
         }
         // General style
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(15) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:var(--br-normal);}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(15) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:6px;}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input,#username-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:48em){#mod-grade-calculate{padding:0 20px;box-sizing:border-box;}}.input-veld{border-width:2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover){background:var(--bg-neutral-none) !important;}#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;position:relative;}.mod-info-notice > svg{height:20px;position:absolute;top:50%;transform:translateY(-50%);left:18px;}#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-neutral-none) !important;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1120px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-cijfers .tabs{border-radius:0;}}@media (min-width:1120px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}@media (min-width:767px){:root{--min-content-vh:calc(100vh - 74px) !important;}}</style>');
         // Somtoday Recap
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;top:50%;transform:translateY(-50%);position:absolute;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:52px;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:32px;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:32px;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:24px;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{margin-left:10px;display:inline-block;color:#fff;vertical-align:middle;font-size:26px;margin-top:0;}#somtoday-recap-wrapper label.wrong p{color:#ff0000;}#somtoday-recap-wrapper label.right p{color:#00ff00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(14.2857% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:70px;right:30px;cursor:pointer;color:#fff;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}#somtoday-recap p,#somtoday-recap h3{z-index:1;position:relative;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:52px;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:32px;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:32px;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{user-select:none;margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:24px;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{margin-left:10px;display:inline-block;color:#fff;vertical-align:top;font-size:26px;margin-top:5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong{color:#ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right{color:#00ff00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(12.5% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:70px;right:30px;cursor:pointer;color:#fff;z-index:1000;}.mod-item svg:last-of-type{float:right;cursor:ns-resize;}.mod-item svg:first-of-type{float:left;}.mod-item p{float:left;margin:0 10px;}#mod-grade-average-sort-list{margin-top:30px;}.mod-item,.placeholder{user-select:none;width:400px;background:var(--bg-elevated-none);border-radius:16px;padding:15px 20px;height:23px;margin-bottom:10px;}@media (max-width:767px){#somtoday-recap-arrows svg path{fill:var(--bg-primary-strongest);}#somtoday-recap{border-radius:0;margin-top:10px;margin-bottom:20px;}}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.circles{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; } .circles li{ position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px; } .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; } .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; } .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; } .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; } .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; } .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; } .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; } .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; } .circles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; } .circles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; } @keyframes animate { 0%{ transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }</style>');
         // Font
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + ' }</style>');
         // Setting buttons icon animations
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-feedback-bounce{animation:0.6s feedbackbounce 0.2s ease;}@keyframes feedbackbounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}60%{transform:translateY(-4px);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
         // Input type range
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-range-preview{height:40px;width:40px;overflow:hidden;position:absolute;margin-left:250px;border:var(--thinnest-solid-neutral-normal);border-radius:var(--br-normal);padding:7px;box-sizing:border-box;}.mod-range-preview svg{height:100% !important;}input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-range-preview{height:40px;width:40px;overflow:hidden;position:absolute;margin-left:250px;border:var(--thinnest-solid-neutral-normal);border-radius:6px;padding:7px;box-sizing:border-box;}.mod-range-preview svg{height:100% !important;}input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}</style>');
         // Input type checkbox
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0 30px 10px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
         // Custom select
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;}.mod-custom-select select{display:none;}.select-selected{transition:background 0.2s ease;border-radius:6px;border:var(--thinnest-solid-neutral-normal) !important;background-color:var(--bg-elevated-weakest);}.select-selected:after{position:absolute;content:"";top:18px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover{background:var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--text-moderate) transparent;top:10px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
         // Mod message style
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline:none}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;}#mod-message .mod-message-button:focus{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:100000;background:rgba(0,0,0,0.2);box-sizing:border-box;transition:opacity .2s ease !important;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline:none}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;}#mod-message .mod-message-button:focus{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:1000000;background:rgba(0,0,0,0.2);box-sizing:border-box;transition:opacity .2s ease !important;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}</style>');
         // mod-setting-button
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-actions{background:var(--bg-elevated-none);margin-left:-30px;padding:10px 30px;z-index:100;width:100%;margin-top:-10px;top:-5px;}.mod-setting-button{padding:10px 12px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:8px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
         // Modsettings
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-background-wrapper{width:100%;}#mod-background-wrapper label svg{width:100%;height:100%;padding:50px;box-sizing:border-box;}#mod-background-wrapper img:hover{filter:opacity(0.5);}#mod-background-wrapper label,#mod-background-wrapper img{cursor:pointer;height:150px;width:150px;background:var(--bg-elevated-none);border-radius:8px;object-fit:cover;display:inline-block;margin-right:20px;margin-bottom:15px;vertical-align:top;}.dodgerblue{color:dodgerblue;cursor:pointer;user-select:none;}.mod-background-preview{width:100%;height:175px;object-fit:cover;border-radius:12px;clip-path:inset(0 round 12px);}.mod-slider{display:inline-block;min-width:50%;}.mod-slider input,.mod-slider p{display:inline-block;margin:3px 15px 3px 0;vertical-align:middle;min-width:45px;}.mod-slider input{height:40px;background:var(--bg-elevated-none);}.mod-slider p:first-of-type{font-weight:700;min-width:115px;}.mod-background-type-content{padding:20px;background:var(--bg-elevated-weakest);border:1px solid rgba(0,0,0,0.1);border-bottom-left-radius:16px;border-bottom-right-radius:16px;}#mod-background-type{border:1px solid rgba(0,0,0,0.1);border-bottom:none;padding-top:3px;border-top-left-radius:16px;border-top-right-radius:16px;}#mod-background-type a{width:33.333%;display:inline-block;text-align:center;padding:10px 0;cursor:pointer;}#mod-background-type a.active{border-bottom:3px solid var(--fg-on-primary-weak);font-weight:700;}.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;aspect-ratio:18/13;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;overflow:hidden;text-wrap:nowrap;text-overflow:ellipsis;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{cursor:pointer;user-select:none;padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel .category:after{content:"";transform:rotate(45deg);border:solid var(--bg-primary-normal);border-width:0 3px 3px 0;display:inline-block;padding:3px;margin-left:15px;margin-top:8px;position:absolute;}#mod-setting-panel .category.collapsed{margin-bottom:-40px;}#mod-setting-panel .category:last-of-type{margin-bottom:20px;}#mod-setting-panel .category.collapsed:after{transform:rotate(225deg);margin-top:11px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-file-label.mod-drag-and-drop{border:5px solid var(--fg-on-primary-weak);font-weight:700;}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}#mod-setting-panel{padding:0 15px;}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-background-wrapper{width:100%;}#mod-background-wrapper label svg{width:100%;height:100%;padding:50px 15px;box-sizing:border-box;}#mod-background-wrapper img:hover{filter:opacity(0.5);}#mod-background-wrapper label,#mod-background-wrapper img{cursor:pointer;height:150px;width:150px;background:var(--bg-elevated-none);border-radius:8px;object-fit:cover;display:inline-block;margin-right:15px;margin-bottom:15px;vertical-align:top;}.dodgerblue{color:dodgerblue;cursor:pointer;user-select:none;}.mod-background-preview{width:100%;height:175px;object-fit:cover;border-radius:12px;clip-path:inset(0 round 12px);}.mod-slider{display:inline-block;min-width:50%;}.mod-slider input,.mod-slider p{display:inline-block;margin:3px 15px 3px 0;vertical-align:middle;min-width:45px;}.mod-slider input{height:40px;background:var(--bg-elevated-none);}.mod-slider p:first-of-type{font-weight:700;min-width:115px;}.mod-background-type-content{padding:20px;background:var(--bg-elevated-weakest);border:1px solid rgba(0,0,0,0.1);border-bottom-left-radius:16px;border-bottom-right-radius:16px;}#mod-background-type{border:1px solid rgba(0,0,0,0.1);border-bottom:none;padding-top:3px;border-top-left-radius:16px;border-top-right-radius:16px;}#mod-background-type a{width:33.333%;display:inline-block;text-align:center;padding:10px 0;cursor:pointer;}#mod-background-type a.active{border-bottom:3px solid var(--fg-on-primary-weak);font-weight:700;}.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;aspect-ratio:18/13;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;overflow:hidden;text-wrap:nowrap;text-overflow:ellipsis;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{cursor:pointer;user-select:none;padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel .category:after{content:"";transform:rotate(45deg);border:solid var(--bg-primary-normal);border-width:0 3px 3px 0;display:inline-block;padding:3px;margin-left:15px;margin-top:8px;position:absolute;}#mod-setting-panel .category.collapsed{margin-bottom:-40px;}#mod-setting-panel .category:last-of-type{margin-bottom:20px;}#mod-setting-panel .category.collapsed:after{transform:rotate(225deg);margin-top:11px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-file-label.mod-drag-and-drop{border:5px solid var(--fg-on-primary-weak);font-weight:700;}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}#mod-setting-panel{padding:0 15px;}}@media (max-width:475px){#mod-background-wrapper label,#mod-background-wrapper img{width:calc(50% - 10px);margin-right:10px;}}</style>');
         // Make sure everything is readable with background with 100% ui transparency
         if (get('layout') != 4 && ((get("backgroundtype") == 'image' && !n(get("background"))) || (get("backgroundtype") == 'color') || (get("backgroundtype") == 'slideshow' && !n(get("background0"))))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:var(--br-normal);padding:10px;background-color:var(--bg-neutral-none);}.content:has(sl-registraties){background:var(--mod-transparent);}sl-studiewijzer-week{border-bottom:2px solid var(--mod-transparent) !important;}sl-studiewijzer-dag{border-right:2px solid var(--mod-transparent) !important;}' + (get('bools').charAt(15) == '1' ? 'sl-rooster-week .uur{border-left:2px solid var(--mod-transparent) !important;border-bottom:2px solid var(--mod-transparent) !important;}' : '') + '.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:var(--bg-neutral-none);padding:20px !important; padding-bottom:40px !important;}sl-geen-data > span{margin-top:20px;}sl-geen-data{background:var(--mod-ui-transparent);padding:30px 60px;border-radius:24px;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:6px;padding:10px;background-color:var(--bg-neutral-none);}.content:has(sl-registraties){background:var(--mod-transparent);}sl-studiewijzer-week{border-bottom:2px solid var(--mod-transparent) !important;}sl-studiewijzer-dag{border-right:2px solid var(--mod-transparent) !important;}' + (get('bools').charAt(15) == '1' ? 'sl-rooster-week .uur{border-left:2px solid var(--mod-transparent) !important;border-bottom:2px solid var(--mod-transparent) !important;}' : '') + '.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:var(--bg-neutral-none);padding:20px !important; padding-bottom:40px !important;}sl-geen-data > span{margin-top:20px;}sl-geen-data{background:var(--mod-ui-transparent);padding:30px 60px;border-radius:24px;}</style>');
         }
         // Adjust menu for layout 2, 3 and 4
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
             if (get('layout') == 2 || get('layout') == 3) {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-popup{position:fixed !important;top:70px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;bottom:80px !important;top:unset !important;}@media (min-width:1280px){.header,.headers-container{top:0 !important;}div.berichten-lijst{height:calc(100vh - 64px) !important;}}</style>');
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width:1280px){.menu-avatar{width:calc(100% - 35px) !important;justify-content:center;}}</style>');
             }
             else {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-rooster-weken,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:fixed;top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:var(--br-normal);}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-rooster-weken,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(0) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
             }
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo{width:100%;height:60px;margin:20px 0;}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:120px !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:100px !important;--safe-area-inset-right:15px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:100px !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo-wrapper{width:120px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 120px) / 2);position:relative;}#mod-logo{width:65%;height:60px;margin:20px 0;position:relative;left:50%;transform:translateX(-50%);}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){#mod-logo-wrapper{width:100px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 100px) / 2);position:relative;}sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:100px !important;--safe-area-inset-right:15px' : 'right:115px') + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:' + (get('layout') != 3 ? 'var(--safe-area-inset-left)' : 'calc(var(--safe-area-inset-right) - 15px)') + ' !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width: 766px){sl-header:not(.with-back-button){border-bottom:none !important;--column-width: 100% !important;}sl-dagen-header{top:calc(64px + var(--safe-area-inset-top)) !important;border-bottom:none !important;}sl-berichten{background-color:var(--bg-neutral-none);}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-dag.dag{width:calc(100vw - 170px) !important;}hmy-notification-counter span{margin:0 !important;}sl-header hmy-notification-counter{position:absolute;right:30px;top:20px;}sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:4px !important;position:absolute;' + (get('layout') != 3 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.container{max-width:100%;}sl-header .item span{text-overflow:ellipsis;overflow:hidden;text-wrap:nowrap;margin-left:-5px;width:calc(100% + 10px);}#mod-menu-resizer{width:12px;height:100%;' + (get('layout') == 3 ? 'left' : 'right') + ':-4px;position:absolute;cursor:ew-resize;}sl-tab-bar sl-tab-item .item{padding-bottom:0 !important;}sl-rooster-dag.dag{width:calc(100vw - 170px) !important;}hmy-notification-counter span{margin:0 !important;}sl-header hmy-notification-counter{position:absolute;right:30px;top:20px;}sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:4px !important;position:absolute;' + (get('layout') != 3 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
         }
         else if (get('layout') == 4) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-home{position:relative;}:root{--safe-area-inset-left:calc((100% - 1200px) / 2);--safe-area-inset-right:calc((100% - 1200px) / 2);}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-home{position:relative;}:root{--safe-area-inset-left:calc((100% - 1200px) / 2) !important;--safe-area-inset-right:calc((100% - 1200px) / 2) !important;}sl-home{border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
         }
         // Position menu relatively
         if (get('bools').charAt(0) == '0') {
@@ -1382,6 +1441,16 @@ function onload() {
                 }
                 set('bools', get('bools').replaceAt(15, '1'));
             }
+            if (get('version') < 4.7) {
+                set('brightness', '100%');
+                set('contrast', '100%');
+                set('saturate', '100%');
+                set('opacity', '100%');
+                set('huerotate', '0deg');
+                set('grayscale', '0%');
+                set('sepia', '0%');
+                set('invert', '0%');
+            }
         }
         // Save current version for update checks in future versions
         set('version', version);
@@ -1406,7 +1475,7 @@ function onload() {
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
         if (get('ui') != 0) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,sl-geen-data,.vakken,sl-vakresultaten,.headers-container,.tabs,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header{backdrop-filter:blur(' + get('uiblur') + 'px);}') + 'sl-rooster-week[aria-hidden="true"]{display:none;}:root, :root.dark.dark {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab{background:none !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,sl-geen-data,.vakken,sl-vakresultaten,.headers-container,.tabs,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}sl-rooster-week[aria-hidden="true"]{display:none;}:root, :root.dark.dark {--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}</style>');
         }
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
         const purple100 = toBrightnessValue(get('secondarycolor'), 41);
@@ -1534,6 +1603,10 @@ function onload() {
                 break;
             case 'image':
                 svg = 'M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6l96 0 32 0 208 0c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z';
+                break;
+            case 'grip-vertical':
+                viewbox = '0 0 320 512';
+                svg = 'M40 352l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zm192 0l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zM40 320c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0zM232 192l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zM40 160c-22.1 0-40-17.9-40-40L0 72C0 49.9 17.9 32 40 32l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0zM232 32l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40z';
                 break;
             // Somtoday Logo SVG door Topicus
             case 'logo':
@@ -1676,6 +1749,13 @@ function onload() {
                             element.append(document.createRange().createContextualFragment(text));
                         }
                     }
+                    for (const element of cn('docent')) {
+                        if (!element.classList.contains('mod-nickname') && !n(element.getElementsByTagName('span')[0])) {
+                            const text = element.getElementsByTagName('span')[0].innerHTML.replace(regex, '$1' + nick + '$2');
+                            setHTML(element.getElementsByTagName('span')[0], '');
+                            element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(text));
+                        }
+                    }
                 }
             }
             for (const element of cn('afzenders')) {
@@ -1690,12 +1770,15 @@ function onload() {
             for (const element of cn('text text-content-smallest-semi')) {
                 element.classList.add('mod-nickname');
             }
+            for (const element of cn('docent')) {
+                element.classList.add('mod-nickname');
+            }
         }
     }
 
     // Change username when enabled
     function userName() {
-        if (!n(get('username')) && get('username') != get('realname')) {
+        if (!n(get('username')) && !n(get('realname')) && get('username') != get('realname')) {
             // Sender field in opened message (can be a teacher name or student name)
             for (const element of cn('van')) {
                 if (element.innerHTML.indexOf(get('realname')) != -1) {
@@ -1734,14 +1817,75 @@ function onload() {
     // This should happen on start and when resizing (because the menu type can change)
     let logoClicks = 0;
     function modLogo() {
-        tryRemove(id('mod-logo'));
+        if (!n(id('mod-logo-hat')) || !n(id('mod-logo-decoration'))) {
+            return;
+        }
+        tryRemove(id('mod-logo-wrapper'));
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
-            const logoHTML = (get('bools').charAt(8) == '0' ? getIcon('logo', null, menuColor, ' id="mod-logo"') : logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)'));
+            if (n(id('mod-menu-resizer')) && !n(tn('sl-tab-bar', 0))) {
+                tn('sl-tab-bar', 0).insertAdjacentHTML('beforeend', '<div id="mod-menu-resizer"></div>');
+                let moving = false;
+                if (get('layout') == 3) {
+                    document.documentElement.style.cssText = '--safe-area-inset-right: ' + menuWidth + 'px !important';
+                }
+                else {
+                    document.documentElement.style.cssText = '--safe-area-inset-left: ' + menuWidth + 'px !important';
+                }
+                id('mod-menu-resizer').addEventListener('mousedown', function (e) {
+                    moving = true;
+                });
+                id('mod-menu-resizer').addEventListener('touchstart', function (e) {
+                    moving = true;
+                });
+                document.addEventListener('mouseup', function (e) {
+                    moving = false;
+                });
+                document.addEventListener('touchend', function (e) {
+                    moving = false;
+                });
+                function moveEventHandler(e) {
+                    if (moving) {
+                        let clientXInput;
+                        if (e.touches == null || e.touches[0] == null) {
+                            clientXInput = e.clientX;
+                        }
+                        else {
+                            clientXInput = e.touches[0].clientX;
+                        }
+                        if (get('layout') == 3) {
+                            menuWidth = document.documentElement.clientWidth - clientXInput;
+                            if (menuWidth < 50) {
+                                menuWidth = 50;
+                            }
+                            else if (menuWidth > 700) {
+                                menuWidth = 700;
+                            }
+                            set('menuwidth', menuWidth);
+                            document.documentElement.style.cssText = '--safe-area-inset-right: ' + menuWidth + 'px !important';
+                        }
+                        else {
+                            menuWidth = clientXInput;
+                            if (menuWidth < 50) {
+                                menuWidth = 50;
+                            }
+                            else if (menuWidth > 700) {
+                                menuWidth = 700;
+                            }
+                            set('menuwidth', menuWidth);
+                            document.documentElement.style.cssText = '--safe-area-inset-left: ' + menuWidth + 'px !important';
+                        }
+                    }
+                }
+                document.addEventListener('mousemove', moveEventHandler);
+                document.addEventListener('touchmove', moveEventHandler);
+            }
+
+            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(8) == '0' ? getIcon('logo', null, menuColor, ' id="mod-logo"') : logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
             if (n(id('mod-logo')) && !n(tn('sl-header', 0)) && !n(tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0])) {
                 tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0].insertAdjacentHTML('afterbegin', logoHTML);
             }
             else if (n(id('mod-logo')) && !n(tn('sl-tab-bar', 0))) {
-                tn('sl-tab-bar', 0).insertAdjacentHTML('afterbegin', logo);
+                tn('sl-tab-bar', 0).insertAdjacentHTML('afterbegin', logoHTML);
             }
             else {
                 return;
@@ -1764,11 +1908,14 @@ function onload() {
                 }
             });
         }
+        else {
+            document.documentElement.style.cssText = '--safe-area-inset-left:0;--safe-area-inset-right:0;';
+        }
         // Show logo hat on holidays
         if (n(id('mod-logo-hat')) && !tn('body', 0).classList.contains('mod-logo-hat-hidden')) {
             let insertElement = id('mod-logo');
             let isDefaultLikeLayout = false;
-            if ((get('layout') == 1 || get('layout') == 4) && ((parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == (month + 1)) || (month + 1 == 12 && dayInt > 10 && dayInt < 31) || (month + 1 == 12 && dayInt <= 5))) {
+            if ((get('layout') == 1 || get('layout') == 4) && !n(tn('sl-header', 0)) && ((parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == (month + 1)) || (month + 1 == 12 && dayInt > 10 && dayInt < 31) || (month + 1 == 12 && dayInt <= 5))) {
                 tn('sl-header', 0).style.overflow = 'hidden';
                 tn('sl-header', 0).insertAdjacentHTML('beforeend', logo('mod-logo-inserted', null, 'var(--action-neutral-normal)', 'position:absolute;width:50px;height:54px;right:25px;bottom:-15px;z-index:-1;transition:bottom 0.4s ease 0.3s;'));
                 insertElement = id('mod-logo-inserted');
@@ -1799,7 +1946,7 @@ function onload() {
                     setTimeout(function () {
                         tn('body', 0).classList.add('mod-logo-hat-hidden');
                         id('mod-logo-hat').remove();
-                    }, 900);
+                    }, 1050);
                 });
             }
         }
@@ -1837,7 +1984,7 @@ function onload() {
             else if ((month + 1 == 12 && dayInt == 31) || (month + 1 == 1 && dayInt == 1)) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:21px;z-index:-10;"' : '') + ' viewBox="0 0 158 151"><defs><linearGradient x1="161.4" y1="148.1" x2="225.1" y2="148.1" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="241.6" y1="129.4" x2="292.1" y2="129.4" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="270.3" y1="182.9" x2="319.6" y2="182.9" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m196 129 21-10-6 22 14 18-22 1-12 18-8-19-22-6 18-15-1-20z" fill="url(#a)" transform="translate(-161 -105)"/><path d="m266 114 15-9-2 17 13 13-17 3-7 16-9-15-17-2 11-13-3-16z" fill="url(#b)" transform="translate(-161 -105)"/><path d="m302 171 18-3-10 15 7 17-16-4-14 11-1-16-16-9 17-8 3-16z" fill="url(#c)" transform="translate(-161 -105)"/><path d="M52 70c9 9 17 23 20 39 3 15 2 29-2 39M82 109c-2-6-3-13-3-21 0-18 6-34 15-43M81 147c2-26 17-48 37-55" fill="none" stroke="#e19600" stroke-width="6"/></g></svg>');
             }
-            if ((month + 1 == M && (dayInt == D || dayInt == D + 1)) || (month + 1 == 10 && dayInt > 25) || (month + 1 == 5 && dayInt == 5) || (month + 1 == 12 && dayInt == 31) || (month + 1 == 1 && dayInt == 1)) {
+            if (!n(tn('sl-header', 0)) && ((month + 1 == M && (dayInt == D || dayInt == D + 1)) || (month + 1 == 10 && dayInt > 25) || (month + 1 == 5 && dayInt == 5) || (month + 1 == 12 && dayInt == 31) || (month + 1 == 1 && dayInt == 1))) {
                 tn('sl-header', 0).style.overflow = 'hidden';
                 id('mod-logo-decoration').addEventListener('click', function () { if (!this.classList.contains('mod-logo-decoration-clicked')) { this.classList.add('mod-logo-decoration-clicked'); setTimeout(function () { tn('body', 0).classList.add('mod-logo-decoration-hidden'); id('mod-logo-decoration').remove(); }, 900); } });
             }
@@ -2059,7 +2206,7 @@ function onload() {
             // Check if confetti should be shown
             let congratstext = [''];
             if (yeardifference > get('lastjubileum')) {
-                congratstext = ['Bedankt' + (n(get('username')) ? '' : ', ' + get('username').replace(/ .*/, '')) + '!', 'Je gebruikt Somtoday Mod nu al ' + yeardifference + ' jaar. Bedankt!'];
+                congratstext = ['Bedankt' + (n(get('username')) ? (n(get('realname')) ? '' : ', ' + get('realname').replace(/ .*/, '')) : ', ' + get('username').replace(/ .*/, '')) + '!', 'Je gebruikt Somtoday Mod nu al ' + yeardifference + ' jaar. Bedankt!'];
                 set('lastjubileum', yeardifference);
             }
             if (birthdayday == dayInt && birthdaymonth == (month + 1)) {
@@ -2118,6 +2265,10 @@ function onload() {
             // Construct HTML
             let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-vakgemiddelde-item', 0)) ? 'Mijn cijfers' : 'Mijn gemiddelden') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + ';">';
             for (let i = 0; i < number; i++) {
+                let averagePageGradeIndex = 0;
+                if (!n(tn('sl-vakgemiddelde-item', i))) {
+                    averagePageGradeIndex = tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer').length - 1;
+                }
                 html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '">' +
                 /* Subject icon */
                 '<svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' +
@@ -2137,9 +2288,9 @@ function onload() {
                 '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' +
                     (n(tn('sl-resultaat-item', 0)) ?
                      /* Vakgemiddelden (Average page) */
-                     (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ?
+                     (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende') ?
                       '#d32f0d' :
-                      (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ?
+                      (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal') ?
                        '#a7b3be' :
                        '#000')
                      ) :
@@ -2152,9 +2303,9 @@ function onload() {
                      )
                     ) + ';">' +
                     (n(tn('sl-resultaat-item', 0)) ?
-                     (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0]) ?
+                     (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) ?
                       '' :
-                      tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[0].innerHTML
+                      tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].innerHTML
                      ) :
                      tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
                     ) +
@@ -2253,7 +2404,7 @@ function onload() {
                     backgroundColor: recapGradient,
                     fill: true,
                     borderColor: '#fff',
-                    data: recapPoints,
+                    data: recapPoints.reverse(),
                     pointStyle: 'circle',
                     pointRadius: 3,
                     pointHoverRadius: 7,
@@ -2314,9 +2465,7 @@ function onload() {
                         dateObject = Date.now();
                     }
                     else if (dateString.indexOf('Gisteren') != -1) {
-                        const yesterday = Date.now();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        dateObject = yesterday;
+                        dateObject = new Date(Date.now() - 86400000);
                     }
                     else {
                         // Make string date parsable with Date.parse()
@@ -2335,7 +2484,6 @@ function onload() {
                         weight.push(weging);
                     }
                     else {
-                        console.log('lngt' +dateObjects.length);
                         // Keep array sorted by date
                         for (let i = 0; i < dateObjects.length; i++) {
                             if (dateObject <= dateObjects[i]) {
@@ -2361,7 +2509,7 @@ function onload() {
             hide(id('mod-grades-graphs'));
             return;
         }
-        var data = {
+        var chartdata = {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
@@ -2379,7 +2527,7 @@ function onload() {
         };
         var chart = new Chart(ctx, {
             type: 'line',
-            data: data,
+            data: chartdata,
             options: {
                 scales: {
                     y: {
@@ -2410,7 +2558,7 @@ function onload() {
             totalWeight += weight[i];
             values.push(Math.floor((totalGrades / totalWeight) * 100) / 100);
         }
-        data = {
+        chartdata = {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
@@ -2428,7 +2576,7 @@ function onload() {
         };
         chart = new Chart(ctx, {
             type: 'line',
-            data: data,
+            data: chartdata,
             options: {
                 scales: {
                     y: {
@@ -2508,7 +2656,11 @@ function onload() {
 
     // Check if latest grades page or average grades page is open
     function insertGradeDownloadButton() {
-        if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && get('bools').charAt(5) == "1") {
+        if (!n(tn('sl-cijfer-overzicht', 0))) {
+            tryRemove(id('mod-grades-download-computer'));
+            tryRemove(id('mod-grades-download-mobile'));
+        }
+        else if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && get('bools').charAt(5) == "1") {
             if (n(id('mod-grades-download-computer')) && !n(tn('hmy-switch-group', 0))) {
                 tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                 id('mod-grades-download-computer').addEventListener('click', downloadGrades);
@@ -2532,33 +2684,36 @@ function onload() {
         }
     }
 
+    // Data object which will contain an array of the grades of every subject
+    let gradedata = [];
+    let gradeicons = {};
+    let totalAverage;
+    let totalGrades = 0;
+    let totalWeight = 0;
     function somtodayRecap() {
-        if (get('bools').charAt(12) == "0") {
-            return;
-        }
-        if (!((month == 5 && dayInt > 25) || month == 6)) {
-            return;
+        if (!ignoreRecapConditions) {
+            if (get('bools').charAt(12) == "0") {
+                return;
+            }
+            if (!((month == 5 && dayInt > 25) || month == 6)) {
+                return;
+            }
         }
         // Set amount of viewed pages to zero
         let pages = 0;
-        // Data object which will contain an array of the grades of every subject
-        let data = [];
         // Needed to collect all subject grades
         let subjectDone = true;
         let subjectsVisited = 0;
-        let totalAverage;
         let subjects;
         let closing = false;
-        if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
+        if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP') || !n(tn('sl-cijfer-overzicht', 0))) {
             tryRemove(id('somtoday-recap'));
         }
-        if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
+        if (n(tn('sl-cijfer-overzicht', 0)) && ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap')))) {
             tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van ' + year + '.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
             // Open recap on click
             id('somtoday-recap').addEventListener('click', function () {
                 isRecapping = true;
-                // Set isCollectingRecapData to true to prevent insertion of graphs and stuff on the grades page
-                isCollectingRecapData = true;
                 // Request fullscreen (to hide URL changes when collecting grades)
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen();
@@ -2576,109 +2731,350 @@ function onload() {
                     setTimeout(function () { closing = false; }, 200);
                     return;
                 });
-                // After recap is opened, collect grade data
-                let tries = 0;
-                setTimeout(function () {
-                    if (closing) {
-                        return;
-                    }
-                    // Open average page
-                    if (!n(tn('sl-resultaat-item', 0))) {
-                        document.getElementsByTagName('hmy-tab')[1].click();
-                    }
-                    let checkAveragePageDone = setInterval(function () {
-                        if (!n(tn('sl-vakgemiddelde-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
-                            // If average page is opened, get number of subjects and year average
-                            subjects = tn('sl-vakgemiddelde-item').length;
-                            totalAverage = parseFloat(cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML.substring(2).replace(',', '.'));
-                            clearInterval(checkAveragePageDone);
-                            // Click link to every subject to get all grades
-                            let checkPageDone = setInterval(function(){
-                                if (subjectsVisited < subjects) {
-                                    if (subjectDone) {
-                                        getSubjectInfo(subjectsVisited);
-                                        subjectsVisited++;
+                // After recap is opened, collect grade data if needed
+                if (gradedata.length == 0) {
+                    async function collectRecapData() {
+                        // Set isCollectingRecapData to true to prevent insertion of graphs and stuff on the grades page
+                        isCollectingRecapData = true;
+
+                        if (closing) { return; }
+
+                        // Open average page
+                        if (!n(tn('sl-resultaat-item', 0))) {
+                            document.getElementsByTagName('hmy-tab')[1].click();
+                        }
+                        for (let i = 0; true; i++) {
+                            if (closing) { return; }
+                            // Check if average page is opened, and if so, continue
+                            if (!n(tn('sl-vakgemiddelde-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
+                                break;
+                            }
+                            // User doesn't have any grades, close Somtoday Recap
+                            else if (!n(tn('sl-vakgemiddelde-item', 0)) && n(cn('totaalgemiddelden', 0)) && i > 100 * 3) {
+                                clearInterval(checkAveragePageDone);
+                                tryRemove(id('somtoday-recap-wrapper'));
+                                tn('html', 0).style.overflowX = 'hidden';
+                                tn('html', 0).style.overflowY = 'scroll';
+                                modMessage('Whoops...', 'Somtoday Mod kon je jaargemiddelde niet vinden. Misschien heeft je school dit uitgezet, of heb je nog geen cijfers gehaald dit jaar.', 'Doorgaan');
+                                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                                document.exitFullscreen();
+                                return;
+                            }
+                            await new Promise(resolve => setTimeout(resolve, 10));
+                        }
+
+                        // When average page is opened, get number of subjects and year average
+                        subjects = tn('sl-vakgemiddelde-item').length;
+                        const subjectLength = tn('sl-vakgemiddelde-item').length;
+                        totalAverage = parseFloat(cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML.substring(2).replace(',', '.'));
+
+                        // Click link to every subject to get all grades
+                        for (let i = 0; i < subjectLength; i++) {
+                            if (closing) { return; }
+
+                            // Vertically center align page (to prevent absolute positioning from breaking drag list)
+                            cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
+
+                            // First check if subject has a latest grade, to be sure the subject has at least one grade
+                            if (n(tn('sl-vakgemiddelde-item', i)) || n(tn('sl-vakgemiddelde-item', i).getElementsByTagName('sl-vakgemiddelde-item-cijfer')[0])) {
+                                return;
+                            }
+
+                            // Navigate to subject page
+                            tn('sl-vakgemiddelde-item', i).click();
+
+                            let subjectHasData = true;
+                            for (let j = 0; true; j++) {
+                                if (closing) { return; }
+                                // Check if subject page is opened, and if so, continue
+                                if (!n(tn('sl-vakresultaten', 0)) && !n(cn('title', 0)) && !n(cn('cijfer', 0))) {
+                                    break;
+                                }
+                                // Too many requests, and now we don't get any data :(
+                                else if (!n(tn('sl-geen-data', 0))) {
+                                    subjectHasData = false;
+                                    break;
+                                }
+                                await new Promise(resolve => setTimeout(resolve, 10));
+                            }
+
+                            if (subjectHasData) {
+                                let subject = [];
+                                if (!n(tn('sl-scrollable-title', 0)) && !n(tn('sl-scrollable-title', 0).getElementsByClassName('title')[0])) {
+                                    subject.push(tn('sl-scrollable-title', 0).getElementsByClassName('title')[0].innerHTML);
+                                    if (!n(tn('hmy-vak-icon', 0)) && !n(tn('hmy-vak-icon', 0).getElementsByTagName('i')[0])) {
+                                        gradeicons[tn('sl-scrollable-title', 0).getElementsByClassName('title')[0].innerHTML] = tn('hmy-vak-icon', 0).getElementsByTagName('i')[0].innerHTML;
                                     }
                                 }
                                 else {
-                                    // All grades are collected, allow user to continue
-                                    clearInterval(checkPageDone);
-                                    id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
-                                    id('recap-nextpage').addEventListener('click', closeRecapPage);
-                                    isCollectingRecapData = false;
+                                    // Terrible fallback subject name
+                                    subject.push('een vak');
                                 }
-                                if (closing) {
-                                    clearInterval(checkPageDone);
+                                // Collect average subject grade (eg 8.24)
+                                subject.push(cn('cijfer', 0).innerHTML.replace(',', '.').replace(' ', '').replace(' ', ''));
+                                // Add individual grades and their weight
+                                let tempGradeArray = [];
+                                let tempWeightArray = [];
+                                let dateObjects = [];
+                                for (const element of tn('sl-resultaat-item')) {
+                                    if (!n(element.getElementsByClassName('cijfer')[0]) && !n(element.getElementsByClassName('cijfer')[0].children[0])) {
+                                        const grade = parseFloat(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
+                                        const weging = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.'));
+                                        if (!isNaN(grade)) {
+                                            let dateObject;
+                                            const dateString = n(element.getElementsByClassName('subtitel')[0]) ? '' : element.getElementsByClassName('subtitel')[0].innerHTML;
+                                            if (dateString.indexOf('Vandaag') != -1) {
+                                                dateObject = Date.now();
+                                            }
+                                            else if (dateString.indexOf('Gisteren') != -1) {
+                                                dateObject = new Date(Date.now() - 86400000);
+                                            }
+                                            else {
+                                                // Make string date parsable with Date.parse()
+                                                // First change month abbreviations to English
+                                                let englishDateString = dateString.replace('mrt', 'mar').replace('mei', 'may').replace('mei', 'may').replace('okt', 'oct');
+                                                // Then add the year if not present
+                                                if (englishDateString.match(".*?[0-9]{4}") == null) {
+                                                    englishDateString += ' ' + year;
+                                                }
+                                                dateObject = Date.parse(englishDateString);
+                                            }
+                                            if (dateObjects.length == 0) {
+                                                tempGradeArray.push(grade);
+                                                dateObjects.push(dateObject);
+                                                tempWeightArray.push(weging);
+                                            }
+                                            else {
+                                                // Keep array sorted by date
+                                                for (let i = 0; i < dateObjects.length; i++) {
+                                                    if (dateObject <= dateObjects[i]) {
+                                                        tempGradeArray.splice(i, 0, grade);
+                                                        dateObjects.splice(i, 0, dateObject);
+                                                        tempWeightArray.splice(i, 0, weging);
+                                                        break;
+                                                    }
+                                                    else if (i >= dateObjects.length - 1) {
+                                                        tempGradeArray.push(grade);
+                                                        dateObjects.push(dateObject);
+                                                        tempWeightArray.push(weging);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        totalGrades++;
+                                        if (!isNaN(weging)) {
+                                            totalWeight += weging;
+                                        }
+                                    }
                                 }
-                            }, 10);
+
+                                for (let i = 0; i < tempGradeArray.length; i++) {
+                                    subject.push(tempWeightArray[i]);
+                                    subject.push(tempGradeArray[i]);
+                                }
+
+                                // Prevent subjects with only onvoldoende-voldoende-goed grades to get added in the list, but count their grades for the grades & weight total
+                                if (!isNaN(parseFloat(cn('cijfer', 0).innerHTML.replace(',', '.').replace(' ', '').replace(' ', '')))) {
+                                    gradedata.push(subject);
+                                }
+                            }
+
+                            // Go back to main grades page
+                            cn('back-button', 0).click();
+
+                            for (let j = 0; true; j++) {
+                                if (closing) { return; }
+                                // Check if main grades page has loaded
+                                if (!n(tn('sl-vakgemiddelde-item', 0))) {
+                                    break;
+                                }
+                                await new Promise(resolve => setTimeout(resolve, 10));
+                            }
                         }
-                        else if (!n(tn('sl-vakgemiddelde-item', 0)) && n(cn('totaalgemiddelden', 0)) && tries > 100 * 3) {
-                            // No grades yet this year
-                            clearInterval(checkAveragePageDone);
-                            tryRemove(id('somtoday-recap-wrapper'));
-                            tn('html', 0).style.overflowX = 'hidden';
-                            tn('html', 0).style.overflowY = 'scroll';
-                            modMessage('Whoops...', 'Somtoday Mod kon je jaargemiddelde niet vinden. Misschien heeft je school dit uitgezet, of heb je nog geen cijfers gehaald dit jaar.', 'Doorgaan');
-                            id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
-                            document.exitFullscreen();
-                        }
-                        if (closing) {
-                            clearInterval(checkAveragePageDone);
-                        }
-                        tries++;
-                    }, 10);
-                }, 510);
+
+                        // All grades are collected, allow user to continue
+                        id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
+                        id('recap-nextpage').addEventListener('click', closeRecapPage);
+                        isCollectingRecapData = false;
+                    }
+                    collectRecapData();
+                }
+                // Use cached data to load recap
+                else {
+                    id('recap-nextpage').innerHTML = 'Start Somtoday Recap';
+                    id('recap-nextpage').addEventListener('click', closeRecapPage);
+                }
+                setTimeout(function () {
+                    // Vertically center align page (to prevent absolute positioning from breaking drag list)
+                    if (!n(cn('recap-page', 0))) {
+                        cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
+                    }
+                }, 550);
             });
         }
-        // Go to subject grades page, collect grades and go back to average page once done
-        function getSubjectInfo(number) {
-            subjectDone = false;
-            if (isNaN(parseFloat(tn('sl-vakgemiddelde-item', number).getElementsByTagName('sl-vakgemiddelde-item-cijfer')[0].getElementsByClassName('cijfer')[0].innerHTML))) {
-                subjectDone = true;
-                return;
-            }
-            tn('sl-vakgemiddelde-item', number).click();
-            const waitTillSubjectPageLoads = setInterval(function(){
-                if (!n(tn('sl-vakresultaten', 0)) && !n(cn('title', 0)) && !n(cn('cijfer', 0))) {
-                    clearInterval(waitTillSubjectPageLoads);
-                    let subject = [];
-                    if (!n(cn('title', 0).getElementsByTagName('span')[0])) {
-                        subject.push(cn('title', 0).getElementsByTagName('span')[cn('title', 0).getElementsByTagName('span').length - 1].innerHTML);
-                    }
-                    else {
-                        subject.push(cn('title', 0).innerHTML);
-                    }
-                    subject.push(cn('cijfer', 0).innerHTML.replace(',', '.').replace(' ', '').replace(' ', ''));
-                    for (const element of tn('sl-resultaat-item')) {
-                        subject.push(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
-                        subject.push(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
-                    }
-                    data.push(subject);
-                    cn('back-button', 0).click();
-                    const waitTillMainPageLoads = setInterval(function(){
-                        if (!n(tn('sl-vakgemiddelde-item', 0))) {
-                            clearInterval(waitTillMainPageLoads);
-                            subjectDone = true;
-                            return;
-                        }
-                        if (closing) {
-                            clearInterval(waitTillMainPageLoads);
-                            return;
-                        }
-                    }, 10);
-                }
-                else if (!n(tn('sl-geen-data', 0))) {
-                    clearInterval(waitTillSubjectPageLoads);
-                    subjectDone = true;
-                    return;
-                }
-                if (closing) {
-                    clearInterval(waitTillSubjectPageLoads);
-                    return;
-                }
-            }, 10);
-        }
+
         const availablePages = [subjectsLow, subjectsHigh, busyYear];
+
+        function orderSubjects() {
+            let usedSubjects = [];
+            let subjectAverageList = [];
+            let subjectAverageObject = {};
+            let html = '';
+            for (var i = 0; i < 5 && i < gradedata.length; i++) {
+                let randomPick = Math.floor(Math.random() * gradedata.length);
+                while (usedSubjects.includes(randomPick)) {
+                    randomPick = Math.floor(Math.random() * gradedata.length);
+                }
+                usedSubjects.push(randomPick);
+                subjectAverageList[i] = [gradedata[randomPick][0], gradedata[randomPick][1]];
+                subjectAverageObject[gradedata[randomPick][0]] = gradedata[randomPick][1];
+                html += '<div class="mod-item">' + gradeicons[gradedata[randomPick][0]] + '<p>' + gradedata[randomPick][0] + '</p>' + getIcon('grip-vertical', null, 'var(--text-weak)') + '</div>';
+            }
+            cn('recap-page', 0).innerHTML = '<h1>Wat zijn je beste vakken?</h1><h2>Sorteer je vakken op basis van je gemiddelde</h2><div id="mod-grade-average-sort-list">' + html + '</div><a id="recap-nextpage">Volgende</a>';
+
+            const list = document.getElementById('mod-grade-average-sort-list');
+            let draggingEle;
+            let placeholder;
+            let isDraggingStarted = false;
+            let x = 0;
+            let y = 0;
+            const swap = function (nodeA, nodeB) {
+                const parentA = nodeA.parentNode;
+                const siblingA = nodeA.nextSibling === nodeB ? nodeA : nodeA.nextSibling;
+                nodeB.parentNode.insertBefore(nodeA, nodeB);
+                parentA.insertBefore(nodeB, siblingA);
+            };
+            const isAbove = function (nodeA, nodeB) {
+                const rectA = nodeA.getBoundingClientRect();
+                const rectB = nodeB.getBoundingClientRect();
+                return rectA.top + rectA.height / 2 < rectB.top + rectB.height / 2;
+            };
+            const mouseDownHandler = function (e) {
+                if (e.target.classList.contains('mod-item')) {
+                    draggingEle = e.target;
+                } else if (e.target.parentElement.classList.contains('mod-item')) {
+                    draggingEle = e.target.parentElement;
+                } else if (e.target.parentElement.parentElement.classList.contains('mod-item')) {
+                    draggingEle = e.target.parentElement.parentElement;
+                }
+                const rect = draggingEle.getBoundingClientRect();
+                if (e.touches == null || e.touches[0] == null) {
+                    x = e.pageX - rect.left;
+                    y = e.pageY - rect.top;
+                }
+                else {
+                    x = e.touches[0].pageX - rect.left;
+                    y = e.touches[0].pageY - rect.top;
+                }
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('touchmove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+                document.addEventListener('touchend', mouseUpHandler);
+            };
+            const mouseMoveHandler = function (e) {
+                const draggingRect = draggingEle.getBoundingClientRect();
+                if (!isDraggingStarted) {
+                    isDraggingStarted = true;
+                    placeholder = document.createElement('div');
+                    placeholder.classList.add('placeholder');
+                    draggingEle.parentNode.insertBefore(placeholder, draggingEle.nextSibling);
+                    placeholder.style.height = '23px';
+                }
+                draggingEle.style.position = 'absolute';
+                if (e.touches == null || e.touches[0] == null) {
+                    draggingEle.style.top = (e.pageY - y) + 'px';
+                    draggingEle.style.left = (e.pageX - x) + 'px';
+                }
+                else {
+                    draggingEle.style.top = (e.touches[0].pageY - y) + 'px';
+                    draggingEle.style.left = (e.touches[0].pageX - x) + 'px';
+                }
+                const prevEle = draggingEle.previousElementSibling;
+                const nextEle = placeholder.nextElementSibling;
+                if (prevEle && isAbove(draggingEle, prevEle)) {
+                    swap(placeholder, draggingEle);
+                    swap(placeholder, prevEle);
+                    return;
+                }
+                if (nextEle && isAbove(nextEle, draggingEle)) {
+                    swap(nextEle, placeholder);
+                    swap(nextEle, draggingEle);
+                }
+            };
+            const mouseUpHandler = function () {
+                placeholder && placeholder.parentNode.removeChild(placeholder);
+                draggingEle.style.removeProperty('top');
+                draggingEle.style.removeProperty('left');
+                draggingEle.style.removeProperty('position');
+                x = null;
+                y = null;
+                draggingEle = null;
+                isDraggingStarted = false;
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('touchmove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                document.removeEventListener('touchend', mouseUpHandler);
+            };
+            [].slice.call(list.querySelectorAll('.mod-item')).forEach(function (item) {
+                item.addEventListener('mousedown', mouseDownHandler);
+                item.addEventListener('touchstart', mouseDownHandler);
+            });
+
+            let clicked = false;
+            let answerInterval;
+            id('recap-nextpage').addEventListener('click', function () {
+                if (clicked) {
+                    if (answerInterval != null) {
+                        clearInterval(answerInterval);
+                    }
+                    closeRecapPage();
+                    return;
+                }
+                function checkAnswers(first = false) {
+                    if (n(id('mod-grade-average-sort-list'))) {
+                        clearInterval(answerInterval);
+                        return;
+                    }
+                    let subjectAverageListClone = subjectAverageList.slice();
+                    const loopCount = subjectAverageListClone.length;
+                    for (var i = 0; i < loopCount; i++) {
+                        let maxGrade = 0;
+                        let maxGradeIndex;
+                        for (var j = 0; j < subjectAverageListClone.length; j++) {
+                            if (subjectAverageListClone[j][1] > maxGrade) {
+                                maxGrade = subjectAverageListClone[j][1];
+                                maxGradeIndex = j;
+                            }
+                        }
+                        // Correct
+                        const pElement = id('mod-grade-average-sort-list').getElementsByClassName('mod-item')[i].getElementsByTagName('p')[0];
+                        if (pElement.innerHTML == subjectAverageListClone[maxGradeIndex][0]) {
+                            pElement.classList.remove('wrong');
+                            pElement.classList.add('right');
+                            if (first) {
+                                pElement.insertAdjacentHTML('afterend', '<p>' + subjectAverageObject[pElement.innerHTML] + '</p>');
+                            }
+                        }
+                        // Wrong
+                        else {
+                            pElement.classList.remove('right');
+                            pElement.classList.add('wrong');
+                            if (first) {
+                                pElement.insertAdjacentHTML('afterend', '<p>' + subjectAverageObject[pElement.innerHTML] + '</p>');
+                            }
+                        }
+                        subjectAverageListClone.splice(maxGradeIndex, 1);
+                    }
+                }
+                checkAnswers(true);
+                answerInterval = setInterval(checkAnswers, 50);
+                setTimeout(function () {
+                    clicked = true;
+                }, 100);
+            });
+        }
+
         function closeRecapPage() {
             id('recap-progress').insertAdjacentHTML('beforeend', '<div></div>');
             cn('recap-page', 0).classList.add('recap-closing');
@@ -2700,21 +3096,26 @@ function onload() {
                     availablePages.splice(i, 1);
                     break;
                 case 3:
-                    twoTrueOneFalse();
+                    orderSubjects();
                     break;
                 case 4:
                     twoTrueOneFalse();
                     break;
                 case 5:
-                    guessTheGraph();
+                    twoTrueOneFalse();
                     break;
                 case 6:
-                    award();
+                    guessTheGraph();
                     break;
                 case 7:
+                    award();
+                    break;
+                case 8:
                     finish();
                     break;
             }
+            // Vertically center align page (to prevent absolute positioning from breaking drag list)
+            cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
         }
         function finish() {
             setTimeout(startConfetti, 100);
@@ -2743,7 +3144,7 @@ function onload() {
                         // STEADY AWARD
                         min = 10;
                         max = 0;
-                        for (const subject of data) {
+                        for (const subject of gradedata) {
                             i = 2;
                             while (i < subject.length) {
                                 // Number is odd so it is a grade
@@ -2771,13 +3172,13 @@ function onload() {
                         // ALGEBRA AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('wis') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('wis') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'algebra';
                             description = 'je een voldoende staat voor wiskunde';
                             icon = 'calculator';
@@ -2787,13 +3188,13 @@ function onload() {
                         // SCHEIKUNDE AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('sch') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('sch') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'chemicus';
                             description = 'je een voldoende staat voor scheikunde';
                             icon = 'flask';
@@ -2803,13 +3204,13 @@ function onload() {
                         // TAALGENIE AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('fra') != -1 || data[i][0].toLowerCase().indexOf('eng') != -1 || data[i][0].toLowerCase().indexOf('dui') != -1 || data[i][0].toLowerCase().indexOf('spa') != -1 || data[i][0].toLowerCase().indexOf('chi') != -1 || data[i][0].toLowerCase().indexOf('taal') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('fra') != -1 || gradedata[i][0].toLowerCase().indexOf('eng') != -1 || gradedata[i][0].toLowerCase().indexOf('dui') != -1 || gradedata[i][0].toLowerCase().indexOf('spa') != -1 || gradedata[i][0].toLowerCase().indexOf('chi') != -1 || gradedata[i][0].toLowerCase().indexOf('taal') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'taalgenie';
                             description = 'je een voldoende staat voor een taal';
                             icon = 'earth-europe';
@@ -2819,13 +3220,13 @@ function onload() {
                         // OUDHEID AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('gri') != -1 || data[i][0].toLowerCase().indexOf('grk') != -1 || data[i][0].toLowerCase().indexOf('lat') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('gri') != -1 || gradedata[i][0].toLowerCase().indexOf('grk') != -1 || gradedata[i][0].toLowerCase().indexOf('lat') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'oudheid';
                             description = 'je een voldoende staat voor een klassieke taal';
                             icon = 'landmark';
@@ -2835,13 +3236,13 @@ function onload() {
                         // WETENSCHAPPER AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('nat') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('nat') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'wetenschapper';
                             description = 'je een voldoende staat voor natuurkunde of biologie';
                             icon = 'microscope';
@@ -2851,13 +3252,13 @@ function onload() {
                         // ONTDEKKER AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('nat') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('nat') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'ontdekker';
                             description = 'je een voldoende staat voor aardrijkskunde of geschiedenis';
                             icon = 'map-location-dot';
@@ -2867,7 +3268,7 @@ function onload() {
                         // FOCUSED AWARD
                         max = false;
                         i = 2;
-                        for (const subject of data) {
+                        for (const subject of gradedata) {
                             if (!isNaN(parseFloat(subject[0])) && parseFloat(subject[0]) >= 8.5) {
                                 max = true;
                             }
@@ -2889,13 +3290,13 @@ function onload() {
                         // ARTIEST AWARD
                         subject = -1;
                         i = 0;
-                        while (i < data.length) {
-                            if (data[i][0].toLowerCase().indexOf('beeldend') != -1 || data[i][0].toLowerCase().indexOf('kunst') != -1 || data[i][0].toLowerCase().indexOf('art') != -1 || data[i][0].toLowerCase().indexOf('vorming') != -1 || data[i][0].toLowerCase().indexOf('ckv') != -1) {
+                        while (i < gradedata.length) {
+                            if (gradedata[i][0].toLowerCase().indexOf('beeldend') != -1 || gradedata[i][0].toLowerCase().indexOf('kunst') != -1 || gradedata[i][0].toLowerCase().indexOf('art') != -1 || gradedata[i][0].toLowerCase().indexOf('vorming') != -1 || gradedata[i][0].toLowerCase().indexOf('ckv') != -1) {
                                 subject = i;
                             }
                             i++;
                         }
-                        if (subject != -1 && data[subject][1] > 5.5) {
+                        if (subject != -1 && gradedata[subject][1] > 5.5) {
                             award = 'artiest';
                             description = 'je een voldoende staat voor beeldende vorming';
                             icon = 'palette';
@@ -2918,28 +3319,7 @@ function onload() {
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function busyYear() {
-            let gradeCount = 0;
-            let weightCount = 0;
-            for (const subject of data) {
-                let i = 0;
-                while (i < subject.length) {
-                    if (i > 1) {
-                        const grade = parseFloat(subject[i]);
-                        if (!isNaN(grade)) {
-                            // Number is even so it is a weight
-                            if (i % 2 == 0) {
-                                weightCount += grade;
-                            }
-                            // Number is odd so it is a grade
-                            else {
-                                gradeCount++;
-                            }
-                        }
-                    }
-                    i++;
-                }
-            }
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + gradeCount + '</i> cijfers gekregen met een totale weging van maar liefst <i>' + weightCount + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') +  ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsHigh() {
@@ -2947,7 +3327,7 @@ function onload() {
             let highestName = '--';
             let secondHighest = 0;
             let secondHighestName = '--';
-            for (const subject of data) {
+            for (const subject of gradedata) {
                 let i = 0;
                 while (i < subject.length) {
                     if (i > 1) {
@@ -2972,7 +3352,7 @@ function onload() {
             let lowest = 10;
             let lowestName = '--';
             let lowestSubject = 0;
-            for (const subject of data) {
+            for (const subject of gradedata) {
                 let i = 0;
                 while (i < subject.length) {
                     if (i > 1) {
@@ -2994,28 +3374,41 @@ function onload() {
         }
         function twoTrueOneFalse() {
             // Determine which one is a lie
+            let i = 0;
             // average
-            let averageSubject = data[Math.round(Math.random() * (data.length - 1))];
+            let averageSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let average = parseFloat(averageSubject[1]);
             while (isNaN(average)) {
-                averageSubject = data[Math.round(Math.random() * (data.length - 1))];
+                if (i > 100) {
+                    average = 5.4;
+                    break;
+                }
+                averageSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
                 average = parseFloat(averageSubject[1]);
+                i++;
             }
             // grade
-            let gradeSubject = data[Math.round(Math.random() * (data.length - 1))];
+            let gradeSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let grade = parseFloat(gradeSubject[2 * Math.round(Math.max(Math.round(Math.random() * (gradeSubject.length - 1)), 4) / 2) - 1]);
+            i = 0;
             while (isNaN(grade)) {
-                gradeSubject = data[Math.round(Math.random() * (data.length - 1))];
+                if (i > 100) {
+                    gradeSubject = gradedata[0];
+                    grade = gradeSubject[3];
+                    break;
+                }
+                gradeSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
                 grade = parseFloat(gradeSubject[2 * Math.round(Math.max(Math.round(Math.random() * (gradeSubject.length - 1)), 4) / 2) - 1]);
+                i++;
             }
             // amount
-            let amountSubject = data[Math.round(Math.random() * (data.length - 1))];
+            let amountSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let amount = (amountSubject.length - 2) / 2;
             let real;
             const random = Math.round(Math.random() * (3 - 1) + 1);
             switch (random) {
                 case 1:
-                    averageSubject = data[Math.round(Math.random() * (data.length - 1))];
+                    averageSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
                     real = averageSubject[1];
                     if (averageSubject[1] == average) {
                         average += Math.round(Math.random() * (2 - 0.5) + 0.5 * 100) / 100;
@@ -3024,19 +3417,41 @@ function onload() {
                     break;
                 case 2:
                     real = grade;
-                    while (gradeSubject.includes(grade) || real == grade || isNaN(grade)) {
+                    i = 0;
+                    while (gradeSubject.includes(grade) || real == grade) {
+                        if (i > 100) {
+                            if (isNaN(grade)) {
+                                grade = 0.5;
+                            }
+                            else {
+                                grade += 0.1;
+                            }
+                            break;
+                        }
                         grade += Math.round(Math.random() * (1 + 1) - 1 * 10) / 10;
+                        i++;
                     }
                     grade = grade.toFixed(1);
                     break;
                 case 3:
                     real = amount;
+                    i = 0;
                     while (real == amount) {
+                        if (i > 100) {
+                            if (isNaN(amount)) {
+                                amount = 0;
+                            }
+                            else {
+                                amount += 1;
+                            }
+                            break;
+                        }
                         amount += Math.round(Math.random() * (2 + 2) - 2);
+                        i++;
                     }
                     break;
             }
-            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet?</h2><label><input type="checkbox" id="recap-option-1"/><p>Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject[0] + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject[0] + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> cijfers voor ' + amountSubject[0] + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
+            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet?</h2><label><input type="checkbox" id="recap-option-1"/><p>Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject[0] + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject[0] + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> ' + (amount == 1 ? 'cijfer' : 'cijfers') + ' voor ' + amountSubject[0] + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
             let clicked = false;
             id('recap-nextpage').addEventListener('click', function () {
                 if (clicked) {
@@ -3046,6 +3461,9 @@ function onload() {
                 if (!id('recap-option-1').checked && !id('recap-option-2').checked && !id('recap-option-3').checked) {
                     return;
                 }
+                id('recap-option-1').parentElement.style.pointerEvents = 'none';
+                id('recap-option-2').parentElement.style.pointerEvents = 'none';
+                id('recap-option-3').parentElement.style.pointerEvents = 'none';
                 if (id('recap-option-' + random).checked) {
                     clicked = true;
                     id('recap-option-' + random).parentElement.classList.add('right');
@@ -3074,19 +3492,32 @@ function onload() {
         }
         function guessTheGraph() {
             cn('recap-page', 0).innerHTML = '<h1>Van welk vak is deze grafiek?</h1><h2>Van welk vak denk je dat de onderstaande grafiek is?</h2><div id="recap-chart-wrapper"><canvas id="recap-chart"></canvas></div><label><input type="checkbox" id="recap-option-1"/><p id="recap-text-1"></p></label><label><input type="checkbox" id="recap-option-2"/><p id="recap-text-2"></p></label><label><input type="checkbox" id="recap-option-3"/><p id="recap-text-3"></p></label><a id="recap-nextpage">Controleren</a>';
-            const chosenSubject = Math.round(Math.random() * (data.length - 1));
-            gradeGraphs(data[chosenSubject]);
+            const chosenSubject = Math.round(Math.random() * (gradedata.length - 1));
+            gradeGraphs(gradedata[chosenSubject]);
             const random = Math.round(Math.random() * (3 - 1) + 1);
-            id('recap-option-' + random).innerHTML = data[chosenSubject][0];
-            let fakeOptionOne = data[Math.round(Math.random() * (data.length - 1))][0];
-            while (fakeOptionOne == data[chosenSubject][0]) {
-                fakeOptionOne = data[Math.round(Math.random() * (data.length - 1))][0];
+            id('recap-option-' + random).innerHTML = gradedata[chosenSubject][0];
+            let fakeOptionOne = gradedata[Math.round(Math.random() * (gradedata.length - 1))][0];
+            let i = 0;
+            const subjectArray = ['Aardrijkskunde', 'Geschiedenis', 'Nederlands', 'Engels', 'Frans', 'Natuurkunde', 'Wiskunde', 'Biologie', 'Scheikunde'];
+            while (fakeOptionOne == gradedata[chosenSubject][0]) {
+                if (i > 100) {
+                    fakeOptionOne = subjectArray[Math.floor(Math.random() * subjectArray.length)];
+                    break;
+                }
+                fakeOptionOne = gradedata[Math.round(Math.random() * (gradedata.length - 1))][0];
+                i++;
             }
-            let fakeOptionTwo = data[Math.round(Math.random() * (data.length - 1))][0];
-            while (fakeOptionTwo == data[chosenSubject][0] || fakeOptionTwo == fakeOptionOne) {
-                fakeOptionTwo = data[Math.round(Math.random() * (data.length - 1))][0];
+            i = 0;
+            let fakeOptionTwo = gradedata[Math.round(Math.random() * (gradedata.length - 1))][0];
+            while (fakeOptionTwo == gradedata[chosenSubject][0] || fakeOptionTwo == fakeOptionOne) {
+                if (i > 100) {
+                    fakeOptionOne = subjectArray[Math.floor(Math.random() * subjectArray.length)];
+                    break;
+                }
+                fakeOptionTwo = gradedata[Math.round(Math.random() * (gradedata.length - 1))][0];
+                i++;
             }
-            id('recap-text-' + random).innerHTML = data[chosenSubject][0];
+            id('recap-text-' + random).innerHTML = gradedata[chosenSubject][0];
             switch (random) {
                 case 1:
                     id('recap-text-2').innerHTML = fakeOptionOne;
@@ -3145,6 +3576,7 @@ function onload() {
     // Open modsettings
     function openSettings() {
         tryRemove(id('mod-setting-panel'));
+        // Check if account modal is opened
         if (!n(tn('sl-account-modal', 0))) {
             if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
                 tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText = tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML;
@@ -3153,300 +3585,304 @@ function onload() {
             if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
                 tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = true;
             }
-        }
-        if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
-            tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
-        }
-        if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
-            tn('sl-account-modal', 0).getElementsByClassName('content')[0].insertAdjacentHTML('beforeend', '<div></div>');
-            if (tn('sl-account-modal-tab', 0).classList.contains('active')) {
-                tn('sl-account-modal-tab', 1).click();
+            if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
+                tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
             }
-            else {
-                tn('sl-account-modal-tab', 0).click();
+            if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
+                tn('sl-account-modal', 0).getElementsByClassName('content')[0].insertAdjacentHTML('beforeend', '<div></div>');
+                if (tn('sl-account-modal-tab', 0).classList.contains('active')) {
+                    tn('sl-account-modal-tab', 1).click();
+                }
+                else {
+                    tn('sl-account-modal-tab', 0).click();
+                }
             }
-        }
-        id('mod-setting-button').classList.add('active');
-        let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><div id="nickname-wrapper">';
-        const nicknameArray = get("nicknames").split("|");
-        let i = 0;
-        while (i + 1 < nicknameArray.length) {
-            nicknames += '<div><input type="text" value="' + nicknameArray[i].replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '"/><input type="text" value="' + nicknameArray[i + 1].replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '"/></div>';
-            i += 2;
-        }
-        let backgroundHTML = '';
-        let numberOfBackgrounds = 0;
-        while (!n(get('background' + numberOfBackgrounds))) {
-            backgroundHTML += '<img onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) +  '" />';
-            numberOfBackgrounds++;
-        }
-        nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
-        const updatechecker = (platform == 'Userscript' || platform == 'Android') ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
-        const updateinfo = (platform == 'Userscript' || platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-        const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" tabindex="0" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
+            id('mod-setting-button').classList.add('active');
+            let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><div id="nickname-wrapper">';
+            const nicknameArray = get("nicknames").split("|");
+            let i = 0;
+            while (i + 1 < nicknameArray.length) {
+                nicknames += '<div><input type="text" value="' + nicknameArray[i].replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '"/><input type="text" value="' + nicknameArray[i + 1].replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '"/></div>';
+                i += 2;
+            }
+            let backgroundHTML = '';
+            let numberOfBackgrounds = 0;
+            while (!n(get('background' + numberOfBackgrounds))) {
+                backgroundHTML += '<img onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) +  '" />';
+                numberOfBackgrounds++;
+            }
+            nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
+            const updatechecker = (platform == 'Userscript' || platform == 'Android') ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
+            const updateinfo = (platform == 'Userscript' || platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
+            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" tabindex="0" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
             '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
-            '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*, video/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
+            '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond.', 'background', 'file', null, 'image/*, video/*') + '<div class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
             '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
             '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div><div class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div></div></div>' +
             '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
-            '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Verander je gebruikersnaam.', 'username', 'text', '', get('realname') == null ? '' : get('realname')) + '<div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>' + fonts.join('</option><option>') + '</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '</div>' +
-            '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + addSetting('Compact rooster', 'Maak je rooster compacter door het in lesuren in te delen en ruimte tussen verschillende lessen te verbergen.', 'bools03', 'checkbox', false) + addSetting('Cijfer-reveal', 'Toon bij nieuwe cijfers een optel-animatie.', 'bools14', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het jaar een recap-knop zien.', 'bools12', 'checkbox', true) + '</div>' +
+            '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div><div id="username-wrapper"><h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : get('username')) + '"></div></div><div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>' + fonts.join('</option><option>') + '</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '</div>' +
+            '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false) + addSetting('Cijfer-reveal', 'Toon bij nieuwe cijfers een optel-animatie.', 'bools14', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + '</div>' +
             (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>') +
             '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt met SSO).', 'loginpass', 'password', '', '') + '</div>' +
             '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + platform + '</span>!</p>' + updateinfo + '<div class="br"></div></div>');
-        // Add themes
-        // Background images thanks to Pexels: https://www.pexels.com
-        addTheme('Standaard', '', '0067c2', 'e69b22', 20, false);
-        addTheme('Bergen', '618833', '3b4117', '3b4117', 40, false);
-        addTheme('Eiland', '994605', '2a83b1', '2a83b1', 25, false);
-        addTheme('Zee', '756856', '173559', '173559', 25, false);
-        addTheme('Bergmeer', '1284296', '4a6a2f', '4a6a2f', 30, false);
-        addTheme('Rivieruitzicht', '822528', '526949', '526949', 40, false);
-        addTheme('Ruimte', '110854', '0d0047', '0d0047', 50, true);
-        addTheme('Bergen en ruimte', '1624504', '6489a0', '6489a0', 50, true);
-        addTheme('Stad', '2246476', '18202d', '18202d', 25, true);
-        addTheme('Weg', '1820563', 'de3c22', 'de3c22', 65, true);
-        id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
-        id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
-        id('addbackground').addEventListener('input', function () {
-            const files = this.files;
-            for (var i = 0; i < files.length; i++) {
-                if (this.accept != 'image/*' || files[i]['type'].indexOf('image') != -1) {
+            // Add themes
+            // Background images thanks to Pexels: https://www.pexels.com
+            addTheme('Standaard', '', '0067c2', 'e69b22', 20, false);
+            addTheme('Bergen', '618833', '3b4117', '3b4117', 40, false);
+            addTheme('Eiland', '994605', '2a83b1', '2a83b1', 25, false);
+            addTheme('Zee', '756856', '173559', '173559', 25, false);
+            addTheme('Bergmeer', '1284296', '4a6a2f', '4a6a2f', 30, false);
+            addTheme('Rivieruitzicht', '822528', '526949', '526949', 40, false);
+            addTheme('Ruimte', '110854', '0d0047', '0d0047', 50, true);
+            addTheme('Bergen en ruimte', '1624504', '6489a0', '6489a0', 50, true);
+            addTheme('Stad', '2246476', '18202d', '18202d', 25, true);
+            addTheme('Weg', '1820563', 'de3c22', 'de3c22', 65, true);
+            id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
+            id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
+            id('addbackground').addEventListener('input', function () {
+                const files = this.files;
+                for (var i = 0; i < files.length; i++) {
+                    if (this.accept != 'image/*' || files[i]['type'].indexOf('image') != -1) {
+                        let reader = new FileReader();
+                        reader.readAsDataURL(this.files[i]);
+                        reader.onload = function () {
+                            id('mod-background-wrapper').classList.add('mod-modified');
+                            id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                        };
+                    }
+                }
+            });
+            for (const element of cn('mod-slider')) {
+                element.getElementsByTagName('input')[0].addEventListener('input', function () {
+                    this.classList.add('mod-modified');
+                    this.parentElement.children[2].innerHTML = this.value + this.dataset.unit;
+                    id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
+                    id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
+                });
+            }
+            id('background').addEventListener('input', function () {
+                if (this.files[0] != null) {
+                    const isVideo = this.files[0].type.indexOf('video') != -1;
                     let reader = new FileReader();
-                    reader.readAsDataURL(this.files[i]);
+                    reader.readAsDataURL(this.files[0]);
+                    id('mod-background-preview-image').style.display = !isVideo ? 'block' : 'none';
+                    id('mod-background-preview-video').style.display = isVideo ? 'block' : 'none';
+                    id('mod-filters').style.display = 'block';
                     reader.onload = function () {
-                        id('mod-background-wrapper').classList.add('mod-modified');
-                        id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                        if (isVideo) {
+                            id('mod-background-preview-video').src = reader.result;
+                        }
+                        else {
+                            id('mod-background-preview-image').src = reader.result;
+                        }
                     };
                 }
-            }
-        });
-        for (const element of cn('mod-slider')) {
-            element.getElementsByTagName('input')[0].addEventListener('input', function () {
-                this.classList.add('mod-modified');
-                this.parentElement.children[2].innerHTML = this.value + this.dataset.unit;
+                else {
+                    id('mod-filters').style.display = 'none';
+                }
+            });
+            id('mod-reset-filters').addEventListener('click', function () {
+                id('brightness').value = 100;
+                id('brightness').dispatchEvent(new Event('input'));
+                id('contrast').value = 100;
+                id('contrast').dispatchEvent(new Event('input'));
+                id('saturate').value = 100;
+                id('saturate').dispatchEvent(new Event('input'));
+                id('opacity').value = 100;
+                id('opacity').dispatchEvent(new Event('input'));
+                id('huerotate').value = 0;
+                id('huerotate').dispatchEvent(new Event('input'));
+                id('grayscale').value = 0;
+                id('grayscale').dispatchEvent(new Event('input'));
+                id('sepia').value = 0;
+                id('sepia').dispatchEvent(new Event('input'));
+                id('invert').value = 0;
+                id('invert').dispatchEvent(new Event('input'));
+                id('blur').value = 0;
+                id('blur').dispatchEvent(new Event('input'));
                 id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
                 id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
             });
-        }
-        id('background').addEventListener('input', function () {
-            if (this.files[0] != null) {
-                const isVideo = this.files[0].type.indexOf('video') != -1;
-                let reader = new FileReader();
-                reader.readAsDataURL(this.files[0]);
-                id('mod-background-preview-image').style.display = !isVideo ? 'block' : 'none';
-                id('mod-background-preview-video').style.display = isVideo ? 'block' : 'none';
-                reader.onload = function () {
-                    if (isVideo) {
-                        id('mod-background-preview-video').src = reader.result;
-                    }
-                    else {
-                        id('mod-background-preview-image').src = reader.result;
-                    }
-                };
+            id('type-image').addEventListener('click', function () {
+                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                this.classList.add('active');
+                show(id('mod-bg-image'));
+                hide(id('mod-bg-slideshow'));
+                hide(id('mod-bg-color'));
+            });
+            id('type-slideshow').addEventListener('click', function () {
+                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                this.classList.add('active');
+                hide(id('mod-bg-image'));
+                show(id('mod-bg-slideshow'));
+                hide(id('mod-bg-color'));
+            });
+            id('type-color').addEventListener('click', function () {
+                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                this.classList.add('active');
+                hide(id('mod-bg-image'));
+                hide(id('mod-bg-slideshow'));
+                show(id('mod-bg-color'));
+            });
+            // Make section collapsing work
+            let number = 0;
+            if (n(get('category'))) {
+                set('category', '111111111');
             }
-        });
-        id('mod-reset-filters').addEventListener('click', function () {
-            id('brightness').value = 100;
-            id('brightness').dispatchEvent(new Event('input'));
-            id('contrast').value = 100;
-            id('contrast').dispatchEvent(new Event('input'));
-            id('saturate').value = 100;
-            id('saturate').dispatchEvent(new Event('input'));
-            id('opacity').value = 100;
-            id('opacity').dispatchEvent(new Event('input'));
-            id('huerotate').value = 0;
-            id('huerotate').dispatchEvent(new Event('input'));
-            id('grayscale').value = 0;
-            id('grayscale').dispatchEvent(new Event('input'));
-            id('sepia').value = 0;
-            id('sepia').dispatchEvent(new Event('input'));
-            id('invert').value = 0;
-            id('invert').dispatchEvent(new Event('input'));
-            id('blur').value = 0;
-            id('blur').dispatchEvent(new Event('input'));
-            id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
-            id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
-        });
-        id('type-image').addEventListener('click', function () {
-            this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-            this.classList.add('active');
-            show(id('mod-bg-image'));
-            hide(id('mod-bg-slideshow'));
-            hide(id('mod-bg-color'));
-        });
-        id('type-slideshow').addEventListener('click', function () {
-            this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-            this.classList.add('active');
-            hide(id('mod-bg-image'));
-            show(id('mod-bg-slideshow'));
-            hide(id('mod-bg-color'));
-        });
-        id('type-color').addEventListener('click', function () {
-            this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-            this.classList.add('active');
-            hide(id('mod-bg-image'));
-            hide(id('mod-bg-slideshow'));
-            show(id('mod-bg-color'));
-        });
-        // Make section collapsing work
-        let number = 0;
-        if (n(get('category'))) {
-            set('category', '111111111');
-        }
-        const categories = get('category');
-        for (const element of cn('mod-setting-button')) {
-            element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
-        }
-        for (const element of id('mod-setting-panel').getElementsByClassName('category')) {
-            const index = number;
-            id('category-' + element.dataset.category).style.display = categories.charAt(index) == '1' ? 'block' : 'none';
-            if (categories.charAt(index) == '1') {
-                element.classList.remove('collapsed');
+            const categories = get('category');
+            for (const element of cn('mod-setting-button')) {
+                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
             }
-            else {
-                element.classList.add('collapsed');
-            }
-            element.addEventListener('click', function () {
-                // Collapsed: whether the category was collapsed before toggling
-                // So if collapsed == true, then the category should be shown
-                const collapsed = id('category-' + element.dataset.category).style.display == 'none';
-                set('category', get('category').replaceAt(index, collapsed ? '1' : '0'));
-                if (collapsed) {
+            for (const element of id('mod-setting-panel').getElementsByClassName('category')) {
+                const index = number;
+                id('category-' + element.dataset.category).style.display = categories.charAt(index) == '1' ? 'block' : 'none';
+                if (categories.charAt(index) == '1') {
                     element.classList.remove('collapsed');
                 }
                 else {
                     element.classList.add('collapsed');
                 }
-                id('category-' + element.dataset.category).style.display = collapsed ? 'block' : 'none';
-            });
-            element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
-            number++;
-        }
-        // Drag and drop
-        for (const element of cn('mod-file-label')) {
-            element.addEventListener('drop', function (event) {
-                // Prevent default behavior (Prevent file from being opened)
-                event.preventDefault();
-
-                let done = false;
-                if (event.dataTransfer.items) {
-                    [...event.dataTransfer.items].forEach((item, i) => {
-                        if (!done && item.kind === "file") {
-                            done = true;
-                            element.classList.remove('mod-drag-and-drop');
-                            const file = item.getAsFile();
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            const fileList = dataTransfer.files;
-                            element.nextElementSibling.files = fileList;
-                        }
-                    });
-                } else {
-                    [...event.dataTransfer.files].forEach((file, i) => {
-                        if (!done) {
-                            done = true;
-                            element.classList.remove('mod-drag-and-drop');
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            const fileList = dataTransfer.files;
-                            element.nextElementSibling.files = fileList;
-                        }
-                    });
-                }
-                let inputEvent = new Event('input', {
-                    bubbles: false,
+                element.addEventListener('click', function () {
+                    // Collapsed: whether the category was collapsed before toggling
+                    // So if collapsed == true, then the category should be shown
+                    const collapsed = id('category-' + element.dataset.category).style.display == 'none';
+                    set('category', get('category').replaceAt(index, collapsed ? '1' : '0'));
+                    if (collapsed) {
+                        element.classList.remove('collapsed');
+                    }
+                    else {
+                        element.classList.add('collapsed');
+                    }
+                    id('category-' + element.dataset.category).style.display = collapsed ? 'block' : 'none';
                 });
-                element.nextElementSibling.dispatchEvent(inputEvent);
-            });
-            element.addEventListener('dragover', function (event) {
-                event.preventDefault();
-                element.classList.add('mod-drag-and-drop');
-                element.children[1].innerHTML = 'Drop een afbeelding';
-            });
-            element.addEventListener('dragleave', function () {
-                element.classList.remove('mod-drag-and-drop');
-                element.children[1].innerHTML = 'Kies een bestand';
-            });
-        }
-        // Add event listeners to make layout boxes work
-        for (const element of cn('layout-container')) {
-            element.addEventListener('click', function () {
-                for (const element of cn('layout-selected')) {
-                    element.classList.remove('layout-selected');
-                }
-                element.classList.add('layout-selected');
-            });
-        }
-        // Make save button, reset button (and updatechecker for the Userscript-version) work
-        id('save').addEventListener('click', function () {
-            execute([save]);
-        });
-        id('reset').addEventListener('click', function () {
-            modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
-            id('mod-message-action1').addEventListener('click', function () {
-                execute([reset, setBackground, style, pageUpdate]);
-                if (!n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1' && !n(tn('sl-vakresultaten', 0))) {
-                    tryRemove(id('mod-grades-graphs'));
-                    tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
-                    setTimeout(gradeGraphs, 500);
-                }
-                id('mod-message').classList.remove('mod-msg-open');
-                setTimeout(function () { tryRemove(id('mod-message')) }, 350);
-            });
-            id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
-        });
-        id('information-about-mod').addEventListener('click', function () {
-            modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : (platform == 'Android' ? 'Android-app die' : 'browserextensie die')) + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals achtergronden, lettertypes, kleuren, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met ' + (n(somtodayversion) ? 'een onbekende versie van Somtoday' : 'Somtoday ' + somtodayversion) + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. De GitHub repo is <a href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2024 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
-            id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
-            id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
-        });
-        id('mod-bug-report').addEventListener('click', function () { execute([prepareBugReport]) });
-        id('mod-feedback').addEventListener('click', function () { execute([feedback]) });
-        if (platform == 'Userscript' || platform == 'Android') {
-            id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
-        }
-        // Make random background button work
-        // Random background images thanks to Lorem Picsum: https://picsum.photos
-        id('mod-random-background').addEventListener('click', function () {
-            id('mod-random-background').classList.toggle('mod-active');
-            if (!n(id('mod-random-background').previousElementSibling)) {
-                if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
-                    id('mod-random-background').previousElementSibling.classList.remove('mod-active');
-                }
-                if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
-                    id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
-                    setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
-                    id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
-                }
+                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
+                number++;
             }
-        });
-        // Add script to make the font select element work
-        if (!n(id('mod-font-select-script'))) {
-            tryRemove(id('mod-font-select-script'));
-        }
-        id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
-        // Add event listeners to make file reset buttons work
-        for (const element of cn('mod-file-reset')) {
-            element.addEventListener('click', function () {
-                element.classList.toggle('mod-active');
-                if (element.dataset.key == 'background') {
-                    if (!n(id('mod-random-background'))) {
-                        if (id('mod-random-background').classList.contains('mod-active')) {
-                            id('mod-random-background').classList.remove('mod-active');
-                        }
+            // Drag and drop
+            for (const element of cn('mod-file-label')) {
+                element.addEventListener('drop', function (event) {
+                    // Prevent default behavior (Prevent file from being opened)
+                    event.preventDefault();
+
+                    let done = false;
+                    if (event.dataTransfer.items) {
+                        [...event.dataTransfer.items].forEach((item, i) => {
+                            if (!done && item.kind === "file") {
+                                done = true;
+                                element.classList.remove('mod-drag-and-drop');
+                                const file = item.getAsFile();
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                const fileList = dataTransfer.files;
+                            element.nextElementSibling.files = fileList;
+                            }
+                        });
+                    } else {
+                        [...event.dataTransfer.files].forEach((file, i) => {
+                            if (!done) {
+                                done = true;
+                                element.classList.remove('mod-drag-and-drop');
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                const fileList = dataTransfer.files;
+                                element.nextElementSibling.files = fileList;
+                            }
+                        });
                     }
-                }
-                if (!n(element.previousElementSibling)) {
-                    if (!n(element.previousElementSibling.getElementsByTagName('label')[0])) {
-                        if (element.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
-                            element.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
-                            setHTML(element.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
-                            element.previousElementSibling.getElementsByTagName('input')[0].value = null;
-                        }
+                    let inputEvent = new Event('input', {
+                        bubbles: false,
+                    });
+                    element.nextElementSibling.dispatchEvent(inputEvent);
+                });
+                element.addEventListener('dragover', function (event) {
+                    event.preventDefault();
+                    element.classList.add('mod-drag-and-drop');
+                    element.children[1].innerHTML = 'Drop een afbeelding';
+                });
+                element.addEventListener('dragleave', function () {
+                    element.classList.remove('mod-drag-and-drop');
+                    element.children[1].innerHTML = 'Kies een bestand';
+                });
+            }
+            // Add event listeners to make layout boxes work
+            for (const element of cn('layout-container')) {
+                element.addEventListener('click', function () {
+                    for (const element of cn('layout-selected')) {
+                        element.classList.remove('layout-selected');
+                    }
+                    element.classList.add('layout-selected');
+                });
+            }
+            // Make save button, reset button (and updatechecker for the Userscript-version) work
+            id('save').addEventListener('click', function () {
+                execute([save]);
+            });
+            id('reset').addEventListener('click', function () {
+                modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
+                id('mod-message-action1').addEventListener('click', function () {
+                    execute([reset, setBackground, style, pageUpdate]);
+                    if (!n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1' && !n(tn('sl-vakresultaten', 0))) {
+                    tryRemove(id('mod-grades-graphs'));
+                        tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                        setTimeout(gradeGraphs, 500);
+                    }
+                    id('mod-message').classList.remove('mod-msg-open');
+                    setTimeout(function () { tryRemove(id('mod-message')) }, 350);
+                });
+                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+            });
+            id('information-about-mod').addEventListener('click', function () {
+                modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : (platform == 'Android' ? 'Android-app die' : 'browserextensie die')) + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals achtergronden, lettertypes, kleuren, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met ' + (n(somtodayversion) ? 'een onbekende versie van Somtoday' : 'Somtoday ' + somtodayversion) + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. De GitHub repo is <a href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2025 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
+                id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
+                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+            });
+            id('mod-bug-report').addEventListener('click', function () { execute([prepareBugReport]) });
+            id('mod-feedback').addEventListener('click', function () { execute([feedback]) });
+            if (platform == 'Userscript' || platform == 'Android') {
+                id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
+            }
+            // Make random background button work
+            // Random background images thanks to Lorem Picsum: https://picsum.photos
+            id('mod-random-background').addEventListener('click', function () {
+                id('mod-random-background').classList.toggle('mod-active');
+                if (!n(id('mod-random-background').previousElementSibling)) {
+                    if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
+                        id('mod-random-background').previousElementSibling.classList.remove('mod-active');
+                    }
+                    if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
+                        id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
+                        setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
+                        id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
                     }
                 }
             });
+            // Add script to make the font select element work
+            if (!n(id('mod-font-select-script'))) {
+                tryRemove(id('mod-font-select-script'));
+            }
+            id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
+            // Add event listeners to make file reset buttons work
+            for (const element of cn('mod-file-reset')) {
+                element.addEventListener('click', function () {
+                    element.classList.toggle('mod-active');
+                    if (element.dataset.key == 'background') {
+                        if (!n(id('mod-random-background'))) {
+                            if (id('mod-random-background').classList.contains('mod-active')) {
+                                id('mod-random-background').classList.remove('mod-active');
+                            }
+                        }
+                    }
+                    if (!n(element.previousElementSibling)) {
+                        if (!n(element.previousElementSibling.getElementsByTagName('label')[0])) {
+                            if (element.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
+                                element.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
+                                setHTML(element.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
+                                element.previousElementSibling.getElementsByTagName('input')[0].value = null;
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -3657,6 +4093,15 @@ function onload() {
                 tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                 setTimeout(gradeGraphs, 500);
             }
+            if (!n(tn('sl-modal', 0))) {
+                tn('sl-modal', 0).style.zIndex = '100000';
+            }
+            if (get('layout') == 3) {
+                document.documentElement.style.cssText = '--safe-area-inset-right: ' + menuWidth + 'px !important';
+            }
+            else if (get('layout') == 2 || get('layout') == 5) {
+                document.documentElement.style.cssText = '--safe-area-inset-left: ' + menuWidth + 'px !important';
+            }
         }
         else {
             setTimeout(saveReload, 100);
@@ -3695,6 +4140,8 @@ function onload() {
         set('sepia', '0%');
         set('invert', '0%');
         set('blur', '0px');
+        set('menuwidth', 110);
+        menuWidth = 110;
         set('isbackgroundvideo', false);
         let i = 0;
         while (!n(get('background' + i))) {
@@ -3854,8 +4301,7 @@ function onload() {
             }
             setTimeout(function () {
                 // Save username and birthday
-                if (!n(cn('data-container', 1)) && !n(cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0]) && n(get('username'))) {
-                    set('username', cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0].innerHTML);
+                if (!n(cn('data-container', 1)) && !n(cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0]) && n(get('realname'))) {
                     set('realname', cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0].innerHTML);
                 }
                 for (const parent of cn('data-container')) {
@@ -6103,7 +6549,7 @@ function legacy() {
             id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
         });
         id('information-about-mod').addEventListener('click', function () {
-            modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : 'browserextensie die') + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals een dark mode, lettertypes, kleuren, achtergronden, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met Somtoday ' + somtodayversion + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. Source code is <a href="https://jonazwetsloot.nl/versions/somtoday-mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2024 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
+            modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : 'browserextensie die') + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals een dark mode, lettertypes, kleuren, achtergronden, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met Somtoday ' + somtodayversion + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. Source code is <a href="https://jonazwetsloot.nl/versions/somtoday-mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2025 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
             id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
             id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
         });

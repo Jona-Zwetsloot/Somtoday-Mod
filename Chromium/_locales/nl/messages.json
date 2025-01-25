@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v4.6"
+    "message": "Somtoday Mod Chromium v4.8"
   },
   "newOne": {
-    "message": "Je kan nu meerdere achtergrondafbeeldingen selecteren"
+    "message": "Gebruikersnaam bug in huiswerkbeschrijving gefixt"
   },
   "newTwo": {
-    "message": "Er zijn achtergrondfilters toegevoegd"
+    "message": "Somtoday Recap bugs gefixt (probeer \"recap\" te typen wanneer je op de cijferpagina bent om het alvast uit te proberen)"
   },
   "newThree": {
-    "message": "Het raster achter het rooster kan nu uitgezet worden"
+    "message": "Sidebar is nu resizable in layouts die een sidebar hebben"
   },
   "extName": {
     "message": "Somtoday Mod"
