@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v4.8"
+    "message": "Somtoday Mod Chromium v4.9"
   },
   "newOne": {
-    "message": "User name bug in homework description fixed"
+    "message": "It is now possible to add your own tasks to the studiewijzer, just so you don't forget that one important appointment next week"
   },
   "newTwo": {
-    "message": "Somtoday Recap bugs fixed (try typing \"recap\" when on the grades page to try it out ahead of time)"
+    "message": "Fixed a bug that made the autologin work a little bit not very good"
   },
   "newThree": {
-    "message": "Sidebar is now resizable in layouts that have a sidebar"
+    "message": "Fixed a bug that prevented failing grades from displaying in red, now if y'all had just passed your tests I wouldn't have had to fix this issue - #motivation"
   },
   "extName": {
     "message": "Somtoday Mod"

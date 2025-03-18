@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v4.8"
+    "message": "Somtoday Mod Firefox v4.0"
   },
   "newOne": {
-    "message": "Gebruikersnaam bug in huiswerkbeschrijving gefixt"
+    "message": "Het is nu mogelijk eigen taken aan de studiewijzer toe te voegen, zodat je die ene belangrijke afspraak van volgende week niet vergeet"
   },
   "newTwo": {
-    "message": "Somtoday Recap bugs gefixt (probeer \"recap\" te typen wanneer je op de cijferpagina bent om het alvast uit te proberen)"
+    "message": "Bug gefixt waardoor de autologin een beetje heel erg niet goed werkte"
   },
   "newThree": {
-    "message": "Sidebar is nu resizable in layouts die een sidebar hebben"
+    "message": "Bug gefixt waardoor onvoldoendes niet meer rood waren, als jullie nou gewoon allemaal voldoendes zouden halen had ik dit nu niet hoeven fixen - #motivatie"
   },
   "extName": {
     "message": "Somtoday Mod"
