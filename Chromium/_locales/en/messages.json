@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v4.9"
+    "message": "Somtoday Mod Chromium v5.0"
   },
   "newOne": {
-    "message": "It is now possible to add your own tasks to the studiewijzer, just so you don't forget that one important appointment next week"
+    "message": "It is now possible to export and import your settings"
   },
   "newTwo": {
-    "message": "Fixed a bug that made the autologin work a little bit not very good"
+    "message": "You can also upload your own fonts now"
   },
   "newThree": {
-    "message": "Fixed a bug that prevented failing grades from displaying in red, now if y'all had just passed your tests I wouldn't have had to fix this issue - #motivation"
+    "message": "Fixed bug that caused icons to become too large in some layouts"
   },
   "extName": {
     "message": "Somtoday Mod"

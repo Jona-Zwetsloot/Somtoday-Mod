@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Somtoday Mod
 // @namespace    https://jonazwetsloot.nl/projecten/somtoday-mod
-// @version      4.9
+// @version      5.0
 // @description  Give Somtoday a new look with this script.
 // @author       Jona Zwetsloot
 // @match        https://*.somtoday.nl/*
@@ -22,7 +22,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 4.9;
+const version = 5.0;
 const platform = "Userscript";
 const minified = false;
 let data;
@@ -37,10 +37,6 @@ if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
     }
     if (platform != "Userscript") {
         setTimeout(console.warn.bind(console, "SOMTODAY MOD: Userscript storage is used while the platform is not set to Userscript."));
-    }
-    // Remember to open settings if settings hash is present
-    if (hasSettingsHash) {
-        set('opensettingsIntention', '1');
     }
 }
 // Check if extension allows storage access
@@ -99,13 +95,13 @@ else if (window.localStorage) {
         return localStorage.getItem(key);
     }
     setTimeout(console.warn.bind(console, "SOMTODAY MOD: Could not find extension or userscript storage. Falling back to localstorage."));
-    // Remember to open settings if settings hash is present
-    if (hasSettingsHash) {
-        set('opensettingsIntention', '1');
-    }
 }
 else {
     throw new Error("Somtoday Mod ERROR\nCould not find any place to store setting data.\nConsider updating your browser, or giving Somtoday Mod storage access.");
+}
+// Remember to open settings if settings hash is present
+if (hasSettingsHash) {
+    set('opensettingsIntention', '1');
 }
 
 
@@ -288,19 +284,19 @@ function errorPage() {
             tn('body', 0).classList.add('mod-game-playing');
             const svg = tn('sl-error-image', 0).getElementsByTagName('svg')[0];
             tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-game"><p id="mod-playtime"></p><p id="mod-close-button">&times;</p><div id="mod-basefloor"></div><div id="mod-player-container"><svg id="mod-flag-end" viewBox="0 0 147.6 250.5"><defs><linearGradient x1="154.8" y1="129.9" x2="287" y2="129.9" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="#ca0000"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-width="0" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m155 76 132 54-132 54z" data-paper-data="{&quot;index&quot;:null}" fill="url(#a)" transform="translate(-139 -56)"/><path d="M5 244V14h11v230z" fill="#ffad66"/><path d="M22 10a11 11 0 1 1-22 2 11 11 0 0 1 22-2zm-6 235a5 5 0 1 1-11 0 5 5 0 0 1 11 0z" fill="#ffad66"/></g></svg><svg id="mod-player" viewBox="0 0 49 49"><rect id="mod-player-rect" x="0" y="39" width="49" height="10" fill="transparent"></rect><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="var(--bg-primary-normal)" /></svg>' +
-            '<div id="mod-level-0" class="mod-level" data-title="Je hebt de geheime kamer gevonden!" data-description="Druk op <i>pijl omlaag</i> of <i>S</i> om laag te blijven" data-right="5" data-bottom="2"><svg style="position:absolute;top:0;right:5%;transform:rotate(195deg);width:200px;" viewBox="0 0 333 303"><g><path d="M101 64V0h232v64H131l-30 28z" fill="#fff"></path><path d="M46 291v-71h27v71z" fill="#4750ff"></path><path d="M86 290c0 6-9 11-20 11s-20-5-20-11c0-7 9-12 20-12s20 5 20 12z" fill="#4750ff"></path><path d="M17 292v-70h27v70z" fill="#636cff"></path><path d="M57 291c0 7-9 12-20 12s-20-5-20-12c0-6 9-11 20-11s20 5 20 11z" fill="#636cff"></path><path d="M92 194c0 28-20 50-44 50-25 0-45-22-45-50s20-50 45-50c24 0 44 22 44 50z" fill="#55b1ff"></path><path d="M56 81c0 10-9 18-19 18-11 0-20-8-20-18s9-18 20-18c10 0 19 8 19 18z" fill="#c17100"></path><path d="M93 118c0 24-20 43-45 43-24 0-44-19-44-43s20-43 44-43c25 0 45 19 45 43z" fill="#ff9898"></path><path d="M79 107c0 5-4 9-9 9-4 0-8-4-8-9s4-9 8-9c5 0 9 4 9 9z" fill="#fff"></path><path d="M76 107c0 2-2 4-4 4-1 0-3-2-3-4s2-3 3-3c2 0 4 1 4 3z"></path><path d="M39 88c0 10-9 18-20 18-10 0-19-8-19-18 0-9 9-17 19-17 11 0 20 8 20 17z" fill="#d47b00"></path><path d="M82 102 64 91l2-3 17 12z"></path><path d="m59 188 51-66 16 12-51 66z" fill="#55b1ff"></path><path d="M135 129c-5 6-14 8-21 3-6-5-7-14-2-21 5-6 14-7 21-3 6 5 7 14 2 21z" fill="#ffa9a9"></path><path d="m71 137 8-7 11 3-1 3z"></path><text transform="translate(136 26) scale(.43897)" font-size="40" font-family="sans-serif"><tspan x="0" dy="0">Kom hier,</tspan><tspan x="0" dy="46">jij schobbejak!</tspan></text></g></svg><div class="mod-trampoline" style="width:100%;bottom:0;" data-strength="1.45"></div><div class="mod-lava" style="width:100%;bottom:98%;"></div></div>' +
-            '<div id="mod-level-1" class="mod-level mod-active-level" data-title="Somtoday Platformer" data-description="Een van je docenten achtervolgt je omdat je je huiswerk niet hebt gemaakt. Ren gauw weg!" data-right="5" data-bottom="0"></div>' +
-            '<div id="mod-level-2" class="mod-level" data-title="Spring naar de top" data-right="5" data-bottom="34"><div class="mod-floor" style="width:20%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:21%;left:50%;"></div><div class="mod-floor" style="width:20%;bottom:32%;left:80%;"></div></div>' +
-            '<div id="mod-level-3" class="mod-level" data-title="Val niet in de lava" data-right="5" data-bottom="0"><div class="mod-lava" style="width:23%;bottom:0;left:40%;"></div><div class="mod-floor" style="width:15%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:20%;left:0%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:20%;"></div></div>' +
-            '<div id="mod-level-4" class="mod-level" data-title="Trampolines!" data-right="5" data-bottom="69"><div class="mod-trampoline" style="width:15%;bottom:0;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:35%;"></div><div class="mod-trampoline" style="width:15%;bottom:30%;left:50%;"></div><div class="mod-floor" style="width:15%;bottom:56%;left:65%;"></div><div class="mod-floor" style="width:20%;bottom:67%;left:80%;"></div></div>' +
-            '<div id="mod-level-5" class="mod-level" data-title="Wat een groot lava-blok!" data-right="5" data-bottom="77"><div class="mod-trampoline" style="width:12.5%;bottom:0;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:29%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:46%;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:45%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:75%;"></div><div class="mod-floor" style="width:12.5%;bottom:75%;left:87.5%;"></div><div class="mod-lava" style="width:50%;bottom:0;left:25%;height:64%;"></div></div>' +
-            '<div id="mod-level-6" class="mod-level" data-title="Pas op voor onvoldoendes" data-right="5" data-bottom="0"><div class="mod-trampoline" style="width:15%;bottom:0;left: 10%;"></div><div class="mod-enemy" data-x="50" style="bottom:0;left:50%;"></div><div class="mod-enemy" data-x="75" style="bottom:0;left:75%;"></div></div>' +
-            '<div id="mod-level-7" class="mod-level" data-title="Wow! Je bent al bij level 7!" data-right="5" data-bottom="0"><div class="mod-enemy" data-x="50" data-min="14" style="bottom:0;left:50%;"></div><div class="mod-wall" style="bottom:0;left:12.5%;height:13%;"></div><div class="mod-wall" style="bottom:13%;left:75%;height:100%;"></div><div class="mod-floor" style="width:20%;bottom:13%;left:12.5%;"></div><div class="mod-floor" style="width:35%;bottom:13%;left:40%;"></div></div>' +
-            '<div id="mod-level-8" class="mod-level" data-title="Soms moet je gewoon snel zijn" data-left="5" data-bottom="85"><div class="mod-lava" style="width:10%;bottom:72%;left:30%;"></div><div class="mod-lava" style="width:10%;bottom:72%;left:60%;"></div><div class="mod-enemy" style="bottom:38%;left:40%;" data-x="40" data-max="40" data-min="15"></div><div class="mod-trampoline" style="width:15%;bottom:38%;left:85%;"></div><div class="mod-floor" style="width:70%;bottom:70%;left:15%;"></div><div class="mod-floor" style="width:80%;bottom:18%;left:0;"></div><div class="mod-enemy" style="bottom:20%;left:55%;" data-x="55" data-max="55"></div><div class="mod-floor" style="width:30%;bottom:36%;left:70%;"></div><div class="mod-floor" style="width:30%;bottom:36%;left:15%;"></div><div class="mod-floor" style="width:28%;bottom:49%;left:44%;"></div><div class="mod-floor" style="width:17%;bottom:83%;left:0;"></div><div class="mod-wall" style="bottom:36%;left:44%;height:13%;"></div><div class="mod-wall" style="bottom:70%;left:15%;height:13%;"></div><div class="mod-wall" style="bottom:36%;left:70%;height:13%;"></div></div>' +
-            '<div id="mod-level-9" class="mod-level" data-title="Stap op de bewegende platforms" data-right="5" data-bottom="60"><div class="mod-lava" style="width:60%;bottom:0;left:40%;"></div><div class="mod-moving-platform-up" data-bottom="0" data-direction="up" style="left:20%;bottom:0;top:42%;right:65%;"><div class="mod-floor mod-platform"></div></div><div class="mod-moving-platform-right" data-right="0" data-direction="left" style="left:35%;top:40%;right:20%;"><div class="mod-floor"></div></div><div class="mod-floor" style="width:15%;bottom:58%;left:85%;"></div></div>' +
-            '<div id="mod-level-10" class="mod-level" data-title="" data-right="40" data-bottom="80"><h1 class="mod-floor" style="width:50%;left:25%;">Laatste level!</h1><div class="mod-floor" style="width:20%;bottom:15%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:0;"></div><div class="mod-floor" style="width:20%;bottom:15%;left:60%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:80%;"></div><div class="mod-floor" style="width:20%;bottom:78%;left:50%;"></div><div class="mod-trampoline" style="width:10%;bottom:54%;left:30%;"></div></div>' +
-            '<div id="mod-level-11" class="mod-level" data-title="Gefeliciteerd" data-description="Je bent succesvol ontsnapt aan de docent!" data-right="-5" data-bottom="-5"><a id="mod-play-again" style="bottom:20%;">Nog een keer spelen</a><a id="mod-close-game" style="bottom:10%;">Spel sluiten</a></div>' +
-            '<h1 id="mod-h1-header"></h1><h3 id="mod-h3-header"></h3></div></div>');
+                '<div id="mod-level-0" class="mod-level" data-title="Je hebt de geheime kamer gevonden!" data-description="Druk op <i>pijl omlaag</i> of <i>S</i> om laag te blijven" data-right="5" data-bottom="2"><svg style="position:absolute;top:0;right:5%;transform:rotate(195deg);width:200px;" viewBox="0 0 333 303"><g><path d="M101 64V0h232v64H131l-30 28z" fill="#fff"></path><path d="M46 291v-71h27v71z" fill="#4750ff"></path><path d="M86 290c0 6-9 11-20 11s-20-5-20-11c0-7 9-12 20-12s20 5 20 12z" fill="#4750ff"></path><path d="M17 292v-70h27v70z" fill="#636cff"></path><path d="M57 291c0 7-9 12-20 12s-20-5-20-12c0-6 9-11 20-11s20 5 20 11z" fill="#636cff"></path><path d="M92 194c0 28-20 50-44 50-25 0-45-22-45-50s20-50 45-50c24 0 44 22 44 50z" fill="#55b1ff"></path><path d="M56 81c0 10-9 18-19 18-11 0-20-8-20-18s9-18 20-18c10 0 19 8 19 18z" fill="#c17100"></path><path d="M93 118c0 24-20 43-45 43-24 0-44-19-44-43s20-43 44-43c25 0 45 19 45 43z" fill="#ff9898"></path><path d="M79 107c0 5-4 9-9 9-4 0-8-4-8-9s4-9 8-9c5 0 9 4 9 9z" fill="#fff"></path><path d="M76 107c0 2-2 4-4 4-1 0-3-2-3-4s2-3 3-3c2 0 4 1 4 3z"></path><path d="M39 88c0 10-9 18-20 18-10 0-19-8-19-18 0-9 9-17 19-17 11 0 20 8 20 17z" fill="#d47b00"></path><path d="M82 102 64 91l2-3 17 12z"></path><path d="m59 188 51-66 16 12-51 66z" fill="#55b1ff"></path><path d="M135 129c-5 6-14 8-21 3-6-5-7-14-2-21 5-6 14-7 21-3 6 5 7 14 2 21z" fill="#ffa9a9"></path><path d="m71 137 8-7 11 3-1 3z"></path><text transform="translate(136 26) scale(.43897)" font-size="40" font-family="sans-serif"><tspan x="0" dy="0">Kom hier,</tspan><tspan x="0" dy="46">jij schobbejak!</tspan></text></g></svg><div class="mod-trampoline" style="width:100%;bottom:0;" data-strength="1.45"></div><div class="mod-lava" style="width:100%;bottom:98%;"></div></div>' +
+                '<div id="mod-level-1" class="mod-level mod-active-level" data-title="Somtoday Platformer" data-description="Een van je docenten achtervolgt je omdat je je huiswerk niet hebt gemaakt. Ren gauw weg!" data-right="5" data-bottom="0"></div>' +
+                '<div id="mod-level-2" class="mod-level" data-title="Spring naar de top" data-right="5" data-bottom="34"><div class="mod-floor" style="width:20%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:21%;left:50%;"></div><div class="mod-floor" style="width:20%;bottom:32%;left:80%;"></div></div>' +
+                '<div id="mod-level-3" class="mod-level" data-title="Val niet in de lava" data-right="5" data-bottom="0"><div class="mod-lava" style="width:23%;bottom:0;left:40%;"></div><div class="mod-floor" style="width:15%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:20%;left:0%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:20%;"></div></div>' +
+                '<div id="mod-level-4" class="mod-level" data-title="Trampolines!" data-right="5" data-bottom="69"><div class="mod-trampoline" style="width:15%;bottom:0;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:35%;"></div><div class="mod-trampoline" style="width:15%;bottom:30%;left:50%;"></div><div class="mod-floor" style="width:15%;bottom:56%;left:65%;"></div><div class="mod-floor" style="width:20%;bottom:67%;left:80%;"></div></div>' +
+                '<div id="mod-level-5" class="mod-level" data-title="Wat een groot lava-blok!" data-right="5" data-bottom="77"><div class="mod-trampoline" style="width:12.5%;bottom:0;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:29%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:46%;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:45%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:75%;"></div><div class="mod-floor" style="width:12.5%;bottom:75%;left:87.5%;"></div><div class="mod-lava" style="width:50%;bottom:0;left:25%;height:64%;"></div></div>' +
+                '<div id="mod-level-6" class="mod-level" data-title="Pas op voor onvoldoendes" data-right="5" data-bottom="0"><div class="mod-trampoline" style="width:15%;bottom:0;left: 10%;"></div><div class="mod-enemy" data-x="50" style="bottom:0;left:50%;"></div><div class="mod-enemy" data-x="75" style="bottom:0;left:75%;"></div></div>' +
+                '<div id="mod-level-7" class="mod-level" data-title="Wow! Je bent al bij level 7!" data-right="5" data-bottom="0"><div class="mod-enemy" data-x="50" data-min="14" style="bottom:0;left:50%;"></div><div class="mod-wall" style="bottom:0;left:12.5%;height:13%;"></div><div class="mod-wall" style="bottom:13%;left:75%;height:100%;"></div><div class="mod-floor" style="width:20%;bottom:13%;left:12.5%;"></div><div class="mod-floor" style="width:35%;bottom:13%;left:40%;"></div></div>' +
+                '<div id="mod-level-8" class="mod-level" data-title="Soms moet je gewoon snel zijn" data-left="5" data-bottom="85"><div class="mod-lava" style="width:10%;bottom:72%;left:30%;"></div><div class="mod-lava" style="width:10%;bottom:72%;left:60%;"></div><div class="mod-enemy" style="bottom:38%;left:40%;" data-x="40" data-max="40" data-min="15"></div><div class="mod-trampoline" style="width:15%;bottom:38%;left:85%;"></div><div class="mod-floor" style="width:70%;bottom:70%;left:15%;"></div><div class="mod-floor" style="width:80%;bottom:18%;left:0;"></div><div class="mod-enemy" style="bottom:20%;left:55%;" data-x="55" data-max="55"></div><div class="mod-floor" style="width:30%;bottom:36%;left:70%;"></div><div class="mod-floor" style="width:30%;bottom:36%;left:15%;"></div><div class="mod-floor" style="width:28%;bottom:49%;left:44%;"></div><div class="mod-floor" style="width:17%;bottom:83%;left:0;"></div><div class="mod-wall" style="bottom:36%;left:44%;height:13%;"></div><div class="mod-wall" style="bottom:70%;left:15%;height:13%;"></div><div class="mod-wall" style="bottom:36%;left:70%;height:13%;"></div></div>' +
+                '<div id="mod-level-9" class="mod-level" data-title="Stap op de bewegende platforms" data-right="5" data-bottom="60"><div class="mod-lava" style="width:60%;bottom:0;left:40%;"></div><div class="mod-moving-platform-up" data-bottom="0" data-direction="up" style="left:20%;bottom:0;top:42%;right:65%;"><div class="mod-floor mod-platform"></div></div><div class="mod-moving-platform-right" data-right="0" data-direction="left" style="left:35%;top:40%;right:20%;"><div class="mod-floor"></div></div><div class="mod-floor" style="width:15%;bottom:58%;left:85%;"></div></div>' +
+                '<div id="mod-level-10" class="mod-level" data-title="" data-right="40" data-bottom="80"><h1 class="mod-floor" style="width:50%;left:25%;">Laatste level!</h1><div class="mod-floor" style="width:20%;bottom:15%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:0;"></div><div class="mod-floor" style="width:20%;bottom:15%;left:60%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:80%;"></div><div class="mod-floor" style="width:20%;bottom:78%;left:50%;"></div><div class="mod-trampoline" style="width:10%;bottom:54%;left:30%;"></div></div>' +
+                '<div id="mod-level-11" class="mod-level" data-title="Gefeliciteerd" data-description="Je bent succesvol ontsnapt aan de docent!" data-right="-5" data-bottom="-5"><a id="mod-play-again" style="bottom:20%;">Nog een keer spelen</a><a id="mod-close-game" style="bottom:10%;">Spel sluiten</a></div>' +
+                '<h1 id="mod-h1-header"></h1><h3 id="mod-h3-header"></h3></div></div>');
 
             let detectOverlap = (function () {
                 function getPositions(elem) {
@@ -353,7 +349,7 @@ function errorPage() {
                 if (numOne == 5 && numTwo >= 5) {
                     numTwo = 4;
                 }
-                element.innerHTML = '<p>' + numOne.toString() + ',' + numTwo.toString()  + '</p>';
+                element.innerHTML = '<p>' + numOne.toString() + ',' + numTwo.toString() + '</p>';
             }
 
             let time = 0;
@@ -437,28 +433,28 @@ function errorPage() {
 
             openLevel(1);
 
-            id('mod-close-game').addEventListener('click', function() { openLevel(12); });
-            id('mod-close-button').addEventListener('click', function() { openLevel(12); });
-            id('mod-play-again').addEventListener('click', function() { time = 0; record = get('gamerecord'); setTimeInterval(); openLevel(1); });
+            id('mod-close-game').addEventListener('click', function () { openLevel(12); });
+            id('mod-close-button').addEventListener('click', function () { openLevel(12); });
+            id('mod-play-again').addEventListener('click', function () { time = 0; record = get('gamerecord'); setTimeInterval(); openLevel(1); });
 
-            document.addEventListener('keyup', function(e) { pressedKeys[e.keyCode] = false; });
-            document.addEventListener('keydown', function(e) { pressedKeys[e.keyCode] = true; });
+            document.addEventListener('keyup', function (e) { pressedKeys[e.keyCode] = false; });
+            document.addEventListener('keydown', function (e) { pressedKeys[e.keyCode] = true; });
 
             let touchX;
             let touchY;
             let isTouching = false;
-            document.addEventListener('touchstart', function(e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
-            document.addEventListener('touchmove', function(e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
-            document.addEventListener('touchend', function(e) { isTouching = false; });
-            document.addEventListener('touchcancel', function(e) { isTouching = false; });
+            document.addEventListener('touchstart', function (e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
+            document.addEventListener('touchmove', function (e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
+            document.addEventListener('touchend', function (e) { isTouching = false; });
+            document.addEventListener('touchcancel', function (e) { isTouching = false; });
 
 
-            document.addEventListener('mousedown', function(e) { isTouching = true; touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mousemove', function(e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseover', function(e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseenter', function(e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseup', function(e) { isTouching = false; });
-            document.addEventListener('mouseleave', function(e) { isTouching = false; });
+            document.addEventListener('mousedown', function (e) { isTouching = true; touchX = e.clientX; touchY = e.clientY; });
+            document.addEventListener('mousemove', function (e) { touchX = e.clientX; touchY = e.clientY; });
+            document.addEventListener('mouseover', function (e) { touchX = e.clientX; touchY = e.clientY; });
+            document.addEventListener('mouseenter', function (e) { touchX = e.clientX; touchY = e.clientY; });
+            document.addEventListener('mouseup', function (e) { isTouching = false; });
+            document.addEventListener('mouseleave', function (e) { isTouching = false; });
 
             document.addEventListener('resize', function () { windowWidth = document.documentElement.clientWidth; windowHeight = document.documentElement.clientHeight; });
 
@@ -980,17 +976,13 @@ function onload() {
                 if (l == barrelrollxkeys.length) {
                     modMessage('BARREL ROLL', 'Hoeveel barrel rolls?<div class="br"></div><input id="mod-barrel-roll-amount" type="number" min="0" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value < 1 && this.value != \'\') { this.value = 1; }"/>', 'Doorgaan', 'Annuleren');
                     id('mod-message-action1').addEventListener('click', function () {
-                        id('mod-message').classList.remove('mod-msg-open');
-                        setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                        closeModMessage();
                         tn('body', 0).classList.add('barrelroll');
                         setTimeout(function () {
                             tn('body', 0).classList.remove('barrelroll');
                         }, id('mod-barrel-roll-amount').value * 2000 + 100);
                     });
-                    id('mod-message-action2').addEventListener('click', function () {
-                        id('mod-message').classList.remove('mod-msg-open');
-                        setTimeout(function () { tryRemove(id('mod-message')); }, 355);
-                    });
+                    id('mod-message-action2').addEventListener('click', closeModMessage);
                 }
                 // Somtoday recap
                 let recapkeys = 'recap';
@@ -1075,7 +1067,7 @@ function onload() {
     let homeworkBusy = false;
     let homework;
     function customHomework() {
-        if (get('bools').charAt(16) == '1' && !homeworkBusy) {
+        if (get('bools').charAt(16) == '1' && !homeworkBusy && !n(get('homework'))) {
             if (document.documentElement.clientWidth <= 767) {
                 homeworkBusy = true;
                 document.querySelectorAll('.mod-huiswerk').forEach(e => e.remove());
@@ -1100,7 +1092,9 @@ function onload() {
             }
             index = 0;
             for (const element of tn('sl-studiewijzer-week')) {
-                index = customHomeworkInner(element.getElementsByClassName('week')[0], index, startIndex, true);
+                if (element.getElementsByClassName('week')[0]) {
+                    index = customHomeworkInner(element.getElementsByClassName('week')[0], index, startIndex, true);
+                }
             }
         }
         else if (!homeworkBusy) {
@@ -1132,6 +1126,9 @@ function onload() {
 
     function ariaLabelToDate(element) {
         let dateString;
+        if (n(element.children[0])) {
+            return;
+        }
         if (element.getElementsByClassName('header')[0]) {
             element = element.getElementsByClassName('header')[0];
             dateString = (n(element.children[0].ariaLabel) ? '' : element.children[0].ariaLabel.match(/ (\d*? [a-z]*?)$/, '')[1]) + ' ';
@@ -1197,17 +1194,15 @@ function onload() {
                     }
                     set('homework', JSON.stringify(homework));
                     execute([customHomework]);
-                    id('mod-message').classList.remove('mod-msg-open');
-                    setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                    closeModMessage();
                 });
-                id('mod-message-action2').addEventListener('click', function () {
-                    id('mod-message').classList.remove('mod-msg-open');
-                    setTimeout(function () { tryRemove(id('mod-message')); }, 355);
-                });
+                id('mod-message-action2').addEventListener('click', closeModMessage);
                 for (const element of cn('mod-multi-choice')) {
                     for (const child of element.children) {
                         child.addEventListener('click', function () {
-                            this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                            if (this.parentElement.getElementsByClassName('active')[0]) {
+                                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                            }
                             this.classList.add('active');
                         });
                     }
@@ -1249,7 +1244,7 @@ function onload() {
                         if (element.getElementsByClassName('header')[0]) {
                             element.getElementsByClassName('header')[0].insertAdjacentHTML('afterend', '<sl-studiewijzer-items class="mod-added"></sl-studiewijzer-items>');
                         }
-                        else {
+                        else if (element.getElementsByClassName('dag-header')[0]) {
                             element.getElementsByClassName('dag-header')[0].insertAdjacentHTML('afterend', '<sl-studiewijzer-items class="mod-added"></sl-studiewijzer-items>');
                         }
                     }
@@ -1265,7 +1260,7 @@ function onload() {
                         insertElement = element.getElementsByTagName('sl-studiewijzer-items')[0];
                     }
                     else {
-                        insertElement = element.getElementsByClassName('header')[0] ? element.getElementsByClassName('header')[0] : element.getElementsByClassName('dag-header')[0];
+                        insertElement = element.getElementsByClassName('header')[0] ? element.getElementsByClassName('header')[0] : (element.getElementsByClassName('dag-header')[0] ? element.getElementsByClassName('dag-header')[0] : null);
                     }
                     if (!n(insertElement)) {
                         insertElement.insertAdjacentHTML('afterend', '<div class="mod-huiswerk ' + (done ? 'mod-huiswerk-done' : 'mod-before') + ' mod-homework-' + homework[i].id + '"><svg viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"></path></svg><strong>' + sanitizeString(homework[i].subject) + '</strong><p>' + sanitizeString(homework[i].description) + '</p><div><svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 24 24" display="block"><path fill-rule="evenodd" d="m9.706 21.576 13.876-14.05c.538-.55.56-1.43.044-1.998l-2.769-3.06a1.41 1.41 0 0 0-2.076-.025L9.83 11.858a1.41 1.41 0 0 1-2.06-.01L5.424 9.342a1.414 1.414 0 0 0-2.041-.032l-2.96 2.982a1.45 1.45 0 0 0 .003 2.052l7.27 7.242c.56.555 1.455.552 2.01-.01"></path></svg></div></div>');
@@ -1289,8 +1284,7 @@ function onload() {
                                 document.querySelectorAll('.' + homeworkClassName).forEach(e => e.remove());
                                 homeworkBusy = false;
                             }
-                            id('mod-message').classList.remove('mod-msg-open');
-                            setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                            closeModMessage();
                         }
                         homeworkItem.addEventListener('click', function () {
                             updateIndex();
@@ -1301,17 +1295,13 @@ function onload() {
                                 e.stopPropagation();
                                 homework.splice(i, 1);
                                 set('homework', JSON.stringify(homework));
-                                id('mod-message').classList.remove('mod-msg-open');
                                 homeworkBusy = true;
                                 document.querySelectorAll('.' + homeworkClassName).forEach(e => e.remove());
                                 homeworkBusy = false;
-                                setTimeout(function () {
-                                    tryRemove(id('mod-message'));
-                                }, 355);
+                                closeModMessage();
                             });
                             id('mod-message').addEventListener('click', function () {
-                                id('mod-message').classList.remove('mod-msg-open');
-                                setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                                closeModMessage();
                                 tn('sl-root', 0).inert = false;
                                 if (!n(tn('sl-modal', 0))) {
                                     tn('sl-modal', 0).inert = false;
@@ -1320,7 +1310,9 @@ function onload() {
                             for (const element of cn('mod-multi-choice')) {
                                 for (const child of element.children) {
                                     child.addEventListener('click', function () {
-                                        this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                                        if (this.parentElement.getElementsByClassName('active')[0]) {
+                                            this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                                        }
                                         this.classList.add('active');
                                     });
                                 }
@@ -1340,7 +1332,7 @@ function onload() {
                                 else {
                                     homework[i].done = false;
                                 }
-                                if (n(element.getElementsByTagName('sl-studiewijzer-items')[0])) {
+                                if (n(element.getElementsByTagName('sl-studiewijzer-items')[0]) && element.getElementsByClassName('dag-header')[0]) {
                                     element.insertBefore(homeworkItem, element.getElementsByClassName('dag-header')[0].nextSibling);
                                 }
                                 else {
@@ -1507,6 +1499,56 @@ function onload() {
         }
     }
 
+    let settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'transparency', 'ui', 'uiblur', 'fontname', 'theme', 'layout', 'profilepic', 'username', 'loginschool', 'loginname', 'loginpass', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname'];
+    function exportSettings() {
+        let settings = {};
+        for (const key of settingKeys) {
+            settings[key] = get(key);
+        }
+        let i = 0;
+        while (!n(get('background' + i))) {
+            settings['background' + i] = get('background' + i);
+            i++;
+        }
+        let json = JSON.stringify(settings);
+        let saveData = (function () {
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            return function (fileName) {
+                var blob = new Blob([json], { type: "octet/stream" }),
+                    url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            };
+        }());
+
+        saveData('config.json');
+    }
+
+    function importSettings() {
+        execute([reset]);
+        new Response(this.files[0]).json().then(json => {
+            modMessage('Laden...', 'Dit kan even duren als je veel afbeeldingen hebt ingesteld...');
+            Object.keys(json).forEach(function (key) {
+                if (settingKeys.includes(key)) {
+                    set(key, json[key]);
+                }
+            });
+            execute([openSettings, profilePicture, setBackground, style, pageUpdate]);
+            tn('sl-root', 0).inert = false;
+            if (!n(tn('sl-modal', 0))) {
+                tn('sl-modal', 0).inert = false;
+            }
+            closeModMessage();
+        }, err => {
+            modMessage('Oeps...', 'Het lijkt erop dat dit bestand ongeldig is.', 'Oke');
+            id('mod-message-action1').addEventListener('click', closeModMessage);
+        })
+    }
+
     // Simplify the roster page, by aligning the lessons in a grid
     let timeIndicatorTop = 0;
     let normalRosterHeight = 0;
@@ -1668,14 +1710,19 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">*{user-select:auto !important;}</style>');
         }
         // General style
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}sl-dropdown{background:var(--bg-elevated-none);}html.dark .cijfer.neutraal{color:var(--fg-primary-normal) !important;}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(15) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:6px;}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input,#username-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}#grade-reveal-select{margin-bottom:20px;}#studiewijzer-afspraak-toevoegen-select{margin-top:20px;}.mod-multi-choice{display:inline-block;vertical-align:top;border:var(--thinnest-solid-neutral-normal);border-radius:12px;overflow:hidden;}.mod-multi-choice span{padding:10px 15px;display:inline-block;cursor:pointer;user-select:none;transition:background .2s ease;}.mod-multi-choice span:hover{background:var(--bg-elevated-weakest);}.mod-multi-choice span.active{background:var(--bg-elevated-weak);}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}html.dark .cijfer.neutraal{color:var(--fg-primary-normal) !important;}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(15) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:6px;}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input,#username-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}#grade-reveal-select{margin-bottom:20px;}#studiewijzer-afspraak-toevoegen-select{margin-top:20px;}.mod-multi-choice{display:inline-block;vertical-align:top;border:var(--thinnest-solid-neutral-normal);border-radius:12px;overflow:hidden;}.mod-multi-choice span{padding:10px 15px;display:inline-block;cursor:pointer;user-select:none;transition:background .2s ease;}.mod-multi-choice span:hover{background:var(--bg-elevated-weakest);}.mod-multi-choice span.active{background:var(--bg-elevated-weak);}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:48em){#mod-grade-calculate{padding:0 20px;box-sizing:border-box;}}.input-veld{border-width:2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover){background:var(--bg-neutral-none) !important;}#mod-grades-graphs > div{height:350px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;position:relative;}.mod-info-notice > svg{height:20px;position:absolute;top:50%;transform:translateY(-50%);left:18px;}#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(33.333% - 15px);margin-right:15px;display:inline-block;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-neutral-none) !important;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){.mod-huiswerk strong,.mod-huiswerk p{width:calc(100% - 65px) !important;}sl-studiewijzer-dag .mod-huiswerk{margin-top:-12px !important;}sl-studiewijzer-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:-12px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk,sl-studiewijzer-lijst-dag .mod-add-homework{margin-top:4px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:4px !important;}sl-studiewijzer-lijst-dag .dag-header{background:transparent !important;}#mod-message > center > div{padding:20px !important;}.mod-multi-choice span{padding:10px !important;}.mod-huiswerk.mod-huiswerk-done div svg{opacity:1 !important;padding:2px !important;width:16px !important;height:16px !important;}.mod-huiswerk div{right:15px !important;width:20px !important;height:20px !important;}.laad-eerdere{background:var(--bg-neutral-none) !important;}.berichten-lijst{min-height:calc(var(--min-content-vh) - 64px - 32px) !important;margin-bottom:0 !important;}sl-cijfers > .container{padding-bottom:0 !important;}sl-cijfers .tabs{border-radius:0;}}@media (min-width:1120px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}.mod-add-homework{opacity:0;transition:0.2s opacity ease;}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){.mod-huiswerk strong,.mod-huiswerk p{width:calc(100% - 65px) !important;}sl-studiewijzer-dag .mod-huiswerk{margin-top:-12px !important;}sl-studiewijzer-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:-12px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk,sl-studiewijzer-lijst-dag .mod-add-homework{margin-top:4px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:4px !important;}sl-studiewijzer-lijst-dag .dag-header{background:transparent !important;}#mod-message > center > div{padding:20px !important;}.mod-multi-choice span{padding:10px !important;}.mod-huiswerk.mod-huiswerk-done div svg{opacity:1 !important;padding:2px !important;width:16px !important;height:16px !important;}.mod-huiswerk div{right:15px !important;width:20px !important;height:20px !important;}.laad-eerdere{background:var(--bg-neutral-none) !important;}.berichten-lijst{min-height:calc(var(--min-content-vh) - 64px - 32px) !important;margin-bottom:0 !important;}sl-cijfers > .container{padding-bottom:0 !important;}sl-cijfers .tabs{border-radius:0;}}@media (min-width:1120px) and (min-height:550px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}.mod-add-homework{opacity:0;transition:0.2s opacity ease;}}</style>');
         // Somtoday Recap
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;margin-bottom:30px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}#somtoday-recap p,#somtoday-recap h3{z-index:1;position:relative;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:52px;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:32px;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:32px;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{user-select:none;margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:24px;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{margin-left:10px;display:inline-block;color:#fff;vertical-align:top;font-size:26px;margin-top:5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong{color:#ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right{color:#00ff00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(12.5% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:70px;right:30px;cursor:pointer;color:#fff;z-index:1000;}.mod-item svg:last-of-type{float:right;cursor:ns-resize;}.mod-item svg:first-of-type{float:left;}.mod-item p{float:left;margin:0 10px;}#mod-grade-average-sort-list{margin-top:30px;}.mod-item,.placeholder{user-select:none;width:400px;background:var(--bg-elevated-none);border-radius:16px;padding:15px 20px;height:23px;margin-bottom:10px;}@media (max-width:767px){#somtoday-recap-arrows svg path{fill:var(--bg-primary-strongest);}#somtoday-recap{border-radius:0;margin-top:10px;margin-bottom:20px;}}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.circles{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; } .circles li{ position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px; } .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; } .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; } .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; } .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; } .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; } .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; } .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; } .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; } .circles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; } .circles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; } @keyframes animate { 0%{ transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }</style>');
         // Font
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + ' }</style>');
+        if (n(get('customfontname'))) {
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + '}</style>');
+        }
+        else {
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");@font-face{font-family:modCustomFont;src:url("' + get('customfont') + '");}*{font-family:modCustomFont,"Open Sans",sans-serif !important;}</style>');
+        }
         // Setting buttons icon animations
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-feedback-bounce{animation:0.6s feedbackbounce 0.2s ease;}@keyframes feedbackbounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}60%{transform:translateY(-4px);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
         // Input type range
@@ -1683,9 +1730,9 @@ function onload() {
         // Input type checkbox
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0 30px 10px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
         // Custom select
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;}.mod-custom-select select{display:none;}.select-selected{transition:background 0.2s ease;border-radius:6px;border:var(--thinnest-solid-neutral-normal) !important;background-color:var(--bg-elevated-weakest);}.select-selected:after{position:absolute;content:"";top:18px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover{background:var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--text-moderate) transparent;top:10px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;display:inline-block;margin-right:15px;}.mod-custom-select select{display:none;}.select-selected{transition:background 0.2s ease;border-radius:6px;border:var(--thinnest-solid-neutral-normal) !important;background-color:var(--bg-elevated-weakest);}.select-selected:after{position:absolute;content:"";top:18px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover{background:var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--text-moderate) transparent;top:10px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
         // Mod message style
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline-offset:unset;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;transition:background 0.2s ease,border 0.2s ease;}#mod-message .mod-message-button:hover{background:var(--bg-primary-strong);}#mod-message .mod-message-button:focus,#mod-message .mod-message-button:hover{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus,#mod-message .mod-message-button.mod-button-discouraged:hover{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;top:-300px;animation:0.4s modmessageslidein ease 0.15s forwards;opacity:0;}@keyframes modmessageslidein{0%{top:-300px;opacity:0;}50%{opacity:1;}100%{top:0;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;z-index:1000000;background:rgba(0,0,0,0.2);box-sizing:border-box;transition:opacity .2s ease !important;}#mod-message.mod-msg-open{opacity:1;animation:0.2s modmessagebackground ease forwards;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline-offset:unset;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;transition:background 0.2s ease,border 0.2s ease;}#mod-message .mod-message-button:hover{background:var(--bg-primary-strong);}#mod-message .mod-message-button:focus,#mod-message .mod-message-button:hover{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus,#mod-message .mod-message-button.mod-button-discouraged:hover{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;}#mod-message.mod-animation-playing > center{opacity:0;transform:translateY(-300px);animation:0.4s modmessageslidein ease 0.15s forwards;}@keyframes modmessageslidein{0%{transform:translateY(-300px);opacity:0;}50%{opacity:1;}100%{transform:none;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000000;background:rgba(0,0,0,0.2);box-sizing:border-box;}#mod-message.mod-animation-playing{animation:0.2s modmessagebackground ease forwards;}#mod-message.mod-msg-closed{opacity:0;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}</style>');
         // mod-setting-button
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-actions{background:var(--bg-elevated-none);margin-left:-30px;padding:10px 30px;z-index:100;width:100%;margin-top:-10px;top:-5px;}.mod-setting-button{padding:10px 12px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:8px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
         // Custom homework
@@ -1700,15 +1747,15 @@ function onload() {
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
             if (get('layout') == 2 || get('layout') == 3) {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-popup{position:fixed !important;top:70px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;bottom:80px !important;top:unset !important;}@media (min-width:1280px){.header,.headers-container{top:0 !important;}div.berichten-lijst{height:calc(100vh - 64px) !important;}}</style>');
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width:1280px){.menu-avatar{width:calc(100% - 35px) !important;justify-content:center;}}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width:1280px){.menu-avatar{width:calc(100% - 35px) !important;overflow:hidden;justify-content:center;}}</style>');
             }
             else {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-rooster-weken,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(0) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
             }
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo-wrapper{width:120px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 120px) / 2);position:relative;}#mod-logo{width:65%;height:60px;margin:20px 0;position:relative;left:50%;transform:translateX(-50%);}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;overflow:hidden;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:100%;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){#mod-logo-wrapper{width:100px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - ' + ((platform == 'Android' || get('layout') != 3) ? '100px' : '115px') + ') / 2);position:relative;}sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? ('left:100px !important' + (platform == 'Android' ? '' : ';--safe-area-inset-right:15px')) : 'right:' + (platform == 'Android' ? '100px' : '115px')) + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:' + (get('layout') != 3 ? 'var(--safe-area-inset-left)' : (platform == 'Android' ? 'var(--safe-area-inset-right)' : 'calc(var(--safe-area-inset-right) - 15px)')) + ' !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:100%;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo-wrapper{width:120px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 120px) / 2);position:relative;}#mod-logo{width:65%;height:60px;margin:20px 0;position:relative;left:50%;transform:translateX(-50%);}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;overflow:hidden;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:40px;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){#mod-logo-wrapper{width:100px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - ' + ((platform == 'Android' || get('layout') != 3) ? '100px' : '115px') + ') / 2);position:relative;}sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? ('left:100px !important' + (platform == 'Android' ? '' : ';--safe-area-inset-right:15px')) : 'right:' + (platform == 'Android' ? '100px' : '115px')) + ' !important;}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:' + (get('layout') != 3 ? 'var(--safe-area-inset-left)' : (platform == 'Android' ? 'var(--safe-area-inset-right)' : 'calc(var(--safe-area-inset-right) - 15px)')) + ' !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:40px;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width: 766px){sl-header:not(.with-back-button){border-bottom:none !important;--column-width: 100% !important;}sl-dagen-header{top:calc(64px + var(--safe-area-inset-top)) !important;border-bottom:none !important;}sl-berichten{background-color:var(--bg-neutral-none);}}</style>');
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.container{max-width:100%;}sl-header sl-tab-bar div.item span,sl-tab-bar sl-tab-item .item span{text-overflow:ellipsis;overflow:hidden;text-wrap:nowrap;margin-left:-5px;width:calc(100% + 10px);}sl-tab-bar sl-tab-item .item span{' + (get('layout') == 3 ? 'margin-left:5px;' : '') + 'width:calc(100% - 10px);text-align:center;}#mod-menu-resizer{width:12px;height:100%;' + (get('layout') == 3 ? 'left' : 'right') + ':-4px;position:absolute;cursor:ew-resize;}sl-tab-bar sl-tab-item .item{padding-bottom:0 !important;}sl-rooster-dag.dag{width:calc(100vw - 170px) !important;}hmy-notification-counter span{margin:0 !important;}sl-header hmy-notification-counter{position:absolute;right:30px;top:20px;}sl-tab-bar:first-of-type sl-tab-item{position:relative;}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:4px !important;position:absolute;' + (get('layout') != 3 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.container{max-width:100%;}sl-header sl-tab-bar div.item span,sl-tab-bar sl-tab-item .item span{text-overflow:ellipsis;overflow:hidden;text-wrap:nowrap;margin-left:-5px;width:calc(100% + 10px);}sl-tab-bar sl-tab-item .item span{' + (get('layout') == 3 ? 'margin-left:5px;' : '') + 'width:calc(100% - 10px);text-align:center;}#mod-menu-resizer{width:12px;height:100%;' + (get('layout') == 3 ? 'left' : 'right') + ':-4px;position:absolute;cursor:ew-resize;}sl-tab-bar sl-tab-item .item{padding-bottom:0 !important;max-height:100%;}sl-rooster-dag.dag{width:calc(100vw - 170px) !important;}hmy-notification-counter span{margin:0 !important;}sl-header hmy-notification-counter{position:absolute;right:30px;top:20px;}sl-tab-bar:first-of-type sl-tab-item{position:relative;max-height:calc(25% - 50px);}.active-border-top,.active-border-bottom{top:0;height:100% !important;width:4px !important;position:absolute;' + (get('layout') != 3 ? 'right' : 'left') + ':0;}sl-sidebar{height:100% !important;}.active-border{display:none !important;}sl-rooster-week.week{width:calc(100% - 55px) !important;}sl-sidebar-page{padding-right:0 !important;}sl-header > div:first-of-type i{z-index:10000;--fg-on-primary-weak:' + menuColor + ';--action-neutral-strong:' + menuColor + ';}sl-header > div:first-of-type{--bg-neutral-weakest:' + highLightColor + '}@media (max-height:670px){#mod-logo-wrapper{height:90px;}}@media (max-height:600px){#mod-logo-wrapper{display:none;}sl-tab-bar:first-of-type sl-tab-item{max-height:calc(25% - 20px) !important;}}</style>');
         }
         else if (get('layout') == 4) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">:root{--safe-area-inset-left:calc((100% - 1200px) / 2) !important;--safe-area-inset-right:calc((100% - 1200px) / 2) !important;}sl-home{position:relative;border:var(--thinnest-solid-neutral-normal);display:block;background:var(--bg-neutral-none) !important;' + (get('ui') == 0 ? '' : 'backdrop-filter:blur(' + get('uiblur') + 'px);') + '}sl-rooster-week.week{width:calc(100% - 55px) !important;}</style>');
@@ -1716,7 +1763,7 @@ function onload() {
         // Position menu relatively
         if (get('bools').charAt(0) == '0') {
             if (get('layout') == 1 || get('layout') == 4) {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-cijfers .tabs{position:relative !important;}sl-rooster sl-scrollable-title{display:none !important;}sl-studiewijzer sl-dagen-header,sl-cijfers .tabs{top:var(--safe-area-inset-top) !important;}}sl-dagen-header{position:relative !important;}sl-rooster-weken{margin-top:64px;}' + (get('layout') == 4 ? 'body:has(sl-cijfers) sl-header:first-of-type,body:has(sl-berichten) sl-header:first-of-type{margin-top:-64px;}': '') + 'body:has(sl-cijfers),body:has(sl-berichten){margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-cijfers .tabs{position:relative !important;}sl-rooster sl-scrollable-title{display:none !important;}sl-studiewijzer sl-dagen-header,sl-cijfers .tabs{top:var(--safe-area-inset-top) !important;}}sl-dagen-header{position:relative !important;}sl-rooster-weken{margin-top:64px;}' + (get('layout') == 4 ? 'body:has(sl-cijfers) sl-header:first-of-type,body:has(sl-berichten) sl-header:first-of-type{margin-top:-64px;}' : '') + 'body:has(sl-cijfers),body:has(sl-berichten){margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}</style>');
             }
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-berichten div.tabs{top:unset !important;}}' + ((get('layout') == 2 || get('layout') == 3) ? '@media (min-width:1279px){.headers-container{top:calc(var(--safe-area-inset-top)) !important;}}' : '') + 'sl-berichten div.berichten-lijst{height:fit-content !important;}.main,sl-berichten div.tabs{position:relative !important;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
         }
@@ -1753,7 +1800,7 @@ function onload() {
             // Check if user has used the old version of Somtoday and is using new version for the first time
             if (n(get('version')) && !n(get('primarycolor'))) {
                 modMessage('Somtoday update!', 'Somtoday heeft een grote update gekregen! Somtoday Mod is hier op voorbereid en heeft ook een update gekregen. De mod-instellingen zijn nu te vinden in een apart tabblad in de instellingen van Somtoday. Het is mogelijk dat je sommige instellingen opnieuw moet instellen.', 'Doorgaan');
-                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                id('mod-message-action1').addEventListener('click', closeModMessage);
                 set('bools', '110001110111100000000000000000');
                 set('secondarycolor', '#e69b22');
             }
@@ -1818,7 +1865,7 @@ function onload() {
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
         if (get('ui') != 0) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,sl-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}sl-rooster-dag[aria-hidden="true"],sl-rooster-week[aria-hidden="true"]{display:none;}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,sl-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
         const purple100 = toBrightnessValue(get('secondarycolor'), 41);
@@ -1977,7 +2024,7 @@ function onload() {
             tryRemove(id('mod-message'));
         }
         const element = n(id('somtoday-mod')) ? tn('body', 0) : id('somtoday-mod');
-        element.insertAdjacentHTML('afterbegin', '<div id="mod-message" class="mod-msg-open"><center><div onclick="event.stopPropagation();"><h2>' + title + '</h2><p>' + description + '</p>' + (n(link1) ? '' : '<a id="mod-message-action1" class="mod-message-button' + (red1 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link1 + '</a>') + (n(link2) ? '' : '<a id="mod-message-action2" class="mod-message-button' + (red2 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link2 + '</a>') + '</div></center></div>');
+        element.insertAdjacentHTML('afterbegin', '<div id="mod-message" class="mod-animation-playing"><center><div onclick="event.stopPropagation();"><h2>' + title + '</h2><p>' + description + '</p>' + (n(link1) ? '' : '<a id="mod-message-action1" class="mod-message-button' + (red1 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link1 + '</a>') + (n(link2) ? '' : '<a id="mod-message-action2" class="mod-message-button' + (red2 ? ' mod-button-discouraged' : '') + '" tabindex="0">' + link2 + '</a>') + '</div></center></div>');
         if (!n(link1)) {
             id('mod-message-action1').focus();
             setTimeout(function () {
@@ -2013,6 +2060,18 @@ function onload() {
         else if (!n(link1) && noBackgroundClick == null) {
             id('mod-message').addEventListener('click', function () { if (!n('mod-message-action1')) { id('mod-message-action1').click(); } }, { once: true });
         }
+        setTimeout(function () {
+            if (id('mod-message')) {
+                id('mod-message').classList.remove('mod-animation-playing');
+            }
+        }, 500);
+    }
+
+    function closeModMessage() {
+        id('mod-message').classList.add('mod-msg-closed');
+        setTimeout(function () {
+            tryRemove(id('mod-message'));
+        }, 305);
     }
 
     // Change profile pictures when enabled
@@ -2293,17 +2352,17 @@ function onload() {
                 position = 'beforeend';
             }
             // Show easter eggs on easter
-            const C = Math.floor(year/100);
-            const N = year - 19*Math.floor(year/19);
-            const K = Math.floor((C - 17)/25);
-            let I = C - Math.floor(C/4) - Math.floor((C - K)/3) + 19*N + 15;
-            I = I - 30*Math.floor((I/30));
-            I = I - Math.floor(I/28)*(1 - Math.floor(I/28)*Math.floor(29/(I + 1))*Math.floor((21 - N)/11));
-            let J = year + Math.floor(year/4) + I + 2 - C + Math.floor(C/4);
-            J = J - 7*Math.floor(J/7);
+            const C = Math.floor(year / 100);
+            const N = year - 19 * Math.floor(year / 19);
+            const K = Math.floor((C - 17) / 25);
+            let I = C - Math.floor(C / 4) - Math.floor((C - K) / 3) + 19 * N + 15;
+            I = I - 30 * Math.floor((I / 30));
+            I = I - Math.floor(I / 28) * (1 - Math.floor(I / 28) * Math.floor(29 / (I + 1)) * Math.floor((21 - N) / 11));
+            let J = year + Math.floor(year / 4) + I + 2 - C + Math.floor(C / 4);
+            J = J - 7 * Math.floor(J / 7);
             const L = I - J;
-            const M = 3 + Math.floor((L + 40)/44);
-            const D = L + 28 - 31*Math.floor(M/4);
+            const M = 3 + Math.floor((L + 40) / 44);
+            const D = L + 28 - 31 * Math.floor(M / 4);
             if (month + 1 == M && (dayInt == D || dayInt == D + 1)) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:30px;z-index:-10;"' : '') + ' viewBox="0 0 313.1 232"><g><path d="M227.1 110.9a62.9 62.9 0 0 1-57.2 64.8 62.8 62.8 0 0 1-69.7-52.7l-.5-5C94 56.3 116.8 3.8 151.4.2c35-3.7 68.8 44.2 75.4 107l.1 1.2z" fill="#ff896c"/><path d="m205.7 38.5-1.4-1a34.8 34.8 0 0 0-46 3.4l-1.9 2a34.8 34.8 0 0 1-46 2.7l-2.5-1.8-4.2 14.3c1.7.9 3.2 1.9 4.7 3l2.6 1.7a34.8 34.8 0 0 0 46-2.7l1.9-2a34.8 34.8 0 0 1 45.9-3.3l2.6 1.7c2.7 2.1 5.7 3.8 9 5zM98.6 96.3a34 34 0 0 1 15.3 6.5l2.6 1.7a34.8 34.8 0 0 0 46-2.6l1.9-2a34.8 34.8 0 0 1 41.8-6l8-11.5-1.8-1.4-2.6-1.7a34.8 34.8 0 0 0-46 3.4l-1.9 2a34.8 34.8 0 0 1-46 2.7l-2.5-1.8a34 34 0 0 0-13.5-6.2zM196.1 118.1a35.3 35.3 0 0 0-31.5 9.8l-1.9 2a34.5 34.5 0 0 1-34.8 8.4l6.7 18.6 3.5.2c9.8.2 18.8-3.7 25.1-10l2-2a34.8 34.8 0 0 1 24.4-10.3z" fill="#ff5757"/><path d="M133.4 149.4a62.9 62.9 0 0 1-37.5 77.9 62.8 62.8 0 0 1-81.4-31.9l-1.9-4.6C-9.6 132.9-1.8 76.2 30.5 63.3c32.7-13 78.2 24 101.6 82.6l.4 1.1z" fill="#5de7ff"/><path d="M309.6 180.3a62.9 62.9 0 0 1-72.5 47 62.8 62.8 0 0 1-53-69.5l.9-5c11-60.9 47.2-105.3 81.4-99.5 34.8 5.9 54.4 61.1 43.9 123.4l-.2 1.2z" fill="#ffe16b"/><path d="m109 104.2-16.3 20.4-31.9 1L42.1 150l-31 1-6.7 12.4L1.8 147 8 135.6l29-1L54.5 112l29.8-1 15.2-19zM129.1 139.7l-15 18.8-36.5 1.2-21.4 27.9-35.5 1.2-4.9 8.8-5.5-13.9 6.9-12.6 33.1-1.1 20-26 34.1-1.2 16.6-20.7z" fill="#5ca7ff"/><path d="M261.6 141.3c.8 5.6-3 10.8-8.4 11.6-5.5.8-10.6-3-11.4-8.7-.9-5.6 2.9-10.8 8.4-11.6 5.4-.8 10.5 3 11.4 8.7zM304.8 150c.9 5.6-2.9 10.8-8.4 11.6-5.4.8-10.5-3-11.4-8.7-.8-5.6 3-10.8 8.4-11.6 5.5-.8 10.6 3 11.4 8.7zM218.7 132c.9 5.6-2.9 10.8-8.4 11.6-5.4.8-10.5-3-11.4-8.7-.8-5.5 3-10.7 8.4-11.6 5.5-.8 10.6 3.1 11.4 8.7zM246 95c.6 5.6-3.3 10.7-8.8 11.3-5.5.7-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.3c5.5-.7 10.5 3.4 11.1 9zM288.2 103.6c.7 5.7-3.3 10.7-8.7 11.4-5.5.6-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.4c5.5-.6 10.4 3.4 11.1 9zM233 184c.6 5.6-3.3 10.7-8.8 11.3-5.5.7-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.3c5.5-.7 10.5 3.4 11.1 9zM275.2 192.6c.7 5.7-3.3 10.7-8.7 11.4-5.5.6-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.4c5.5-.6 10.4 3.4 11.1 9z" fill="#ffba3a"/></g></svg>');
             }
@@ -2340,7 +2399,7 @@ function onload() {
             else {
                 id('somtoday-mod', 0).insertAdjacentHTML('beforeend', '<img id="mod-background" src="' + get('background') + '" style="' + getBackgroundFilters() + '">');
             }
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-background-style">#mod-background{pointer-events:none;user-select:none;position:fixed;left:-' + get('blur') + ';width:calc(100% + 2 * ' + get('blur') + ');top:-' + get('blur') + ';height:calc(100% + 2 * ' + get('blur') + ');object-fit:cover;z-index:-1;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-background-style">#mod-background{pointer-events:none;user-select:none;position:fixed;left:calc(var(--safe-area-inset-left) - ' + get('blur') + ');top:calc(var(--safe-area-inset-top) - ' + get('blur') + ');width:calc(100% - var(--safe-area-inset-left) - var(--safe-area-inset-right) - 2 * ' + get('blur') + ');height:calc(100% - var(--safe-area-inset-top) - var(--safe-area-inset-bottom) - 2 * ' + get('blur') + ');object-fit:cover;z-index:-1;}</style>');
         }
         else if (get('backgroundtype') == 'color' && !n(get('backgroundcolor'))) {
             id('somtoday-mod', 0).insertAdjacentHTML('beforeend', '<div id="mod-backgroundcolor"></div>');
@@ -2564,6 +2623,9 @@ function onload() {
                 });
                 setTimeout(startConfetti, 500);
             }
+            else {
+                set('lastused', year + '-' + (month + 1) + '-' + dayInt);
+            }
         }
         else {
             set('lastused', year + '-' + (month + 1) + '-' + dayInt);
@@ -2584,10 +2646,7 @@ function onload() {
         else {
             modMessage('Hoeveel cijfers wil je downloaden?', 'Kies het aantal cijfers dat je wil downloaden (1-25).<div class="br"></div><input id="mod-grades-amount" type="number" min="1" max="25" step="1" onkeyup="if (this.value != \'\') { this.value = Math.floor(this.value); } if (this.value < 1 && this.value != \'\') { this.value = 1; } else if (this.value > 25) { this.value = 25; }"/>', 'Doorgaan', 'Annuleren');
             id('mod-message-action1').addEventListener('click', download);
-            id('mod-message-action2').addEventListener('click', function () {
-                id('mod-message').classList.remove('mod-msg-open');
-                setTimeout(function () { tryRemove(id('mod-message')); }, 355);
-            });
+            id('mod-message-action2').addEventListener('click', closeModMessage);
         }
         tn('sl-root', 0).removeAttribute('inert');
         function download() {
@@ -2605,61 +2664,61 @@ function onload() {
                     averagePageGradeIndex = tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer').length - 1;
                 }
                 html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '">' +
-                /* Subject icon */
-                '<svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' +
+                    /* Subject icon */
+                    '<svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' +
                     (n(tn('sl-resultaat-item', 0)) ?
-                     tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML :
-                     tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML
+                        tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML :
+                        tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML
                     ) +
-                '</svg>' +
-                /* Subject name */
-                '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
+                    '</svg>' +
+                    /* Subject name */
+                    '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
                     (n(tn('sl-resultaat-item', 0)) ?
-                     tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML :
-                     tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML
+                        tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML :
+                        tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML
                     ) +
-                '</h3>' +
-                /* Subject grade */
-                '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' +
+                    '</h3>' +
+                    /* Subject grade */
+                    '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' +
                     (n(tn('sl-resultaat-item', 0)) ?
-                     /* Vakgemiddelden (Average page) */
-                     (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende') ?
-                      '#d32f0d' :
-                      (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal') ?
-                       '#a7b3be' :
-                       '#000')
-                     ) :
-                     /* Laatste cijfers (latest grades page) */
-                     (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ?
-                      '#d32f0d' :
-                      (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ?
-                       '#a7b3be' :
-                       '#000')
-                     )
+                        /* Vakgemiddelden (Average page) */
+                        (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende') ?
+                            '#d32f0d' :
+                            (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal') ?
+                                '#a7b3be' :
+                                '#000')
+                        ) :
+                        /* Laatste cijfers (latest grades page) */
+                        (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ?
+                            '#d32f0d' :
+                            (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ?
+                                '#a7b3be' :
+                                '#000')
+                        )
                     ) + ';">' +
                     (n(tn('sl-resultaat-item', 0)) ?
-                     (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) ?
-                      '' :
-                      tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].innerHTML
-                     ) :
-                     tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
+                        (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) ?
+                            '' :
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].innerHTML
+                        ) :
+                        tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
                     ) +
-                '</h3>' +
-                (n(tn('sl-resultaat-item', 0)) ?
-                 '' :
-                 /* Grade weight */
-                 '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' +
-                 tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML +
-                 '</p>' +
-                 /* Grade description */
-                 '<p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' +
-                 tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML +
-                 '</p>'
-                ) +
-                '</div>';
+                    '</h3>' +
+                    (n(tn('sl-resultaat-item', 0)) ?
+                        '' :
+                        /* Grade weight */
+                        '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' +
+                        tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML +
+                        '</p>' +
+                        /* Grade description */
+                        '<p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' +
+                        tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML +
+                        '</p>'
+                    ) +
+                    '</div>';
             }
             if (n(tn('sl-resultaat-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
-                 /* Year average */
+                /* Year average */
                 html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);background:#f3f5f6;border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;height:95px;"><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">Totaalgemiddelden</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;">' + cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML + '</h3></div>';
             }
             else if (n(tn('sl-resultaat-item', 0)) && n(tn('sl-vakgemiddelde-item', 0))) {
@@ -2687,8 +2746,7 @@ function onload() {
                 a.dispatchEvent(new MouseEvent('click'));
                 tryRemove(id('mod-grade-canvas'));
                 if (!n(id('mod-message'))) {
-                    id('mod-message').classList.remove('mod-msg-open');
-                    setTimeout(function () { tryRemove(id('mod-message')); }, 355);
+                    closeModMessage();
                 }
             });
             tempImg.src = svgObjectUrl;
@@ -2698,7 +2756,7 @@ function onload() {
 
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
-        if (isCollectingRecapData){
+        if (isCollectingRecapData) {
             return;
         }
         // Chart.js v3.9.0
@@ -3025,12 +3083,12 @@ function onload() {
             // Insert graphs at subject grades page when enabled (2 or more grades need to be present)
             if (n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1' && !n(tn('sl-resultaat-item', 1))) {
                 tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
-                setTimeout(function(){execute([gradeGraphs]);}, 500);
+                setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
             else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
                 tryRemove(id('mod-grades-graphs'));
                 tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
-                setTimeout(function(){execute([gradeGraphs]);}, 500);
+                setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
         }
     }
@@ -3071,7 +3129,7 @@ function onload() {
                 }
                 // Insert recap HTML
                 tn('html', 0).style.overflowY = 'hidden';
-                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) +'</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
+                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) + '</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
                 id('recap-close').addEventListener('click', function () {
                     closing = true;
                     id('somtoday-recap-wrapper').remove();
@@ -3107,7 +3165,7 @@ function onload() {
                                 tn('html', 0).style.overflowX = 'hidden';
                                 tn('html', 0).style.overflowY = 'scroll';
                                 modMessage('Whoops...', 'Somtoday Mod kon je jaargemiddelde niet vinden. Misschien heeft je school dit uitgezet, of heb je nog geen cijfers gehaald dit jaar.', 'Doorgaan');
-                                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                                id('mod-message-action1').addEventListener('click', closeModMessage);
                                 document.exitFullscreen();
                                 return;
                             }
@@ -3471,7 +3529,7 @@ function onload() {
         function finish() {
             setTimeout(startConfetti, 100);
             cn('recap-page', 0).innerHTML = '<h1>Gefeliciteerd!</h1><h2>Het jaar zit erop en de vakantie is al in zicht.</h2><h3>Veel plezier in de vakantie en hopelijk tot volgend jaar!</h3><a id="recap-nextpage">Sluiten</a>';
-            id('recap-nextpage').addEventListener('click', function () { setTimeout(function(){ tryRemove(id('somtoday-recap-wrapper')); stopConfetti(); tn('html', 0).style.overflowX = 'hidden'; tn('html', 0).style.overflowY = 'scroll'; }, 550); isRecapping = false; });
+            id('recap-nextpage').addEventListener('click', function () { setTimeout(function () { tryRemove(id('somtoday-recap-wrapper')); stopConfetti(); tn('html', 0).style.overflowX = 'hidden'; tn('html', 0).style.overflowY = 'scroll'; }, 550); isRecapping = false; });
             return;
         }
         function award() {
@@ -3480,7 +3538,7 @@ function onload() {
             let icon;
             let times = 0;
             while (award == 'none' && times < 50) {
-                let min,max,i,subject,gradeVar;
+                let min, max, i, subject, gradeVar;
                 const randomAwardTry = Math.round(Math.random() * (12 - 1) + 1);
                 switch (randomAwardTry) {
                     case 1:
@@ -3670,7 +3728,7 @@ function onload() {
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function busyYear() {
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') +  ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsHigh() {
@@ -3837,9 +3895,9 @@ function onload() {
                     this.innerHTML = 'Volgende';
                 }
             });
-            id('recap-option-1').addEventListener('change', function() { id('recap-option-2').checked = false; id('recap-option-3').checked = false; });
-            id('recap-option-2').addEventListener('change', function() { id('recap-option-1').checked = false; id('recap-option-3').checked = false; });
-            id('recap-option-3').addEventListener('change', function() { id('recap-option-1').checked = false; id('recap-option-2').checked = false; });
+            id('recap-option-1').addEventListener('change', function () { id('recap-option-2').checked = false; id('recap-option-3').checked = false; });
+            id('recap-option-2').addEventListener('change', function () { id('recap-option-1').checked = false; id('recap-option-3').checked = false; });
+            id('recap-option-3').addEventListener('change', function () { id('recap-option-1').checked = false; id('recap-option-2').checked = false; });
         }
         function guessTheGraph() {
             cn('recap-page', 0).innerHTML = '<h1>Van welk vak is deze grafiek?</h1><h2>Van welk vak denk je dat de onderstaande grafiek is?</h2><div id="recap-chart-wrapper"><canvas id="recap-chart"></canvas></div><label><input type="checkbox" id="recap-option-1"/><p id="recap-text-1"></p></label><label><input type="checkbox" id="recap-option-2"/><p id="recap-text-2"></p></label><label><input type="checkbox" id="recap-option-3"/><p id="recap-text-3"></p></label><a id="recap-nextpage">Controleren</a>';
@@ -3912,9 +3970,9 @@ function onload() {
                     this.innerHTML = 'Volgende';
                 }
             });
-            id('recap-option-1').addEventListener('change', function() { id('recap-option-2').checked = false; id('recap-option-3').checked = false; });
-            id('recap-option-2').addEventListener('change', function() { id('recap-option-1').checked = false; id('recap-option-3').checked = false; });
-            id('recap-option-3').addEventListener('change', function() { id('recap-option-1').checked = false; id('recap-option-2').checked = false; });
+            id('recap-option-1').addEventListener('change', function () { id('recap-option-2').checked = false; id('recap-option-3').checked = false; });
+            id('recap-option-2').addEventListener('change', function () { id('recap-option-1').checked = false; id('recap-option-3').checked = false; });
+            id('recap-option-3').addEventListener('change', function () { id('recap-option-1').checked = false; id('recap-option-2').checked = false; });
         }
     }
 
@@ -3974,23 +4032,57 @@ function onload() {
             let backgroundHTML = '';
             let numberOfBackgrounds = 0;
             while (!n(get('background' + numberOfBackgrounds))) {
-                backgroundHTML += '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) +  '">';
+                backgroundHTML += '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) + '">';
                 numberOfBackgrounds++;
             }
             nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
             const updatechecker = (platform == 'Userscript' || platform == 'Android') ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
             const updateinfo = (platform == 'Userscript' || platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
             const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" tabindex="0" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
-            '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
-            '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
-            '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
-            '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div></div></div>' +
-            '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrollt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
-            '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div><div id="username-wrapper"><h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : get('username')) + '"></div></div><div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + get("fontname") + '</option><option>' + fonts.join('</option><option>') + '</option></select></div><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '<div class="br"></div><div class="br"></div><div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(14) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(14) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(14) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>' + '</div>' +
-            '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true) + '</div>' +
-            (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>') +
-            '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + (get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld vanwege een mislukte inlogpoging. Verbeter je inloggegevens om autologin weer in te schakelen.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '') + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt met SSO).', 'loginpass', 'password', '', '') + '</div>' +
-            '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + platform + '</span>!</p>' + updateinfo + '<div class="br"></div></div>');
+                '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
+                '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
+                '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
+                '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div></div></div>' +
+                '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
+                '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div><div id="username-wrapper"><h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : get('username')) + '"></div></div><div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + (n(get('customfontname')) ? get("fontname") : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')) + '</option><option>' + fonts.join('</option><option>') + '</option></select></div><label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Of upload lettertype</p></label><input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt"><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '<div class="br"></div><div class="br"></div><div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(14) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(14) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(14) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>' + '</div>' +
+                '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true) + '</div>' +
+                (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>') +
+                '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + (get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld vanwege een mislukte inlogpoging. Verbeter je inloggegevens om autologin weer in te schakelen.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '') + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt met SSO).', 'loginpass', 'password', '', '') + '</div>' +
+                '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + platform + '</span>!</p>' + updateinfo + (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json"></div>') + '<div class="br"></div></div>');
+            if (platform != 'Android') {
+                id('export-settings').addEventListener('click', exportSettings);
+                id('import-settings').addEventListener('click', function () {
+                    modMessage('Instellingen importeren?', 'Wanneer je Mod-instellingen importeert worden je huidige instellingen overschreven. Importeer alleen instellingsbestanden die je zelf hebt ge&euml;xporteerd.', 'Ja', 'Nee');
+                    id('mod-message-action1').addEventListener('click', function () {
+                        id('import-settings-json').click();
+                        closeModMessage();
+                    });
+                    id('mod-message-action2').addEventListener('click', closeModMessage);
+                });
+                id('import-settings-json').addEventListener('input', importSettings);
+            }
+            if (!n(id('mod-font-file'))) {
+                id('mod-font-file').addEventListener('input', function () {
+                    if (this.files.length != 0) {
+                        tryRemove(id('mod-font-preview'));
+                        this.parentElement.getElementsByTagName('label')[0].children[1].innerText = this.files[0].name.toLowerCase();
+                        this.parentElement.getElementsByTagName('label')[0].classList.add('mod-active');
+                        let reader = new FileReader();
+                        reader.readAsDataURL(id('mod-font-file').files[0]);
+                        reader.onload = function () {
+                            setTimeout(function () {
+                                tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-font-preview">@font-face{font-family:modCustomFontPreview;src:url("' + reader.result + '");}</style>');
+                                document.getElementById('font-box').children[0].style.setProperty('font-family', 'modCustomFontPreview, sans-serif', 'important');
+                                document.getElementById('font-box').children[1].style.setProperty('font-family', 'modCustomFontPreview, sans-serif', 'important');
+                            }, 100);
+                        };
+                    } else {
+                        this.parentElement.getElementsByTagName('label')[0].children[1].innerText = 'Of upload lettertype';
+                        this.parentElement.getElementsByTagName('label')[0].classList.remove('mod-active');
+                        this.value = null;
+                    }
+                });
+            }
             // Add themes
             // Background images thanks to Pexels: https://www.pexels.com
             addTheme('Standaard', '', '0067c2', 'e69b22', 20, false);
@@ -4148,7 +4240,7 @@ function onload() {
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
                                 const fileList = dataTransfer.files;
-                            element.nextElementSibling.files = fileList;
+                                element.nextElementSibling.files = fileList;
                             }
                         });
                     } else {
@@ -4196,19 +4288,18 @@ function onload() {
                 id('mod-message-action1').addEventListener('click', function () {
                     execute([reset, setBackground, style, pageUpdate]);
                     if (!n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1' && !n(tn('sl-vakresultaten', 0))) {
-                    tryRemove(id('mod-grades-graphs'));
+                        tryRemove(id('mod-grades-graphs'));
                         tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                         setTimeout(gradeGraphs, 500);
                     }
-                    id('mod-message').classList.remove('mod-msg-open');
-                    setTimeout(function () { tryRemove(id('mod-message')) }, 350);
+                    closeModMessage();
                 });
-                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                id('mod-message-action2').addEventListener('click', closeModMessage);
             });
             id('information-about-mod').addEventListener('click', function () {
                 modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : (platform == 'Android' ? 'Android-app die' : 'browserextensie die')) + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals achtergronden, lettertypes, kleuren, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met ' + (n(somtodayversion) ? 'een onbekende versie van Somtoday' : 'Somtoday ' + somtodayversion) + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. De GitHub repo is <a href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2025 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
                 id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
-                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 350); });
+                id('mod-message-action2').addEventListener('click', closeModMessage);
             });
             id('mod-bug-report').addEventListener('click', function () { execute([prepareBugReport]) });
             id('mod-feedback').addEventListener('click', function () { execute([feedback]) });
@@ -4234,7 +4325,7 @@ function onload() {
             if (!n(id('mod-font-select-script'))) {
                 tryRemove(id('mod-font-select-script'));
             }
-            id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.setAttribute("tabindex", "0"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.setAttribute("tabindex", "0"); c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
+            id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.setAttribute("tabindex", "0"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.setAttribute("tabindex", "0"); c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("mod-font-select").classList.add("mod-modified"); if (document.getElementById("mod-font-preview")) { document.getElementById("mod-font-preview").remove(); } document.getElementById("mod-font-file").value = ""; let event = new Event("input", { bubbles: false }); document.getElementById("mod-font-file").dispatchEvent(event); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
             // Add event listeners to make file reset buttons work
             for (const element of cn('mod-file-reset')) {
                 element.addEventListener('click', function () {
@@ -4322,6 +4413,22 @@ function onload() {
         filesProcessed = 0;
         for (const element of cn('mod-slider')) {
             set(element.getElementsByTagName('input')[0].dataset.property, element.getElementsByTagName('input')[0].value + element.getElementsByTagName('input')[0].dataset.unit);
+        }
+        if (!n(id('mod-font-file')) && id('mod-font-file').files[0]) {
+            set('customfontname', id('mod-font-file').files[0].name);
+            let reader = new FileReader();
+            reader.readAsDataURL(id('mod-font-file').files[0]);
+            reader.onload = function () {
+                set('customfont', reader.result);
+                setTimeout(function () {
+                    execute([style]);
+                }, 100);
+            };
+        }
+        else if (!n(id('mod-font-select')) && id('mod-font-select').classList.contains('mod-modified')) {
+            set('customfont', '');
+            set('customfontname', '');
+            set('fontname', id('mod-font-select').value);
         }
         for (const element of cn('mod-custom-setting')) {
             if (element.type == 'checkbox' && element.id.indexOf('bools') != -1) {
@@ -4444,10 +4551,6 @@ function onload() {
                 set(element.dataset.key, '');
             }
         }
-        // Save fontname, because it is not added with addSetting()
-        if (!n(id('mod-font-select'))) {
-            set('fontname', id('mod-font-select').value);
-        }
         if (!n(id('grade-reveal-select'))) {
             const showOnlyForNewGrades = id('grade-reveal-select').children[0].classList.contains('active');
             const showAlways = id('grade-reveal-select').children[1].classList.contains('active');
@@ -4459,10 +4562,7 @@ function onload() {
             execute([saveReload]);
         }
         modMessage('Opgeslagen!', 'Al je instellingen zijn opgeslagen.', 'Doorgaan');
-        id('mod-message-action1').addEventListener('click', function () {
-            id('mod-message').classList.remove('mod-msg-open');
-            setTimeout(function () { tryRemove(id('mod-message')) }, 350);
-        });
+        id('mod-message-action1').addEventListener('click', closeModMessage);
     }
 
     // Make sure everything is saved before reload
@@ -4497,7 +4597,6 @@ function onload() {
         set('secondarycolor', '#e69b22');
         set('nicknames', '');
         set('bools', '110001110111101110000000000000');
-        set('zoom', '120');
         set('title', '');
         set('icon', '');
         set('background', '');
@@ -4523,8 +4622,9 @@ function onload() {
         set('sepia', '0%');
         set('invert', '0%');
         set('blur', '0px');
-        set('homework', '[]');
         set('menuwidth', 110);
+        set('customfont', '');
+        set('customfontname', '');
         menuWidth = 110;
         set('isbackgroundvideo', false);
         let i = 0;
@@ -4543,27 +4643,38 @@ function onload() {
             set('birthday', '00-00-0000');
             set('lastjubileum', 0);
             execute([reset]);
-            tn('head', 0).insertAdjacentHTML('afterbegin', '<style>#welcome{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000000;background:white;transition:opacity 0.3s ease;}#welcome *{box-sizing:border-box;color:#000;}#welcome h2{line-height:36px;font-size:36px;color:#09f;margin-bottom:30px;}#welcome h3{font-size:24px;margin-top:15px;}#welcome #errordata{width:25px;height:25px;margin:0;margin-top:20px;display:inline-block;}#welcome a{margin-top:20px;display:block;border:3px solid #09f;padding:15px 25px;border-radius:16px;font-size:20px;transition:0.3s background ease,0.2s color ease;width:fit-content;-webkit-user-select:none;user-select:none;cursor:pointer;}#welcome a:hover{background:#09f;color:white;}#welcome label{width:calc(100% - 50px);-webkit-user-select:none;user-select:none;cursor:pointer;font-size:20px;vertical-align:top;padding:19px 16px;display:inline-block;}#welcome .modlogo{transition:transform 0.3s ease;}#welcome .modlogo:hover{transform:scale(1.05);}#welcome-background{background:#09f;float:right;width:750px;max-width:50%;height:100%;position:relative;padding-right:75px;transition:width .2s ease,padding-right .2s ease;}#welcome-background center{position:relative;top:50%;transform:translateY(-50%);}#wave{position:absolute;left:0;width:100%;top:0;height:100%;transform:translateX(-240px);}#welcome-text{float:left;width:calc(100% - 850px);padding-right:150px;padding:25px 50px;position:absolute;top:50%;transform:translateY(-50%);}#welcome.android #mod-android-logo{padding:15px;display:block;margin:20px auto;border:2px solid #eee;border-radius:8px;width:85px;height;height:85px;}@media (max-width:1500px){#welcome-background{width:550px;}#welcome-text{width:calc(100% - 650px);}}@media (max-width:1300px){#welcome-background{width:350px;}#welcome-text{width:calc(100% - 450px);}}@media (max-width:1060px){#welcome-background{width:250px;padding-right:0;}.modlogo{width:100px;height:100px;}#wave{display:none;}#welcome-text{width:calc(100% - 250px);}}@media (max-width:700px){#welcome-background{width:100%;max-width:100%;position:absolute;height:200px;}#welcome-text{width:100%;}}@media (max-height:850px), (max-width:370px){#welcome-text{top:200px;transform:none;}}@media (max-width:370px){#welcome-text{padding:25px;}}@media (max-height:650px) and (max-width:700px){#welcome-background{display:none;}}@media (max-height:650px){#welcome-text{top:0;}#welcome.android #mod-android-logo{height:50px;width:50px;margin:10px auto;padding:10px;}}@media (max-height:550px){#welcome.android #mod-android-logo{visibility:hidden;height:0;margin:5px auto;}}@media (max-height:520px){#welcome h2{margin-bottom:15px;line-height:1;font-size:30px;}#welcome a{margin-top:0;}#welcome h3{font-size:18px;margin-top:10px;line-height:1;}}#welcome.android label{font-size:16px;}#welcome.android a{font-size:16px;padding:10px 20px;}#welcome.android #mod-android-text{width:100%;padding:0 20px;margin:auto;max-width:450px;}#welcome.android{overflow:auto;}</style>');
-            if (platform == 'Android') {
-                id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="welcome" class="android">' + logo('mod-android-logo', null, '#09f') + '<div id="mod-android-text"><h3>Welkom!</h3><p>Je hebt net de Somtoday Mod Android APK geïnstalleerd. Met deze app kun je alles wat je ook in de normale Somtoday app kan, plus nog veel meer doordat Somtoday Mod erbij zit.</p><p>Voordat je doorgaat, deze app is niet geaffilieerd met Somtoday. Gebruik is op eigen risico. Zorg ervoor dat je regelmatig op updates checkt om de app up to date te houden.</p><input id="errordata" type="checkbox"><label for="errordata">Verzamel error-data om Somtoday Mod te verbeteren</label><a id="continuetosom">Door naar Somtoday</a></div></div>');
+            tn('head', 0).insertAdjacentHTML('afterbegin', '<style>#mod-welcome{background:#0005;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;transition:opacity 0.3s ease;}#mod-welcome > div{width:355px;transform:translate(-50%, -50%);top:50%;position:absolute;left:50%;background: var(--bg-elevated-none);border-radius:16px;overflow:hidden;overflow-y:scroll;max-width:calc(100% - 30px);max-height:calc(100% - 30px);}#mod-welcome > div > div:first-child{background:#09f;height:130px;display:flex;justify-content:center;align-items:center}#mod-welcome svg{width:70px;height:35%;transition:transform .3s ease;cursor:pointer;}#mod-welcome > div > div:last-child{padding:15px 20px;}#mod-welcome h2{font-weight:400;}#mod-welcome input[type=checkbox]{width:20px;display:inline-block;height:20px;}#mod-welcome label{user-select:none;vertical-align:top;display:inline-block;padding-left:10px;margin-bottom:25px;font-size:14px;max-width:calc(100% - 35px);}div:hover > svg .glasses{animation:1s glasses linear forwards;}@keyframes glasses{0%{transform:translateY(-60px);opacity:0;}50%{transform:translateY(-30px);opacity:1;}100%{transform:translateY(0px);opacity:1;}}@media (min-width: 370px) and (min-height:700px){#mod-welcome > div{overflow-y:hidden;}#mod-welcome > div > div:first-child{height:200px;}#mod-welcome > div > div:last-child{padding:30px;}}</style>');
+            const welcomecontent = platform == 'Android' ? '<h2>Welkom!</h2><p>Je hebt net de Somtoday Mod Android APK geïnstalleerd. Met deze app kun je alles wat je ook in de normale Somtoday app kan, plus nog veel meer doordat Somtoday Mod erbij zit.</p><p>Voordat je doorgaat, deze app is niet geaffilieerd met Somtoday. Gebruik is op eigen risico. Zorg ervoor dat je regelmatig op updates checkt om de app up to date te houden.</p>' : '<h2>Somtoday Mod is ge&iuml;nstalleerd!</h2><p>Stel achtergronden in, krijg inzicht in je cijfers en meer met Somtoday Mod!</p><p>' + (hasSettingsHash ? 'Laten we meteen beginnen!' : 'Meteen naar de instellingen gaan?') + '</p>';
+            id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="mod-welcome"><div><div>' + logo('mod-welcome-logo', null, '#fff') + '</div><div>' + welcomecontent + '<br><input type="checkbox" id="errordata"><label for="errordata">Verstuur error-data om bugs te fixen</label>' + (hasSettingsHash ? '' : '<div tabindex="0" class="mod-button" id="mod-welcome-open-settings">Instellingen</div>') + '<div tabindex="0" class="mod-button" id="mod-welcome-close">Sluiten</div></div></div></div>');
+            function closeWelcomeDialog() {
+                set('firstused', year + '-' + (month + 1) + '-' + dayInt);
+                id('mod-welcome').style.opacity = '0';
+                if (id('errordata').checked) {
+                    // Permission for sending debug-data
+                    set('bools', get('bools').replaceAt(4, '1'));
+                }
+                setTimeout(function () {
+                    tryRemove(id('mod-welcome'));
+                }, 400);
             }
-            else {
-                id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="welcome"><div id="welcome-text"><h2>Somtoday Mod is ge&iuml;nstalleerd!</h2><h3>Bedankt voor het downloaden van Somtoday Mod!</h3><h3>De mod zal Somtoday voor je aanpassen, zodat het er mooier uitziet.</h3><input id="errordata" type="checkbox"/><label for="errordata">Verzamel error-data om Somtoday Mod te verbeteren</label><div class="br"></div><a id="continuetosom">Door naar Somtoday</a></div><div id="welcome-background"><svg id="wave" width="245.3" height="1440"><path d="m235 937-6-48c-5-48-15-144-42-240s-69-192-70-288c1-96 43-192 91-288s102-192 101-288c1-96-53-192-80-240l-26-48h160V937z" transform="translate(-117 503)" fill="#09f"/></svg><center>' + logo(null, 'modlogo', '#fff') + '</center></div></div>');
-
-            }
-            if (!n(id('continuetosom'))) {
-                id('continuetosom').addEventListener('click', function () {
-                    set('firstused', year + '-' + (month + 1) + '-' + dayInt);
-                    id('welcome').style.opacity = '0';
-                    if (id('errordata').checked) {
-                        // Permission for sending debug-data
-                        set('bools', get('bools').replaceAt(4, '1'));
-                    }
-                    setTimeout(function () {
-                        tryRemove(id('welcome'));
-                    }, 400);
+            if (!hasSettingsHash) {
+                id('mod-welcome-open-settings').addEventListener('click', function () {
+                    closeWelcomeDialog();
+                    openModSettingsDirectly(true);
                 });
             }
+            id('mod-welcome-close').addEventListener('click', function () {
+                closeWelcomeDialog();
+                if (hasSettingsHash) {
+                    execute([openSettings]);
+                }
+            });
+            id('mod-welcome-logo').addEventListener('click', function () {
+                this.style.transform = 'scale(1.3)';
+                setTimeout(function () {
+                    id('mod-welcome-logo').style.transform = 'scale(1)';
+                }, 300);
+            });
         }
     }
 
@@ -4633,9 +4744,15 @@ function onload() {
     }
 
     // Open modsettings directly when hash is #mod-settings
-    async function openModSettingsDirectly() {
-        if (window.location.hash == '#mod-settings' || get('opensettingsIntention') == '1') {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+    async function openModSettingsDirectly(forceOpen = false) {
+        if (window.location.hash == '#mod-settings' || get('opensettingsIntention') == '1' || forceOpen) {
+            if (tn('sl-modal', 0)) {
+                return;
+            }
+
+            if (!forceOpen) {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
 
             tn('sl-header', 0).getElementsByTagName('div')[0].click();
 
@@ -4753,7 +4870,7 @@ function onload() {
             subtree: false,
             childList: false
         });
-        window.addEventListener('click', function() { pageUpdate(false, true) });
+        window.addEventListener('click', function () { pageUpdate(false, true) });
     }
 
 
@@ -4772,7 +4889,7 @@ function onload() {
         }).then(text => {
             if (text == 'Newest') {
                 modMessage('Geen updates gevonden', 'Helaas, er zijn geen updates gevonden.', 'Oke');
-                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+                id('mod-message-action1').addEventListener('click', closeModMessage);
             } else if (text == 'Optional') {
                 modMessage('Kleine update gevonden', 'Er is een kleine update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
                 if (platform == 'Userscript') {
@@ -4781,7 +4898,7 @@ function onload() {
                 else {
                     id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/versions/somtoday-mod'); });
                 }
-                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+                id('mod-message-action2').addEventListener('click', closeModMessage);
             } else if (text == 'Update') {
                 modMessage('Update gevonden', 'Er is een update gevonden. Wil je de update installeren?', 'Ja', 'Nee');
                 if (platform == 'Userscript') {
@@ -4790,15 +4907,15 @@ function onload() {
                 else {
                     id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/versions/somtoday-mod'); });
                 }
-                id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+                id('mod-message-action2').addEventListener('click', closeModMessage);
             }
             else {
                 modMessage('Fout', 'Somtoday Mod kan de reactie van de server niet begrijpen.', 'Oke');
-                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+                id('mod-message-action1').addEventListener('click', closeModMessage);
             }
         }).catch((response) => {
             modMessage('Fout', 'Er kon niet op updates worden gechecked. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-            id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305); });
+            id('mod-message-action1').addEventListener('click', closeModMessage);
         });
     }
 
@@ -4809,10 +4926,10 @@ function onload() {
             hide(id('mod-message-action1'));
             hide(id('mod-message-action2'));
             if (n(id('mod-feedback-message').value)) {
-                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')) }, 305);
+                closeModMessage();
                 setTimeout(function () {
                     modMessage('Fout', 'Voer een tekst in.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('mod-feedback'))) { id('mod-feedback').click(); } }, 305); });
+                    id('mod-message-action1').addEventListener('click', function () { closeModMessage(); setTimeout(function () { if (!n(id('mod-feedback'))) { id('mod-feedback').click(); } }, 305); });
                 }, 310);
             }
             else {
@@ -4824,29 +4941,28 @@ function onload() {
                     }
                     return Promise.reject(response);
                 }).then(text => {
-                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                    closeModMessage();
                     if (text == 'Sent') {
                         setTimeout(function () {
                             modMessage('Verstuurd!', 'Je feedback is verstuurd.', 'Oke');
-                            id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                            id('mod-message-action1').addEventListener('click', closeModMessage);
                         }, 310);
                     } else {
                         setTimeout(function () {
                             modMessage('Fout', 'De server kon je feedback niet verwerken.', 'Oke');
-                            id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                            id('mod-message-action1').addEventListener('click', closeModMessage);
                         }, 310);
                     }
                 }).catch((response) => {
-                    id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                    closeModMessage();
                     setTimeout(function () {
                         modMessage('Fout', 'Je feedback kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                        id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                        id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                        id('mod-message-action1').addEventListener('click', closeModMessage);
                     }, 310);
                 });
             }
         });
-        id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+        id('mod-message-action2').addEventListener('click', closeModMessage);
     }
 
     // Show message and prepare bug report server request (user initiated)
@@ -4856,10 +4972,10 @@ function onload() {
             hide(id('mod-message-action1'));
             hide(id('mod-message-action2'));
             if (n(id('mod-bug-title').value) || n(id('mod-bug-details').value)) {
-                id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+                closeModMessage();
                 setTimeout(function () {
                     modMessage('Fout', 'Voer ten minste beide tekstvelden in.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); if (!n(id('mod-bug-report'))) { id('mod-bug-report').click(); } }, 305); });
+                    id('mod-message-action1').addEventListener('click', function () { closeModMessage(); setTimeout(function () { if (!n(id('mod-bug-report'))) { id('mod-bug-report').click(); } }, 305); });
                 }, 310);
             }
             else {
@@ -4880,9 +4996,11 @@ function onload() {
                 else {
                     sendBugReport(formData);
                 }
+                id('mod-bug-title').value = '';
+                id('mod-bug-details').value = '';
             }
         });
-        id('mod-message-action2').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+        id('mod-message-action2').addEventListener('click', closeModMessage);
     }
 
     // Submits a bug report (user initiated)
@@ -4893,24 +5011,24 @@ function onload() {
             }
             return Promise.reject(response);
         }).then(text => {
-            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+            closeModMessage();
             if (text == 'Success') {
                 setTimeout(function () {
                     modMessage('Verstuurd!', 'Je bugreport is verstuurd.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                    id('mod-message-action1').addEventListener('click', closeModMessage);
                 }, 310);
             } else {
                 setTimeout(function () {
                     modMessage('Fout', 'De server kon de request niet verwerken.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                    id('mod-message-action1').addEventListener('click', closeModMessage);
                 }, 310);
             }
         }).catch((response) => {
-            id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305);
+            closeModMessage();
             setTimeout(function () {
                 modMessage('Fout', 'Je bugreport kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
-                id('mod-message-action1').addEventListener('click', function () { id('mod-message').classList.remove('mod-msg-open'); setTimeout(function () { tryRemove(id('mod-message')); }, 305); });
+                id('mod-message-action1').addEventListener('click', closeModMessage);
+                id('mod-message-action1').addEventListener('click', closeModMessage);
             }, 310);
         });
     }

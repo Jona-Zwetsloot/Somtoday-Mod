@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v4.9"
+    "message": "Somtoday Mod Chromium v5.0"
   },
   "newOne": {
-    "message": "Het is nu mogelijk eigen taken aan de studiewijzer toe te voegen, zodat je die ene belangrijke afspraak van volgende week niet vergeet"
+    "message": "Het is nu mogelijk je instellingen te exporteren en importeren"
   },
   "newTwo": {
-    "message": "Bug gefixt waardoor de autologin een beetje heel erg niet goed werkte"
+    "message": "Je kan nu ook je eigen lettertypen uploaden"
   },
   "newThree": {
-    "message": "Bug gefixt waardoor onvoldoendes niet meer rood waren, als jullie nou gewoon allemaal voldoendes zouden halen had ik dit nu niet hoeven fixen - #motivatie"
+    "message": "Bug gefixt waardoor iconen te groot werden in sommige layouts"
   },
   "extName": {
     "message": "Somtoday Mod"
