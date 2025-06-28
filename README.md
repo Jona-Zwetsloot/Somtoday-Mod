@@ -9,7 +9,7 @@ Somtoday Mod is a free browser-extension which adjusts the student website of So
 
 # Install
 
-You can install the official release of Somtoday Mod in the extension stores (see links above). You can also modify Somtoday Mod and install it by using one of the methods below.
+You can install the official release of Somtoday Mod in the extension stores (see links above) or on Android by installing the APK file found on the [releases tab](https://github.com/Jona-Zwetsloot/Somtoday-Mod/releases). You can also modify Somtoday Mod and install it by using one of the methods below.
 
 <details>
 <summary>Userscript</summary>
