@@ -62,6 +62,20 @@ Firefox extension - <b>signed</b>, but difficult:
 
 </details>
 
+
+
+<details>
+<summary>Android</summary>
+<br>
+
+Android app:
+1. Create a new **Android Studio Project** (choose the *Empty activity* template)
+2. Drop the contents of the Android folder of this repo in the **/app/src/main** folder of your Android Studio Project
+3. Things will probably crash, so **you may need to modify some things** to make it work
+<br>
+
+</details>
+
 <br>
 
 # Contributing

@@ -3,13 +3,13 @@
     "message": "Somtoday Mod Firefox v5.0"
   },
   "newOne": {
-    "message": "It is now possible to export and import your settings"
+    "message": "Somtoday Recap no longer crashes when it encounters a subject without any grades 😎👍"
   },
   "newTwo": {
-    "message": "You can also upload your own fonts now"
+    "message": "The teacher nicknames are FINALLY working again 🥳"
   },
   "newThree": {
-    "message": "Fixed bug that caused icons to become too large in some layouts"
+    "message": "Password is now no longer included in settings exports, so now you can share your exports 🔑"
   },
   "extName": {
     "message": "Somtoday Mod"

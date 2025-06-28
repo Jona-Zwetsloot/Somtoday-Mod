@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v5.0"
+    "message": "Somtoday Mod Chromium v5.1"
   },
   "newOne": {
-    "message": "Het is nu mogelijk je instellingen te exporteren en importeren"
+    "message": "Somtoday Recap crasht nu niet meer bij vakken zonder cijfers 😎👍"
   },
   "newTwo": {
-    "message": "Je kan nu ook je eigen lettertypen uploaden"
+    "message": "De docent-nicknames werken EINDELIJK weer 🥳"
   },
   "newThree": {
-    "message": "Bug gefixt waardoor iconen te groot werden in sommige layouts"
+    "message": "Wachtwoord zit nu niet meer in een instellingen export, wel zo veilig 🔑"
   },
   "extName": {
     "message": "Somtoday Mod"
