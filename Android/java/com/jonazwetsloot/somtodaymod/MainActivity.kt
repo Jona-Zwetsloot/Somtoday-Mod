@@ -240,7 +240,7 @@ const hasSettingsHash = window.location.hash == '#mod-settings';if (typeof GM_ge
         return GM_setValue(e, t);
     }
     if (platform != 'Userscript') {
-        setTimeout(console.warn.bind(console, "SOMTODAY MOD: Userscript storage is used while the platform is not set to Userscript."));
+        setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Userscript storage is used while the platform is not set to Userscript.'));
     }
 }else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.local) {
     chrome.storage.local.get(null).then((result) => {
@@ -1936,7 +1936,7 @@ function onload() {
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}html.dark .cijfer.neutraal{color:var(--fg-primary-normal) !important;}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(15) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:6px;}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input,#username-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}#grade-reveal-select{margin-bottom:20px;}#studiewijzer-afspraak-toevoegen-select{margin-top:20px;}.mod-multi-choice{display:inline-block;vertical-align:top;border:var(--thinnest-solid-neutral-normal);border-radius:12px;overflow:hidden;}.mod-multi-choice span{padding:10px 15px;display:inline-block;cursor:pointer;user-select:none;transition:background .2s ease;}.mod-multi-choice span:hover{background:var(--bg-elevated-weakest);}.mod-multi-choice span.active{background:var(--bg-elevated-weak);}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:48em){#mod-grade-calculate,#mod-grades-graphs{padding:0 20px;box-sizing:border-box;}}.input-veld{border-width:2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover){background:var(--bg-neutral-none) !important;}#mod-grades-graphs > div{margin-bottom:50px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;position:relative;}.mod-info-notice > svg{height:20px;position:absolute;top:50%;transform:translateY(-50%);left:18px;}#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(50% - 80px);margin-right:15px;display:inline-block;}#mod-grade-calculate #mod-grade-one-three,#mod-grade-calculate #mod-grade-two-three{width:115px;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-neutral-none) !important;}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){.mod-huiswerk strong,.mod-huiswerk p{width:calc(100% - 65px) !important;}sl-studiewijzer-dag .mod-huiswerk{margin-top:-12px !important;}sl-studiewijzer-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:-12px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk,sl-studiewijzer-lijst-dag .mod-add-homework{margin-top:4px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:4px !important;}sl-studiewijzer-lijst-dag .dag-header{background:transparent !important;}#mod-message > center > div{padding:20px !important;}.mod-multi-choice span{padding:10px !important;}.mod-huiswerk.mod-huiswerk-done div svg{opacity:1 !important;padding:2px !important;width:16px !important;height:16px !important;}.mod-huiswerk div{right:15px !important;width:20px !important;height:20px !important;}.laad-eerdere{background:var(--bg-neutral-none) !important;}.berichten-lijst{min-height:calc(var(--min-content-vh) - 64px - 32px) !important;margin-bottom:0 !important;}sl-cijfers > .container{padding-bottom:0 !important;}sl-cijfers .tabs{border-radius:0;}}@media (min-width:1120px) and (min-height:550px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}.mod-add-homework{opacity:0;transition:0.2s opacity ease;}}</style>');
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;max-width:100%;width:680px;margin:0 auto;margin-bottom:30px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}#somtoday-recap p,#somtoday-recap h3{z-index:1;position:relative;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:3.25em;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:2em;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:2em;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{user-select:none;margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:1.5em;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{max-width:calc(100% - 50px);margin-left:10px;display:inline-block;color:#fff;vertical-align:top;font-size:1.6em;margin-top:5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong{color:#ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right{color:#00cf00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(12.5% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:30px;right:30px;cursor:pointer;color:#fff;z-index:1000;}.mod-item>svg{float:right;cursor:ns-resize;margin-top:3px;}.mod-item div svg{float:left;}.mod-item p{float:left;margin:0 10px;font-size:1rem;}#mod-grade-average-sort-list{margin-top:30px;}.mod-item,.placeholder{user-select:none;width:400px;background:var(--bg-elevated-none);border-radius:16px;padding:15px 20px;height:23px;margin-bottom:10px;max-width:calc(100vw - 100px);}@media (max-width:767px){#somtoday-recap-wrapper label p{text-align:left;margin-left:20px;}#somtoday-recap-arrows svg{opacity:0.2;}#somtoday-recap{border-radius:0;margin-bottom:0;}#somtoday-recap-wrapper .recap-page{font-size:0.6em;}}</style>');
+               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;max-width:100%;width:680px;margin:0 auto;margin-bottom:30px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}#somtoday-recap p,#somtoday-recap h3{z-index:1;position:relative;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:3.25em;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:2em;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:2em;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{user-select:none;margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:1.5em;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{max-width:calc(100% - 50px);margin-left:10px;display:inline-block;color:#fff;vertical-align:top;font-size:1.6em;margin-top:5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong{color:#ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right{color:#00cf00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(12.5% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:30px;right:30px;cursor:pointer;color:#fff;z-index:1000;}.mod-item>svg{float:right;cursor:ns-resize;margin-top:3px;}.mod-item div svg{float:left;}.mod-item p{float:left;margin:0 10px;font-size:1rem;}#mod-grade-average-sort-list{margin-top:30px;}.mod-item,.placeholder{user-select:none;width:400px;background:var(--bg-elevated-none);border-radius:16px;padding:15px 20px;height:23px;margin-bottom:10px;max-width:calc(100vw - 100px);}@media (max-width:767px){#somtoday-recap-wrapper label p{text-align:left;margin-left:20px;}#somtoday-recap-arrows svg{opacity:0.2;}#somtoday-recap{border-radius:0;margin-bottom:0;}#somtoday-recap-wrapper .recap-page{font-size:0.6em;}}</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.circles{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; } .circles li{ position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px; } .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; } .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; } .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; } .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; } .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; } .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; } .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; } .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; } .circles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; } .circles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; } @keyframes animate { 0%{ transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }</style>');
                if (n(get('customfontname'))) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + '}</style>');
@@ -2182,6 +2182,7 @@ function onload() {
                 svg = 'M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z';
                 break;
             case 'map-location-dot':
+                viewbox = '0 0 576 512',
                 svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
                 break;
             case 'sun':
@@ -3212,6 +3213,9 @@ function onload() {
         if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
             tryRemove(id('somtoday-recap'));
         }
+        if (id('mod-recap-year')) {
+            id('mod-recap-year').innerText = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '${"$"}1') : year;
+        }
         if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
                 music = new Audio('https://jonazwetsloot.nl/resources/eona-emotional-ambient-pop-351436.mp3');
@@ -3220,7 +3224,8 @@ function onload() {
                 console.warn(e);
             }
             music.loop = true;
-            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van ' + year + '.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
+            const recapYear = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '${"$"}1') : year;
+            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
                        id('somtoday-recap').addEventListener('click', async function () {
                 music.currentTime = 0;
                 music.play();
@@ -3230,9 +3235,10 @@ function onload() {
                     document.documentElement.requestFullscreen();
                 }
                                tn('html', 0).style.overflowY = 'hidden';
-                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) + '</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
+                const recapYears = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+(\d\d)\/\d+(\d\d)${"$"}/, '${"$"}1/${"$"}2') : (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2);
+                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + recapYears + '</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
                 id('recap-close').addEventListener('click', function () {
-                    if (platform == 'Android') {
+                                       if (document.documentElement.clientWidth < 1280) {
                         window.location.href = 'https://leerling.somtoday.nl/cijfers';
                         return;
                     }
@@ -3268,15 +3274,25 @@ function onload() {
                     cijfers: false,                    plusmin: false,                    voortgang: false,                    letters: false,                };
 
                                if (n(tn('sl-cijfer-overzicht', 0))) {
+                    while (!window.navigator.onLine) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
                     tn('hmy-switch')[2].click();
                 }
 
-                for (i = 0; true; i++) {
+                while (true) {
                     if (closing) { return; }
                                        if (tn('sl-cijfer-overzicht', 0) && cn('vak-row', 0)) {
                         break;
                     }
+                                       if (i > 750) {
+                        i = 0;
+                        if (n(tn('sl-cijfer-overzicht', 0))) {
+                            tn('hmy-switch')[2].click();
+                        }
+                    }
                     await new Promise(resolve => setTimeout(resolve, 10));
+                    i++;
                 }
 
                 let totalAverageGrades = 0, totalAverageWeight = 0;
@@ -3394,6 +3410,15 @@ function onload() {
                     totalAverage = (totalAverageGrades / totalAverageWeight).toFixed(2);
                 }
                 console.log(gradedata);
+
+                if (gradedata.length == 0) {
+                    modMessage('Geen data', 'Het lijkt erop dat je nog geen cijfers hebt gekregen dit jaar. Probeer het later nog eens.', 'Doorgaan');
+                    id('mod-message-action1').addEventListener('click', function () {
+                        window.location.href = 'https://leerling.somtoday.nl/cijfers';
+                        closeModMessage();
+                    });
+                    return;
+                }
 
                 availablePages = [busyYear, twoTrueOneFalse, twoTrueOneFalse];
                 if (gradingSystems.cijfers) {
@@ -3540,6 +3565,7 @@ function onload() {
 
             let clicked = false;
             let answerInterval;
+            let AudioHasFired = false;
             id('recap-nextpage').addEventListener('click', function () {
                 if (clicked) {
                     if (answerInterval != null) {
@@ -3588,7 +3614,8 @@ function onload() {
                                 pElement.insertAdjacentHTML('afterend', '<p>' + subjectAverage + '</p>');
                             }
                         }
-                        if (first) {
+                        if (!AudioHasFired) {
+                            AudioHasFired = true;
                             if (correct) {
                                 try {
                                     new Audio('https://jonazwetsloot.nl/resources/correct.mp3').play();
@@ -3636,6 +3663,7 @@ function onload() {
                 case 4:
                 case 5:
                 case 6:
+                    music.volume = 1;
                     if (availablePages.length > 0) {
                         i = Math.round(Math.random() * (availablePages.length - 1));
                         availablePages[i]();
@@ -3658,7 +3686,7 @@ function onload() {
             setTimeout(startConfetti, 100);
             cn('recap-page', 0).innerHTML = '<h1>Gefeliciteerd!</h1><h2>Het jaar zit erop en de vakantie is al in zicht.</h2><h3>Veel plezier in de vakantie en hopelijk tot volgend jaar!</h3><a id="recap-nextpage">Sluiten</a>';
             id('recap-nextpage').addEventListener('click', function () {
-                if (platform == 'Android') {
+                               if (document.documentElement.clientWidth < 1280) {
                     window.location.href = 'https://leerling.somtoday.nl/cijfers';
                     return;
                 }
@@ -3872,7 +3900,12 @@ function onload() {
             }, 1000);
         }
         function busyYear() {
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            if (totalGrades > 15) {
+                cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar 😅</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Lekker rustig jaartje 😎</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van <i>' + totalWeight + '</i>!</h2><h3>Dat is relaxed door het jaar heen gaan!</h3><a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsHigh() {
@@ -3891,7 +3924,12 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at heb je toch goede cijfers gehaald</h1><h2>Toen je een <i>' + highest + '</i> haalde voor ' + highestName + ' was je echt de uitblinker van de klas.</h2>' + (secondHighest ? '<h3>En vergeet ook niet de <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' haalde!</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            if (highest >= 5.5 && (secondHighest == null || secondHighest >= 5.5)) {
+                cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at heb je toch goede cijfers gehaald </h1><h2>Toen je een <i>' + highest + '</i> haalde voor ' + highestName + ' was je echt de uitblinker van de klas ✨</h2>' + (secondHighest ? '<h3>En vergeet ook niet de <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' haalde!</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Laten we naar je cijfers kijken</h1><h2>Daar is wel wat ruimte voor verbetering 😅. Je hoogste cijfer is een <i>' + highest + '</i> voor ' + highestName + '.</h2>' + (secondHighest ? '<h3>En je op een na hoogste een <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' kreeg.</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsLow() {
@@ -3907,24 +3945,39 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>Soms was een toets vervelend</h1><h2>Sommige toetsen zijn veel te moeilijk. Zoals de toets waarbij je een <i>' + lowest + '</i> haalde voor ' + lowestName + '.</h2><h3>Gelukkig bleef je doorzetten en nu is je gemiddelde een <i>' + lowestAverage + '</i>!</h3><a id="recap-nextpage">Volgende</a>';
+            if (lowest < 5.5) {
+                cn('recap-page', 0).innerHTML = '<h1>Soms was een toets vervelend 😓</h1><h2>Sommige toetsen zijn veel te moeilijk. Zoals de toets waarbij je een <i>' + lowest + '</i> haalde voor ' + lowestName + '.</h2><h3>' + (lowestAverage < 5.5 ? 'Toch heb je dit nog wel wat omhoog weten te halen naar een <i>' + lowestAverage + '</i>.' : 'Gelukkig bleef je doorzetten en sta je nu toch voldoende met een gemiddelde van <i>' + lowestAverage + '</i>!') + '</h3><a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Wow, alleen maar voldoendes!</h1><h2>Je hebt geen enkele onvoldoende gekregen dit jaar 🥳! Je laagste cijfer was een <i>' + lowest + '</i> voor ' + lowestName + '.</h2><h3>Ondanks dat ' + lowestName + ' soms lastig is, is je gemiddelde voor dit vak een <i>' + lowestAverage + '</i>!</h3><a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function twoTrueOneFalse() {
                        let i = 0;
                        let averageSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let average = averageSubject.average;
+            let replacementSubject, replacement = 0;
+            if (n(average)) {
+                replacementSubject = averageSubject;
+                for (const cijfer of replacementSubject.grades) {
+                    replacement += cijfer.weging;
+                }
+            }
                        let gradeSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let grade = gradeSubject.grades[Math.round(Math.random() * (gradeSubject.grades.length - 1))].cijfer;
                        let amountSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let amount = amountSubject.gradeCount;
             let real;
             let random = Math.round(Math.random() * (3 - 1) + 1);
-            if (random == 2 && gradeSubject.systems.cijfers) {
-                random = 1;
-            }
             switch (random) {
                 case 1:
+                    if (replacementSubject) {
+                        real = replacement;
+                        const randomNumber = Math.floor(Math.random() * (3 - -3 + 1) + -3);
+                        replacement += randomNumber == 0 ? 1 : randomNumber;
+                        break;
+                    }
                     real = average;
                     if (isNaN(parseFloat(average))) {
                         let choices;
@@ -4022,7 +4075,7 @@ function onload() {
                     }
                     break;
             }
-            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet?</h2><label><input type="checkbox" id="recap-option-1"/><p>Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject.name + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject.name + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> ' + (amount == 1 ? 'cijfer' : 'cijfers') + ' voor ' + amountSubject.name + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
+            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet? 🤔</h2><label><input type="checkbox" id="recap-option-1"/><p>' + (replacementSubject ? 'Je cijfers voor ' + replacementSubject.name + ' hebben een totale weging van <span class="number">' + replacement + '</span><span class="correction"></span>' : 'Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject.name) + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject.name + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> ' + (amount == 1 ? 'cijfer' : 'cijfers') + ' voor ' + amountSubject.name + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
             let clicked = false;
             id('recap-nextpage').addEventListener('click', function () {
                 if (clicked) {
@@ -4125,7 +4178,7 @@ function onload() {
             if (overgang > 0 && overgang < 95) {
                 overgang += Math.floor(Math.random() * (5 + 1))
             }
-            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over!' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg!' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Oei, dat gaat nog spannend worden... Veel succes.' : 'Hopeloos dit... Ja je gaat denk ik niet over. Sorry.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
+            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over! ✅' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg! 🙃' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Oei, dat gaat nog spannend worden... Veel succes.' : 'Hopeloos dit... Ja je gaat denk ik niet over. Sorry.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             if (distribution[9] + distribution[8] + distribution[7] + distribution[6] + distribution[5] + distribution[4] + distribution[3] + distribution[2] + distribution[1] + distribution[0] == 0) {
                 id('recap-chart').remove();
@@ -4225,7 +4278,7 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>Doel gehaald!</h1><h2>Goed gedaan! Ook dit jaar is weer voorbij!</h2><h3>Hoeveel proefwerken en opdrachten heb je wel niet gemaakt? Veel.</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="300" height="300"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
+            cn('recap-page', 0).innerHTML = '<h1>Doel gehaald! 🎯</h1><h2>Goed gedaan! Ook dit jaar is weer voorbij!</h2><h3>Hoeveel proefwerken en opdrachten heb je wel niet gemaakt? Veel.</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="300" height="300"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
             Chart.defaults.color = '#fff';
             var recapCanvas = document.getElementById('recap-chart');
             var recapCtx = recapCanvas.getContext('2d');
@@ -4276,7 +4329,7 @@ function onload() {
             var recapChart = new Chart(recapCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['+', '-', '+/-'],
+                    labels: ['+', '-', '-/+'],
                     datasets: [{
                         data: [plus, min, plusmin],
                         backgroundColor: [

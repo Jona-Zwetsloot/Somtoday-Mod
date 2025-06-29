@@ -2137,6 +2137,7 @@ function onload() {
                 svg = 'M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z';
                 break;
             case 'map-location-dot':
+                viewbox = '0 0 576 512',
                 svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
                 break;
             case 'sun':
@@ -3373,6 +3374,9 @@ function onload() {
         if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
             tryRemove(id('somtoday-recap'));
         }
+        if (id('mod-recap-year')) {
+            id('mod-recap-year').innerText = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '$1') : year;
+        }
         if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
                 music = new Audio('https://jonazwetsloot.nl/resources/eona-emotional-ambient-pop-351436.mp3');
@@ -3381,7 +3385,8 @@ function onload() {
                 console.warn(e);
             }
             music.loop = true;
-            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van ' + year + '.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
+            const recapYear = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '$1') : year;
+            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
             // Open recap on click
             id('somtoday-recap').addEventListener('click', async function () {
                 music.currentTime = 0;
@@ -3394,10 +3399,11 @@ function onload() {
                 }
                 // Insert recap HTML
                 tn('html', 0).style.overflowY = 'hidden';
-                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2) + '</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
+                const recapYears = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+(\d\d)\/\d+(\d\d)$/, '$1/$2') : (year - 1).toString().substr((year - 1).toString().length - 2) + '/' + year.toString().substr(year.toString().length - 2);
+                id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="somtoday-recap-wrapper"><div id="recap-progress"></div><div id="recap-close">&times;</div><center class="recap-page"><h1>Somtoday Recap ' + recapYears + '</h1><h2>Het schooljaar zit er al weer bijna op! Hoog tijd voor de Somtoday Recap!</h2><a id="recap-nextpage">Laden...</a></center><ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>');
                 id('recap-close').addEventListener('click', function () {
-                    // overzicht page causes menu to disappear, just reload cijfers page to prevent this bug
-                    if (platform == 'Android') {
+                    // overzicht page causes menu to disappear on small devices, just reload cijfers page to prevent this bug
+                    if (document.documentElement.clientWidth < 1280) {
                         window.location.href = 'https://leerling.somtoday.nl/cijfers';
                         return;
                     }
@@ -3437,23 +3443,34 @@ function onload() {
                 // System names are made up by me, there is almost no information on the internet about these systems
                 gradingSystems = {
                     cijfers: false, // Just normal 1-10 numbers
-                    plusmin: false, // +, - (and +/- or -/+)
+                    plusmin: false, // +, - (and -/+ or -/+)
                     voortgang: false, // Afgerond, Bijna, Niet afgerond, Lopend, indicates student progress
                     letters: false, // Goed (8), Voldoende (6), Matig (5), Onvoldoende (4), etc, every letter has a corresponding number
                 };
 
                 // Open cijferoverzicht
                 if (n(tn('sl-cijfer-overzicht', 0))) {
+                    while (!window.navigator.onLine) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
                     tn('hmy-switch')[2].click();
                 }
 
-                for (i = 0; true; i++) {
+                while (true) {
                     if (closing) { return; }
                     // Check if cijferoverzicht is opened
                     if (tn('sl-cijfer-overzicht', 0) && cn('vak-row', 0)) {
                         break;
                     }
+                    // Try for 7.5 seconds, then try to open cijferoverzicht again
+                    if (i > 750) {
+                        i = 0;
+                        if (n(tn('sl-cijfer-overzicht', 0))) {
+                            tn('hmy-switch')[2].click();
+                        }
+                    }
                     await new Promise(resolve => setTimeout(resolve, 10));
+                    i++;
                 }
 
                 let totalAverageGrades = 0, totalAverageWeight = 0;
@@ -3573,6 +3590,15 @@ function onload() {
                     totalAverage = (totalAverageGrades / totalAverageWeight).toFixed(2);
                 }
                 console.log(gradedata);
+
+                if (gradedata.length == 0) {
+                    modMessage('Geen data', 'Het lijkt erop dat je nog geen cijfers hebt gekregen dit jaar. Probeer het later nog eens.', 'Doorgaan');
+                    id('mod-message-action1').addEventListener('click', function () {
+                        window.location.href = 'https://leerling.somtoday.nl/cijfers';
+                        closeModMessage();
+                    });
+                    return;
+                }
 
                 availablePages = [busyYear, twoTrueOneFalse, twoTrueOneFalse];
                 if (gradingSystems.cijfers) {
@@ -3720,6 +3746,7 @@ function onload() {
 
             let clicked = false;
             let answerInterval;
+            let AudioHasFired = false;
             id('recap-nextpage').addEventListener('click', function () {
                 if (clicked) {
                     if (answerInterval != null) {
@@ -3770,7 +3797,8 @@ function onload() {
                                 pElement.insertAdjacentHTML('afterend', '<p>' + subjectAverage + '</p>');
                             }
                         }
-                        if (first) {
+                        if (!AudioHasFired) {
+                            AudioHasFired = true;
                             if (correct) {
                                 try {
                                     new Audio('https://jonazwetsloot.nl/resources/correct.mp3').play();
@@ -3818,6 +3846,7 @@ function onload() {
                 case 4:
                 case 5:
                 case 6:
+                    music.volume = 1;
                     if (availablePages.length > 0) {
                         i = Math.round(Math.random() * (availablePages.length - 1));
                         availablePages[i]();
@@ -3841,8 +3870,8 @@ function onload() {
             setTimeout(startConfetti, 100);
             cn('recap-page', 0).innerHTML = '<h1>Gefeliciteerd!</h1><h2>Het jaar zit erop en de vakantie is al in zicht.</h2><h3>Veel plezier in de vakantie en hopelijk tot volgend jaar!</h3><a id="recap-nextpage">Sluiten</a>';
             id('recap-nextpage').addEventListener('click', function () {
-                // overzicht page causes menu to disappear, just reload cijfers page to prevent this bug
-                if (platform == 'Android') {
+                // overzicht page causes menu to disappear on small devices, just reload cijfers page to prevent this bug
+                if (document.documentElement.clientWidth < 1280) {
                     window.location.href = 'https://leerling.somtoday.nl/cijfers';
                     return;
                 }
@@ -4067,7 +4096,12 @@ function onload() {
             }, 1000);
         }
         function busyYear() {
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            if (totalGrades > 15) {
+                cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at was het toch een druk jaar 😅</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van maar liefst <i>' + totalWeight + '</i>!</h2><h3>Dat is wel een applausje waard!</h3><a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Lekker rustig jaartje 😎</h1><h2>Je hebt in totaal <i>' + totalGrades + '</i> ' + (totalGrades == 1 ? 'cijfer' : 'cijfers') + ' gekregen met een totale weging van <i>' + totalWeight + '</i>!</h2><h3>Dat is relaxed door het jaar heen gaan!</h3><a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsHigh() {
@@ -4086,7 +4120,12 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at heb je toch goede cijfers gehaald</h1><h2>Toen je een <i>' + highest + '</i> haalde voor ' + highestName + ' was je echt de uitblinker van de klas.</h2>' + (secondHighest ? '<h3>En vergeet ook niet de <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' haalde!</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            if (highest >= 5.5 && (secondHighest == null || secondHighest >= 5.5)) {
+                cn('recap-page', 0).innerHTML = '<h1>' + (pages > 1 ? 'En w' : 'W') + 'at heb je toch goede cijfers gehaald </h1><h2>Toen je een <i>' + highest + '</i> haalde voor ' + highestName + ' was je echt de uitblinker van de klas ✨</h2>' + (secondHighest ? '<h3>En vergeet ook niet de <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' haalde!</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Laten we naar je cijfers kijken</h1><h2>Daar is wel wat ruimte voor verbetering 😅. Je hoogste cijfer is een <i>' + highest + '</i> voor ' + highestName + '.</h2>' + (secondHighest ? '<h3>En je op een na hoogste een <i>' + secondHighest + '</i> die je voor ' + secondHighestName + ' kreeg.</h3>' : '') + '<a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function subjectsLow() {
@@ -4102,7 +4141,12 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>Soms was een toets vervelend</h1><h2>Sommige toetsen zijn veel te moeilijk. Zoals de toets waarbij je een <i>' + lowest + '</i> haalde voor ' + lowestName + '.</h2><h3>Gelukkig bleef je doorzetten en nu is je gemiddelde een <i>' + lowestAverage + '</i>!</h3><a id="recap-nextpage">Volgende</a>';
+            if (lowest < 5.5) {
+                cn('recap-page', 0).innerHTML = '<h1>Soms was een toets vervelend 😓</h1><h2>Sommige toetsen zijn veel te moeilijk. Zoals de toets waarbij je een <i>' + lowest + '</i> haalde voor ' + lowestName + '.</h2><h3>' + (lowestAverage < 5.5 ? 'Toch heb je dit nog wel wat omhoog weten te halen naar een <i>' + lowestAverage + '</i>.' : 'Gelukkig bleef je doorzetten en sta je nu toch voldoende met een gemiddelde van <i>' + lowestAverage + '</i>!') + '</h3><a id="recap-nextpage">Volgende</a>';
+            }
+            else {
+                cn('recap-page', 0).innerHTML = '<h1>Wow, alleen maar voldoendes!</h1><h2>Je hebt geen enkele onvoldoende gekregen dit jaar 🥳! Je laagste cijfer was een <i>' + lowest + '</i> voor ' + lowestName + '.</h2><h3>Ondanks dat ' + lowestName + ' soms lastig is, is je gemiddelde voor dit vak een <i>' + lowestAverage + '</i>!</h3><a id="recap-nextpage">Volgende</a>';
+            }
             id('recap-nextpage').addEventListener('click', closeRecapPage);
         }
         function twoTrueOneFalse() {
@@ -4111,6 +4155,13 @@ function onload() {
             // average
             let averageSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let average = averageSubject.average;
+            let replacementSubject, replacement = 0;
+            if (n(average)) {
+                replacementSubject = averageSubject;
+                for (const cijfer of replacementSubject.grades) {
+                    replacement += cijfer.weging;
+                }
+            }
             // grade
             let gradeSubject = gradedata[Math.round(Math.random() * (gradedata.length - 1))];
             let grade = gradeSubject.grades[Math.round(Math.random() * (gradeSubject.grades.length - 1))].cijfer;
@@ -4119,11 +4170,14 @@ function onload() {
             let amount = amountSubject.gradeCount;
             let real;
             let random = Math.round(Math.random() * (3 - 1) + 1);
-            if (random == 2 && gradeSubject.systems.cijfers) {
-                random = 1;
-            }
             switch (random) {
                 case 1:
+                    if (replacementSubject) {
+                        real = replacement;
+                        const randomNumber = Math.floor(Math.random() * (3 - -3 + 1) + -3);
+                        replacement += randomNumber == 0 ? 1 : randomNumber;
+                        break;
+                    }
                     real = average;
                     if (isNaN(parseFloat(average))) {
                         let choices;
@@ -4222,7 +4276,7 @@ function onload() {
                     }
                     break;
             }
-            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet?</h2><label><input type="checkbox" id="recap-option-1"/><p>Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject.name + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject.name + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> ' + (amount == 1 ? 'cijfer' : 'cijfers') + ' voor ' + amountSubject.name + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
+            cn('recap-page', 0).innerHTML = '<h1>Kies een van de opties.</h1><h2>Welke van de volgende opties klopt niet? 🤔</h2><label><input type="checkbox" id="recap-option-1"/><p>' + (replacementSubject ? 'Je cijfers voor ' + replacementSubject.name + ' hebben een totale weging van <span class="number">' + replacement + '</span><span class="correction"></span>' : 'Je staat een <span class="number">' + average + '</span><span class="correction"></span> voor ' + averageSubject.name) + '</p></label><label><input type="checkbox" id="recap-option-2"/><p>Je hebt een <span class="number">' + grade + '</span><span class="correction"></span> voor ' + gradeSubject.name + ' gehaald</p></label><label><input type="checkbox" id="recap-option-3"/><p>Je hebt <span class="number">' + amount + '</span><span class="correction"></span> ' + (amount == 1 ? 'cijfer' : 'cijfers') + ' voor ' + amountSubject.name + ' gehaald</p></label><a id="recap-nextpage">Controleren</a>';
             let clicked = false;
             id('recap-nextpage').addEventListener('click', function () {
                 if (clicked) {
@@ -4325,7 +4379,7 @@ function onload() {
             if (overgang > 0 && overgang < 95) {
                 overgang += Math.floor(Math.random() * (5 + 1))
             }
-            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over!' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg!' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Oei, dat gaat nog spannend worden... Veel succes.' : 'Hopeloos dit... Ja je gaat denk ik niet over. Sorry.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
+            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over! ✅' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg! 🙃' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Oei, dat gaat nog spannend worden... Veel succes.' : 'Hopeloos dit... Ja je gaat denk ik niet over. Sorry.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             if (distribution[9] + distribution[8] + distribution[7] + distribution[6] + distribution[5] + distribution[4] + distribution[3] + distribution[2] + distribution[1] + distribution[0] == 0) {
                 id('recap-chart').remove();
@@ -4425,7 +4479,7 @@ function onload() {
                     }
                 }
             }
-            cn('recap-page', 0).innerHTML = '<h1>Doel gehaald!</h1><h2>Goed gedaan! Ook dit jaar is weer voorbij!</h2><h3>Hoeveel proefwerken en opdrachten heb je wel niet gemaakt? Veel.</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="300" height="300"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
+            cn('recap-page', 0).innerHTML = '<h1>Doel gehaald! 🎯</h1><h2>Goed gedaan! Ook dit jaar is weer voorbij!</h2><h3>Hoeveel proefwerken en opdrachten heb je wel niet gemaakt? Veel.</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="300" height="300"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
             Chart.defaults.color = '#fff';
             var recapCanvas = document.getElementById('recap-chart');
             var recapCtx = recapCanvas.getContext('2d');
@@ -4476,7 +4530,7 @@ function onload() {
             var recapChart = new Chart(recapCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['+', '-', '+/-'],
+                    labels: ['+', '-', '-/+'],
                     datasets: [{
                         data: [plus, min, plusmin],
                         backgroundColor: [
