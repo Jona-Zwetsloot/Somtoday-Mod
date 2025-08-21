@@ -228,7 +228,7 @@ class MainActivity : ComponentActivity() {
                 isProgressBarShown = false
             }
             view.loadUrl("""javascript:(function loadEverything() {
-const version = 5.1;
+const version = 5.2;
 const platform = 'Android';
 const minified = false;
 let data;
@@ -1944,12 +1944,12 @@ function onload() {
         else {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");@font-face{font-family:modCustomFont;src:url("' + get('customfont') + '");}*{font-family:modCustomFont,"Open Sans",sans-serif !important;}</style>');
         }
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-feedback-bounce{animation:0.6s feedbackbounce 0.2s ease;}@keyframes feedbackbounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}60%{transform:translateY(-4px);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
+               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-range-preview{height:40px;width:40px;overflow:hidden;position:absolute;margin-left:250px;border:var(--thinnest-solid-neutral-normal);border-radius:6px;padding:7px;box-sizing:border-box;}.mod-range-preview svg{height:100% !important;}input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0 30px 10px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;display:inline-block;margin-right:15px;}.mod-custom-select select{display:none;}.select-selected{transition:background 0.2s ease;border-radius:6px;border:var(--thinnest-solid-neutral-normal) !important;background-color:var(--bg-elevated-weakest);}.select-selected:after{position:absolute;content:"";top:18px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover{background:var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--text-moderate) transparent;top:10px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline-offset:unset;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;transition:background 0.2s ease,border 0.2s ease;}#mod-message .mod-message-button:hover{background:var(--bg-primary-strong);}#mod-message .mod-message-button:focus,#mod-message .mod-message-button:hover{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus,#mod-message .mod-message-button.mod-button-discouraged:hover{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;}#mod-message.mod-animation-playing > center{opacity:0;transform:translateY(-300px);animation:0.4s modmessageslidein ease 0.15s forwards;}@keyframes modmessageslidein{0%{transform:translateY(-300px);opacity:0;}50%{opacity:1;}100%{transform:none;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000000;background:rgba(0,0,0,0.2);box-sizing:border-box;}#mod-message.mod-animation-playing{animation:0.2s modmessagebackground ease forwards;}#mod-message.mod-msg-closed{opacity:0;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}#mod-letterbeoordelingen{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:5px 15px;}#mod-letterbeoordelingen label{display:block;margin:5px 0;font-size:0.9em;text-wrap:nowrap;text-overflow:ellipsis;overflow:hidden;}#mod-letterbeoordelingen input{height:30px;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-actions{background:var(--bg-elevated-none);margin-left:-30px;padding:10px 30px;z-index:100;width:100%;margin-top:-10px;top:-5px;}.mod-setting-button{padding:10px 12px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:8px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
+               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-actions{background:var(--bg-elevated-none);margin-left:-30px;padding:10px 30px;z-index:100;width:100%;margin-top:-10px;top:-5px;}.mod-setting-button{padding:10px 12px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:8px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;color:var(--text-moderate) !important;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week .week,sl-studiewijzer-dag{position:relative;}@keyframes homeworkchecked{0%{margin-top:32px;position:absolute;width:calc(100% - 32px);z-index:15;}100%{margin-top:calc(64px * var(--mod-hours-to-move) + 28px);position:absolute;width:calc(100% - 32px);z-index:1;}}sl-studiewijzer-items.mod-added{margin-top:-4px;}.mod-huiswerk{margin-top:-4px;height:58px;position:relative;background:var(--bg-elevated-weakest);border-left:4px solid var(--fg-warning-normal);border-top:var(--thinnest-solid-neutral-normal);border-right:var(--thinnest-solid-neutral-normal);border-bottom:var(--thinnest-solid-neutral-normal);overflow:hidden;}.mod-huiswerk.mod-huiswerk-done:hover{border-top:var(--thinnest-solid-positive-normal);border-right:var(--thinnest-solid-positive-normal);border-bottom:var(--thinnest-solid-positive-normal);}.mod-huiswerk-animation{animation:homeworkchecked 0.3s ease;}.mod-huiswerk.mod-huiswerk-done{border-left:4px solid var(--fg-on-positive-weak);background:var(--bg-positive-weak);}.mod-huiswerk.mod-huiswerk-done svg{fill:var(--fg-on-positive-weak);opacity:0.6;}.mod-huiswerk.mod-huiswerk-done strong,.mod-huiswerk.mod-huiswerk-done p{text-decoration:line-through;color:var(--fg-on-positive-weak);opacity:.6;}.mod-huiswerk div{position:absolute;height:17px;width:17px;border:var(--thin-solid-neutral-strong);right:-25px;border-radius:var(--border-radius-normal);background:var(--bg-elevated-none);top:17px;transition:right 0.2s ease;}.mod-huiswerk:hover div{right:15px;}.mod-huiswerk:hover div:hover{border-color:var(--action-positive-normal);}.mod-huiswerk strong,.mod-huiswerk p{overflow:hidden;width:calc(100% - 20px);text-wrap:nowrap;text-overflow:ellipsis;font-weight:600;}.mod-huiswerk strong{font-size:14px;margin-top:-5px;display:block;margin-left:10px;color:var(--text-strong);}.mod-huiswerk p{margin:0 0 0 10px;font-size:12px;color:var(--text-weak);}.mod-huiswerk:hover strong,.mod-huiswerk:hover p{width:calc(100% - 55px);}.mod-huiswerk,.mod-add-homework{width:100%;border-radius:var(--border-radius-normal);box-sizing:border-box;padding:16px 0 16px 38px;cursor:pointer;}.mod-huiswerk.mod-before{margin-top:0;margin-bottom:-4px;}.mod-huiswerk:hover{border-top:var(--thinnest-solid-primary-normal);border-right:var(--thinnest-solid-primary-normal);border-bottom:var(--thinnest-solid-primary-normal);}.mod-add-homework{padding:8px 0 8px 38px;background:var(--mod-semi-transparant, var(--bg-elevated-none));border:2px dashed var(--bg-elevated-weak);color:var(--text-weak);}.mod-add-homework:hover{opacity:1;}.mod-huiswerk div svg{display:none;}.mod-huiswerk.mod-huiswerk-done div{background:var(--action-positive-normal);border-color:var(--action-positive-normal);}.mod-huiswerk.mod-huiswerk-done div svg{display:block;fill:var(--border-neutral-inverted);padding:2px 3px;}.mod-huiswerk>svg,.mod-add-homework svg{height:16px;position:absolute;margin-top:3px;margin-left:-22px;}.mod-huiswerk svg{fill:var(--fg-warning-normal);}.mod-add-homework svg{fill:var(--text-weak);height:16px;position:absolute;margin-top:3px;margin-left:-22px;}</style>');
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-background-wrapper{width:100%;}#mod-background-wrapper label svg{width:100%;height:100%;padding:50px 15px;box-sizing:border-box;}#mod-background-wrapper img:hover{filter:opacity(0.5);}#mod-background-wrapper label,#mod-background-wrapper img{cursor:pointer;height:150px;width:150px;background:var(--bg-elevated-none);border-radius:8px;object-fit:cover;display:inline-block;margin-right:15px;margin-bottom:15px;vertical-align:top;}.dodgerblue{color:dodgerblue;cursor:pointer;user-select:none;}.mod-background-preview{width:100%;height:175px;object-fit:cover;border-radius:12px;clip-path:inset(0 round 12px);}.mod-slider{display:inline-block;min-width:50%;}.mod-slider input,.mod-slider p{display:inline-block;margin:3px 15px 3px 0;vertical-align:middle;min-width:45px;}.mod-slider input{height:40px;background:var(--bg-elevated-none);}.mod-slider p:first-of-type{font-weight:700;min-width:115px;}.mod-background-type-content{padding:20px;background:var(--bg-elevated-weakest);border:1px solid rgba(0,0,0,0.1);border-bottom-left-radius:16px;border-bottom-right-radius:16px;}#mod-background-type{border:1px solid rgba(0,0,0,0.1);border-bottom:none;padding-top:3px;border-top-left-radius:16px;border-top-right-radius:16px;}#mod-background-type a{width:33.333%;display:inline-block;text-align:center;padding:10px 0;cursor:pointer;}#mod-background-type a.active{border-bottom:3px solid var(--fg-on-primary-weak);font-weight:700;}.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;aspect-ratio:18/13;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;overflow:hidden;text-wrap:nowrap;text-overflow:ellipsis;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{cursor:pointer;user-select:none;padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel .category:after{content:"";transform:rotate(45deg);border:solid var(--bg-primary-normal);border-width:0 3px 3px 0;display:inline-block;padding:3px;margin-left:15px;margin-top:8px;position:absolute;}#mod-setting-panel .category.collapsed{margin-bottom:-40px;}#mod-setting-panel .category:last-of-type{margin-bottom:20px;}#mod-setting-panel .category.collapsed:after{transform:rotate(225deg);margin-top:11px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-file-label.mod-drag-and-drop{border:5px solid var(--fg-on-primary-weak);font-weight:700;}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}#mod-setting-panel{padding:0 15px;}}@media (max-width:475px){#mod-background-wrapper label,#mod-background-wrapper img{width:calc(50% - 10px);margin-right:10px;}}</style>');
                if (get('layout') != 4 && ((get("backgroundtype") == 'image' && !n(get("background"))) || (get("backgroundtype") == 'color') || (get("backgroundtype") == 'slideshow' && !n(get("background0"))))) {
@@ -2139,9 +2139,6 @@ function onload() {
             case 'circle-info':
                 svg = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z';
                 break;
-            case 'comment-dots':
-                svg = 'M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 45.1 17.7 86.8 47.7 120.9c-1.9 24.5-11.4 46.3-21.4 62.9c-5.5 9.2-11.1 16.6-15.2 21.6c-2.1 2.5-3.7 4.4-4.9 5.7c-.6 .6-1 1.1-1.3 1.4l-.3 .3 0 0 0 0 0 0 0 0c-4.6 4.6-5.9 11.4-3.4 17.4c2.5 6 8.3 9.9 14.8 9.9c28.7 0 57.6-8.9 81.6-19.3c22.9-10 42.4-21.9 54.3-30.6c31.8 11.5 67 17.9 104.1 17.9zM128 208a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm128 0a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm96 32a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z';
-                break;
             case 'circle-exclamation':
                 svg = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24V264c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z';
                 break;
@@ -2288,10 +2285,10 @@ function onload() {
 
        function teacherNicknames() {
         if (!n(get('nicknames'))) {
-            const namearray = get('nicknames');
-            for (let i = 0; i < (namearray.length / 2); i++) {
-                const real = namearray[i][0];
-                const nick = namearray[i][1];
+            const namearray = JSON.parse(get('nicknames'));
+            for (const nickname of namearray) {
+                const real = nickname[0];
+                const nick = nickname[1];
                 if (real != '') {
                     const regex = new RegExp('(.*?)' + real.replace(/[.*+?^${"$"}{}()|[\]\\]/g, '\\${"$"}&') + '(.*?)', 'g');
                     const regexWhichPreservesIcons = new RegExp('(.*?)' + real.replace(/[.*+?^${"$"}{}()|[\]\\]/g, '\\${"$"}&') + '(.*?<hmy-?.*)', 'g');
@@ -2881,60 +2878,64 @@ function onload() {
         gradient.addColorStop(1, 'rgba(' + endcolor[0] + ',' + endcolor[1] + ',' + endcolor[2] + ',0)');
         for (const element of tn('sl-resultaat-item')) {
             if (!n(element.getElementsByClassName('cijfer')[0]) && !n(element.getElementsByClassName('cijfer')[0].children[0])) {
+                if (element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').match(/[0-9]+(\.[0-9]+)?/) == null) {
+                    continue;
+                }
+                const weging = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').match(/[0-9]+(\.[0-9]+)?/)[0]);
                 let grade = parseFloat(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
-                const weging = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.'));
 
-                if (!isNaN(weging)) {
-                    let dateObject;
-                    const dateString = n(element.getElementsByClassName('subtitel')[0]) ? '' : element.getElementsByClassName('subtitel')[0].innerHTML;
-                    if (dateString.indexOf('Vandaag') != -1) {
-                        dateObject = Date.now();
+                let dateObject;
+                const dateString = n(element.getElementsByClassName('subtitel')[0]) ? '' : element.getElementsByClassName('subtitel')[0].innerHTML;
+                if (dateString.indexOf('Vandaag') != -1) {
+                    dateObject = Date.now();
+                }
+                else if (dateString.indexOf('Gisteren') != -1) {
+                    dateObject = new Date(Date.now() - 86400000);
+                }
+                else {
+                                                          let englishDateString = dateString.replace('mrt', 'mar').replace('mei', 'may').replace('mei', 'may').replace('okt', 'oct');
+                                       if (englishDateString.match(".*?[0-9]{4}") == null) {
+                        englishDateString += ' ' + year;
                     }
-                    else if (dateString.indexOf('Gisteren') != -1) {
-                        dateObject = new Date(Date.now() - 86400000);
+                    dateObject = Date.parse(englishDateString);
+                }
+
+                if (isNaN(grade) && weging != 0) {
+                    let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
+                    const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
+                    if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
+                                               showLetterbeoordelingenMessage(letter);
+                    }
+                    else if (isNaN(letterbeoordelingen[letter])) {
+                                               continue;
                     }
                     else {
-                                                                      let englishDateString = dateString.replace('mrt', 'mar').replace('mei', 'may').replace('mei', 'may').replace('okt', 'oct');
-                                               if (englishDateString.match(".*?[0-9]{4}") == null) {
-                            englishDateString += ' ' + year;
-                        }
-                        dateObject = Date.parse(englishDateString);
+                                               grade = letterbeoordelingen[letter];
                     }
+                }
 
-                    if (isNaN(grade) && weging != 0) {
-                        let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
-                        const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
-                        if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
-                            showLetterbeoordelingenMessage(letter);
-                        }
-                        else {
-                            grade = letterbeoordelingen[letter];
-                        }
+                if (!isNaN(grade)) {
+                    if (dateObjects.length == 0) {
+                        points.push(grade);
+                        dates.push(dateString);
+                        dateObjects.push(dateObject);
+                        weight.push(weging);
                     }
-
-                    if (!isNaN(grade)) {
-                        if (dateObjects.length == 0) {
-                            points.push(grade);
-                            dates.push(dateString);
-                            dateObjects.push(dateObject);
-                            weight.push(weging);
-                        }
-                        else {
-                                                       for (let i = 0; i < dateObjects.length; i++) {
-                                if (dateObject <= dateObjects[i]) {
-                                    points.splice(i, 0, grade);
-                                    dates.splice(i, 0, dateString);
-                                    dateObjects.splice(i, 0, dateObject);
-                                    weight.splice(i, 0, weging);
-                                    break;
-                                }
-                                else if (i >= dateObjects.length - 1) {
-                                    points.push(grade);
-                                    dates.push(dateString);
+                    else {
+                                               for (let i = 0; i < dateObjects.length; i++) {
+                            if (dateObject <= dateObjects[i]) {
+                                points.splice(i, 0, grade);
+                                dates.splice(i, 0, dateString);
+                                dateObjects.splice(i, 0, dateObject);
+                                weight.splice(i, 0, weging);
+                                break;
+                            }
+                            else if (i >= dateObjects.length - 1) {
+                                points.push(grade);
+                                dates.push(dateString);
                                 dateObjects.push(dateObject);
-                                    weight.push(weging);
-                                    break;
-                                }
+                                weight.push(weging);
+                                break;
                             }
                         }
                     }
@@ -3053,9 +3054,7 @@ function onload() {
         }
         if (letterbeoordelingen) {
             for (const [key, value] of Object.entries(letterbeoordelingen)) {
-                if (list[key] == null) {
-                    list[key] = [null, value];
-                }
+                list[key] = [list[key] ? list[key][0] : key, value];
             }
         }
         if (letter != null && list[letter] == null) {
@@ -3070,53 +3069,61 @@ function onload() {
             if (letterbeoordelingen == null) {
                 letterbeoordelingen = {};
             }
-            for (const element of cn('mod-letterbeoordelingen-letter')) {
+                       for (const element of cn('mod-letterbeoordelingen-letter')) {
                 if (!isNaN(parseFloat(element.value))) {
                     letterbeoordelingen[element.dataset.modLetter] = element.value;
                 }
+                else {
+                                       letterbeoordelingen[element.dataset.modLetter] = '-';
+                }
             }
+            console.log(letterbeoordelingen);
             set('letterbeoordelingen', JSON.stringify(letterbeoordelingen));
             closeModMessage();
-            window.location.reload();
         });
         id('mod-message-action2').addEventListener('click', function () {
-            if (letterbeoordelingen == null) {
+                       if (letterbeoordelingen == null) {
                 letterbeoordelingen = {};
             }
             for (const element of cn('mod-letterbeoordelingen-letter')) {
-                letterbeoordelingen[element.dataset.modLetter] = '-';
+                               letterbeoordelingen[element.dataset.modLetter] = '-';
             }
             set('letterbeoordelingen', JSON.stringify(letterbeoordelingen));
             closeModMessage();
-            window.location.reload();
         });
     }
 
     function calculateAverage() {
         let total = 0;
         let weight = 0;
-        for (const element of tn('sl-resultaat-item')) {
-            if (!n(element.getElementsByClassName('cijfer')[0]) && !n(element.getElementsByClassName('cijfer')[0].children[0]) && !n(element.getElementsByClassName('weging')[0])) {
+        for (const element of document.getElementsByTagName('sl-resultaat-item')) {
+                       if (!n(element.getElementsByClassName('cijfer')[0]) && !n(element.getElementsByClassName('cijfer')[0].children[0]) && !n(element.getElementsByClassName('weging')[0])) {
+
+                                              if (element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').match(/[0-9]+(\.[0-9]+)?/) == null) {
+                    continue;
+                }
+                const tempWeight = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.replace(',', '.').match(/[0-9]+(\.[0-9]+)?/)[0]);
                 const tempGrade = parseFloat(element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.'));
-                const tempWeight = parseFloat(element.getElementsByClassName('weging')[0].innerHTML.substring(0, element.getElementsByClassName('weging')[0].innerHTML.length - 1));
-                if (!isNaN(tempWeight)) {
-                    if (isNaN(tempGrade)) {
-                        if (weight != 0) {
-                            let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
-                            const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
-                            if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
-                                showLetterbeoordelingenMessage(letter);
-                            }
-                            else {
-                                total += letterbeoordelingen[letter] * tempWeight;
-                                weight += tempWeight;
-                            }
+
+                               if (isNaN(tempGrade)) {
+                                       if (tempWeight != 0) {
+                        let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
+                        const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
+                        if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
+                                                       showLetterbeoordelingenMessage(letter);
+                        }
+                        else if (isNaN(letterbeoordelingen[letter])) {
+                                                       continue;
+                        }
+                        else {
+                                                       total += letterbeoordelingen[letter] * tempWeight;
+                            weight += tempWeight;
                         }
                     }
-                    else {
-                        total += tempGrade * tempWeight;
-                        weight += tempWeight;
-                    }
+                }
+                else {
+                    total += tempGrade * tempWeight;
+                    weight += tempWeight;
                 }
             }
         }
@@ -3199,6 +3206,14 @@ function onload() {
     let totalWeight = 0;
     let availablePages = [];
     let music;
+    function getAudioUrl(file) {
+                      if (platform == 'Userscript' || platform == 'Android') {
+            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.mp3';
+        }
+        else {
+            return chrome.runtime.getURL(file + '.mp3');
+        }
+    }
     function somtodayRecap() {
         if (!ignoreRecapConditions) {
             if (get('bools').charAt(12) == "0") {
@@ -3218,7 +3233,7 @@ function onload() {
         }
         if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
-                music = new Audio('https://jonazwetsloot.nl/resources/eona-emotional-ambient-pop-351436.mp3');
+                music = new Audio(getAudioUrl('background'));
             }
             catch (e) {
                 console.warn(e);
@@ -3338,7 +3353,14 @@ function onload() {
                         subject.icon = element.getElementsByTagName('hmy-vak-icon')[0].getElementsByTagName('svg')[0].outerHTML;
                     }
                     if (element.getElementsByClassName('cijfer gemiddelde')[1]) {
-                        const average = element.getElementsByClassName('cijfer gemiddelde')[element.getElementsByClassName('cijfer gemiddelde').length - 2].innerText.replace(',', '.');
+                        let primaryAverage;
+                        for (const gemiddelde of element.getElementsByClassName('cijfer gemiddelde')) {
+                            if (gemiddelde.innerText.indexOf(',') != -1 || gemiddelde.innerText.indexOf('.') != -1) {
+                                primaryAverage = gemiddelde.innerText.replace(',', '.');
+                            }
+                        }
+                        const secondaryAverage = element.getElementsByClassName('cijfer gemiddelde')[element.getElementsByClassName('cijfer gemiddelde').length - 2].innerText.replace(',', '.');
+                        const average = primaryAverage ? primaryAverage : secondaryAverage;
                         subject.average = isNaN(parseFloat(average)) ? average : parseFloat(average);
                         if (!isNaN(parseFloat(subject.average))) {
                             totalAverageGrades += Math.round(parseFloat(subject.average));
@@ -3426,7 +3448,15 @@ function onload() {
                     availablePages.push(subjectsHigh);
                     availablePages.push(guessTheGraph);
                     availablePages.push(onvoldoendeGraph);
-                    availablePages.push(overgangsCheck);
+                    i = 0;
+                    for (const subject of gradedata) {
+                        if (!isNaN(subject.average)) {
+                            i++;
+                        }
+                    }
+                    if (i > 5 && totalGrades > 10) {
+                        availablePages.push(overgangsCheck);
+                    }
                     for (const subject of gradedata) {
                         if (!isNaN(subject.average)) {
                             availablePages.push(orderSubjects);
@@ -3618,7 +3648,7 @@ function onload() {
                             AudioHasFired = true;
                             if (correct) {
                                 try {
-                                    new Audio('https://jonazwetsloot.nl/resources/correct.mp3').play();
+                                    new Audio(getAudioUrl('correct')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -3628,7 +3658,7 @@ function onload() {
                             }
                             else {
                                 try {
-                                    new Audio('https://jonazwetsloot.nl/resources/error.mp3').play();
+                                    new Audio(getAudioUrl('error')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -3892,7 +3922,7 @@ function onload() {
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             setTimeout(function () {
                 try {
-                    new Audio('https://jonazwetsloot.nl/resources/tada.mp3').play();
+                    new Audio(getAudioUrl('tada')).play();
                 }
                 catch (e) {
                     console.warn(e);
@@ -4094,7 +4124,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.getElementsByClassName('correction')[0].innerHTML = ' ' + real;
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio('https://jonazwetsloot.nl/resources/correct.mp3').play();
+                        new Audio(getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4104,7 +4134,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio('https://jonazwetsloot.nl/resources/error.mp3').play();
+                        new Audio(getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4178,7 +4208,7 @@ function onload() {
             if (overgang > 0 && overgang < 95) {
                 overgang += Math.floor(Math.random() * (5 + 1))
             }
-            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over! ✅' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg! 🙃' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Oei, dat gaat nog spannend worden... Veel succes.' : 'Hopeloos dit... Ja je gaat denk ik niet over. Sorry.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
+            overgang = Math.max(overgang, 5);            overgang = Math.min(overgang, 99);            cn('recap-page', 0).innerHTML = '<h1>' + overgang + '% kans om over te gaan</h1><h2>' + (overgang == 100 ? 'Met deze flawless cijferlijst ga je natuurlijk zeker weten over! ✅' : (overgang > 75 ? 'Prima gedaan! Af en toe een onvoldoende staan kan gebeuren, maar dat zit jou nooit in de weg! 🙃' : (overgang > 50 ? 'Redelijke cijferlijst, al voldoe je niet aan alle overgangsnormen.' : (overgang >= 25 ? 'Hmm, dat gaat een taai overgangsgesprek worden. Maar jij kan dit! Veel succes!' : 'Hmm, dat gaat een taai overgangsgesprek worden. Hopelijk komt het goed voor je.')))) + '</h3><br><br><div id="recap-chart-wrapper"><canvas id="recap-chart" width="350" height="350"></canvas></div><a id="recap-nextpage">Doorgaan</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             if (distribution[9] + distribution[8] + distribution[7] + distribution[6] + distribution[5] + distribution[4] + distribution[3] + distribution[2] + distribution[1] + distribution[0] == 0) {
                 id('recap-chart').remove();
@@ -4414,7 +4444,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.classList.add('right');
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio('https://jonazwetsloot.nl/resources/correct.mp3').play();
+                        new Audio(getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4424,7 +4454,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio('https://jonazwetsloot.nl/resources/error.mp3').play();
+                        new Audio(getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4510,7 +4540,7 @@ function onload() {
             nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
             const updatechecker = (platform == 'Userscript' || platform == 'Android') ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
             const updateinfo = (platform == 'Userscript' || platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" id="information-about-mod"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" id="mod-feedback"><span>' + getIcon('comment-dots', 'mod-feedback-bounce', 'var(--text-moderate)') + 'Feedback geven</span></a><a class="mod-setting-button" tabindex="0" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
+            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" href="https://jonazwetsloot.nl/projecten/somtoday-mod" target="_blank"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" href="https://github.com/Jona-Zwetsloot/Somtoday-Mod/issues" target="_blank" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
                 '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
                 '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
                 '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
@@ -4759,13 +4789,6 @@ function onload() {
                 });
                 id('mod-message-action2').addEventListener('click', closeModMessage);
             });
-            id('information-about-mod').addEventListener('click', function () {
-                modMessage('Informatie', '</p><h3>Over</h3><p>Somtoday Mod is een gratis ' + (platform == 'Userscript' ? 'userscript dat' : (platform == 'Android' ? 'Android-app die' : 'browserextensie die')) + ' de website van Somtoday aanpast. Het verbetert het uiterlijk van Somtoday en voegt opties zoals achtergronden, lettertypes, kleuren, layout en meer toe. Somtoday Mod is niet geaffilieerd met Somtoday/Topicus.</p><br><h3>Versieinformatie</h3><p>Somtoday Mod ' + platform + ' v' + version + ' met ' + (n(somtodayversion) ? 'een onbekende versie van Somtoday' : 'Somtoday ' + somtodayversion) + '</p><br><h3>Privacybeleid & Source code</h3><p>Het privacybeleid is <a href="https://jonazwetsloot.nl/somtoday-mod-privacy-policy" target="_blank">hier</a> te vinden. De GitHub repo is <a href="https://github.com/Jona-Zwetsloot/Somtoday-Mod" target="_blank">hier</a> te vinden.</p><br><h3>Copyright</h3><p>&copy; 2023 - 2025 Jona Zwetsloot, gelicentieerd onder <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a>.</p>', 'Meer informatie', 'Terug');
-                id('mod-message-action1').addEventListener('click', function () { window.open('https://jonazwetsloot.nl/projecten/somtoday-mod', '_blank'); });
-                id('mod-message-action2').addEventListener('click', closeModMessage);
-            });
-            id('mod-bug-report').addEventListener('click', function () { execute([prepareBugReport]) });
-            id('mod-feedback').addEventListener('click', function () { execute([feedback]) });
             if (platform == 'Userscript' || platform == 'Android') {
                 id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
             }
@@ -5343,117 +5366,6 @@ function onload() {
         }).catch((response) => {
             modMessage('Fout', 'Er kon niet op updates worden gechecked. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
             id('mod-message-action1').addEventListener('click', closeModMessage);
-        });
-    }
-
-       function feedback() {
-        modMessage('Feedback geven', 'Heb je suggesties voor verbeteringen of een heel goed idee voor Somtoday Mod? Dan kan je hier feedback geven.</p><textarea placeholder="Schrijf hier je feedback." id="mod-feedback-message"></textarea><p>', 'Verstuur', 'Terug');
-        id('mod-message-action1').addEventListener('click', function () {
-            hide(id('mod-message-action1'));
-            hide(id('mod-message-action2'));
-            if (n(id('mod-feedback-message').value)) {
-                closeModMessage();
-                setTimeout(function () {
-                    modMessage('Fout', 'Voer een tekst in.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { closeModMessage(); setTimeout(function () { if (!n(id('mod-feedback'))) { id('mod-feedback').click(); } }, 305); });
-                }, 310);
-            }
-            else {
-                let formData = new FormData();
-                formData.append('message', id('mod-feedback-message').value);
-                fetch('https://jonazwetsloot.nl/somtoday-mod-feedback', { method: 'POST', body: formData }).then(function (response) {
-                    if (response.ok) {
-                        return response.text();
-                    }
-                    return Promise.reject(response);
-                }).then(text => {
-                    closeModMessage();
-                    if (text == 'Sent') {
-                        setTimeout(function () {
-                            modMessage('Verstuurd!', 'Je feedback is verstuurd.', 'Oke');
-                            id('mod-message-action1').addEventListener('click', closeModMessage);
-                        }, 310);
-                    } else {
-                        setTimeout(function () {
-                            modMessage('Fout', 'De server kon je feedback niet verwerken.', 'Oke');
-                            id('mod-message-action1').addEventListener('click', closeModMessage);
-                        }, 310);
-                    }
-                }).catch((response) => {
-                    closeModMessage();
-                    setTimeout(function () {
-                        modMessage('Fout', 'Je feedback kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                        id('mod-message-action1').addEventListener('click', closeModMessage);
-                    }, 310);
-                });
-            }
-        });
-        id('mod-message-action2').addEventListener('click', closeModMessage);
-    }
-
-       function prepareBugReport() {
-        modMessage('Bug melden', 'Heb je een bug ontdekt? Dan kan je die hier melden. Alle bugs zijn openbaar te bekijken <a href="https://jonazwetsloot.nl/bugs/somtoday-mod" target="_blank">op deze pagina</a>.</p><input type="text" placeholder="Korte beschrijving van bug" id="mod-bug-details"><div class="br"></div><textarea placeholder="Uitgebreidere beschrijving van bug" id="mod-bug-title"></textarea><p style="margin-top: 20px; margin-bottom: -5px;">Screenshot (optioneel)</p><div><label style="margin-top: 15px;" class="mod-file-label" for="mod-bug-screenshot">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p style="display: inline;">Kies een bestand</p></label><input oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if (this.files[0][\'type\'].indexOf(\'image\') != -1) { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input" type="file" accept="image/*" id="mod-bug-screenshot"/></div><p>', 'Verstuur', 'Terug');
-        id('mod-message-action1').addEventListener('click', function () {
-            hide(id('mod-message-action1'));
-            hide(id('mod-message-action2'));
-            if (n(id('mod-bug-title').value) || n(id('mod-bug-details').value)) {
-                closeModMessage();
-                setTimeout(function () {
-                    modMessage('Fout', 'Voer ten minste beide tekstvelden in.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', function () { closeModMessage(); setTimeout(function () { if (!n(id('mod-bug-report'))) { id('mod-bug-report').click(); } }, 305); });
-                }, 310);
-            }
-            else {
-                let formData = new FormData();
-                formData.append('title', id('mod-bug-details').value);
-                formData.append('message', id('mod-bug-title').value);
-                formData.append('product', 'Somtoday Mod');
-                formData.append('version', version);
-                formData.append('platform', platform);
-                if (!n(id('mod-bug-screenshot').files[0])) {
-                    let reader = new FileReader();
-                    reader.readAsDataURL(id('mod-bug-screenshot').files[0]);
-                    reader.onload = function () {
-                        formData.append('screenshot', reader.result);
-                        sendBugReport(formData);
-                    };
-                }
-                else {
-                    sendBugReport(formData);
-                }
-                id('mod-bug-title').value = '';
-                id('mod-bug-details').value = '';
-            }
-        });
-        id('mod-message-action2').addEventListener('click', closeModMessage);
-    }
-
-       function sendBugReport(formData) {
-        fetch('https://jonazwetsloot.nl/somtoday-mod-error', { method: 'POST', body: formData }).then(function (response) {
-            if (response.ok) {
-                return response.text();
-            }
-            return Promise.reject(response);
-        }).then(text => {
-            closeModMessage();
-            if (text == 'Success') {
-                setTimeout(function () {
-                    modMessage('Verstuurd!', 'Je bugreport is verstuurd.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', closeModMessage);
-                }, 310);
-            } else {
-                setTimeout(function () {
-                    modMessage('Fout', 'De server kon de request niet verwerken.', 'Oke');
-                    id('mod-message-action1').addEventListener('click', closeModMessage);
-                }, 310);
-            }
-        }).catch((response) => {
-            closeModMessage();
-            setTimeout(function () {
-                modMessage('Fout', 'Je bugreport kon niet worden verstuurd. Het kan zijn dat de server van Somtoday Mod down is of dat je wifi uitstaat.', 'Oke');
-                id('mod-message-action1').addEventListener('click', closeModMessage);
-                id('mod-message-action1').addEventListener('click', closeModMessage);
-            }, 310);
         });
     }
 

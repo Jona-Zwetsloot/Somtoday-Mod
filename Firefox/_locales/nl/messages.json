@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v5.0"
+    "message": "Somtoday Mod Firefox v5.2"
   },
   "newOne": {
-    "message": "Somtoday Recap crasht nu niet meer bij vakken zonder cijfers 😎👍"
+    "message": "De docent-nicknames werken eindelijk weer (en nu ECHT) 🥳"
   },
   "newTwo": {
-    "message": "De docent-nicknames werken EINDELIJK weer 🥳"
+    "message": "Letterbeoordelingen worden nu goed opgeslagen 🔤"
   },
   "newThree": {
-    "message": "Wachtwoord zit nu niet meer in een instellingen export, wel zo veilig 🔑"
+    "message": "Bug reporting verplaatst naar Github 🪲"
   },
   "extName": {
     "message": "Somtoday Mod"

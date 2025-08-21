@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extName__",
-  "version": "5.1",
+  "version": "5.2",
   "manifest_version": 3,
   "description": "__MSG_extDescription__",
   "default_locale": "nl",
@@ -29,6 +29,12 @@
     "scripts": ["sw.js"],
     "type": "module"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["background.mp3", "tada.mp3", "error.mp3", "correct.mp3"],
+      "matches": ["*://*.somtoday.nl/*"]
+    }
+  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "somtodaymod@jonazwetsloot.nl",

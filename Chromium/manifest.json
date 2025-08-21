@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extName__",
-  "version": "5.1",
+  "version": "5.2",
   "manifest_version": 3,
   "description": "__MSG_extDescription__",
   "default_locale": "nl",
@@ -28,5 +28,11 @@
   "background": {
     "service_worker": "sw.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["background.mp3", "tada.mp3", "error.mp3", "correct.mp3"],
+      "matches": ["*://*.somtoday.nl/*"]
+    }
+  ],
   "minimum_chrome_version": "120"
 }

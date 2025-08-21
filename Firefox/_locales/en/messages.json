@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v5.0"
+    "message": "Somtoday Mod Firefox v5.2"
   },
   "newOne": {
-    "message": "Somtoday Recap no longer crashes when it encounters a subject without any grades 😎👍"
+    "message": "Teacher nicknames finally working again (and now REALLY) 🥳"
   },
   "newTwo": {
-    "message": "The teacher nicknames are FINALLY working again 🥳"
+    "message": "Letter reviews are now properly saved 🔤"
   },
   "newThree": {
-    "message": "Password is now no longer included in settings exports, so now you can share your exports 🔑"
+    "message": "Bug reporting moved to Github 🪲"
   },
   "extName": {
     "message": "Somtoday Mod"
