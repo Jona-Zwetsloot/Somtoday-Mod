@@ -20,6 +20,10 @@
       "scripts/main_functions.js",
       "scripts/execute_after_page_load.js"
     ],
+    "css": [
+      "css/night.css",
+      "css/styles.css"
+    ],
     "matches": ["*://*.somtoday.nl/*", "*://som.today/*"],
     "run_at": "document_end"
   }],
@@ -38,7 +42,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["sounds/background.mp3", "sounds/tada.mp3", "sounds/error.mp3", "sounds/correct.mp3"],
+      "resources": ["sounds/background.mp3", "sounds/tada.mp3", "sounds/error.mp3", "sounds/correct.mp3", "version_info.json", "settings_content/familiair.html", "settings_content/modern.html", "images/dark-mode.svg"],
       "matches": ["*://*.somtoday.nl/*"]
     }
   ],

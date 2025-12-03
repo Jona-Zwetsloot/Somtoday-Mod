@@ -61,3 +61,64 @@ function toBrightnessValue(color, target) {
     }
     return color;
 }
+function addNightTheme() {
+    const blokDiv = document.querySelector('div.blok');
+    const darkDiv = blokDiv.querySelector('div[data-gtm="instellingen-weergave-theme-dark-mode"]');
+    const darkImage = blokDiv.querySelector('input[value="dark"]')?.parentElement.querySelector('img');
+    if (darkImage) darkImage.src = chrome.runtime.getURL('images/dark-mode.svg');
+    const nightDiv = document.createElement('div');
+    nightDiv.setAttribute('_ngcontent-ng-c4136085133', '');
+    nightDiv.setAttribute('data-gtm', 'instellingen-weergave-theme-dark-mode');
+    nightDiv.setAttribute('tabindex', '0');
+    nightDiv.setAttribute('aria-label', 'Weergave Nacht');
+    nightDiv.setAttribute('role', 'radio');
+    nightDiv.setAttribute('class', 'container dark right');
+    nightDiv.setAttribute('aria-checked', 'false');
+    nightDiv.innerHTML = `
+        <img _ngcontent-ng-c4136085133="" src="../../assets/svg/darkmode.svg" alt="nacht">
+        <label _ngcontent-ng-c4136085133="" title="Deze optie is experimenteel, deze optie kan veranderd of verwijderd worden in de toekomst. Deze optie is ook niet van Somtoday zelf, maar van Somtoday Mod.">Nacht <span class="experimental">*</span></label>
+        <input _ngcontent-ng-c4136085133="" type="radio" name="thema" value="night" tabindex="-1" class="ng-untouched ng-pristine ng-valid">
+    `;
+    darkDiv.insertAdjacentElement('afterend', nightDiv);
+    const allRadios = blokDiv.querySelectorAll('input[type="radio"][name="thema"]');
+    const html = document.documentElement;
+    const currentTheme = ['light', 'dark', 'night'].find(t => html.classList.contains(t));
+    if (currentTheme) {
+        const activeRadio = Array.from(allRadios).find(r => r.value === currentTheme);
+        if (activeRadio) activeRadio.checked = true;
+    }
+    function updateTheme() {
+        const html = document.documentElement;
+        allRadios.forEach(r => {
+            r.parentElement.setAttribute('aria-checked', r.checked ? 'true' : 'false');
+        });
+        html.classList.remove('light', 'dark', 'night');
+        const checkedRadio = Array.from(allRadios).find(r => r.checked);
+        if (checkedRadio) {
+            html.classList.add(checkedRadio.value);
+            set('theme', checkedRadio.value);
+        }
+    }
+    updateTheme();
+    allRadios.forEach(r => {
+        const div = r.parentElement;
+        div.addEventListener('click', () => {
+            r.checked = true;
+            updateTheme();
+        });
+    });
+}
+const waitForTabs = new MutationObserver((mutations, obs) => {
+    const tabs = document.querySelectorAll('sl-account-modal-tab');
+    if (tabs.length >= 2) {
+        obs.disconnect();
+        const secondTab = tabs[1];
+        const tabObserver = new MutationObserver(() => {
+            if (secondTab.getAttribute('aria-selected') === 'true') {
+                addNightTheme();
+            }
+        });
+        tabObserver.observe(secondTab, { attributes: true });
+    }
+});
+waitForTabs.observe(document.body, { childList: true, subtree: true });

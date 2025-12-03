@@ -1,10 +1,18 @@
 // MAIN FUNCTIONS
+
 function onload() {
 
     // Write message in the console
     function consoleMessage() {
         setTimeout(console.log.bind(console, "%cSomtoday Mod is geactiveerd!", "color:#0067c2;font-weight:bold;font-family:Arial;font-size:26px;"));
-        setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\n© Jona Zwetsloot | " + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + " van Somtoday | Versie " + version + " van Somtoday Mod " + window.platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
+        setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\n© Jona Zwetsloot | " + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + " van Somtoday | Versie " + version_name + " van Somtoday Mod " + window.platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
+    }
+
+    const theme = get('theme');
+    if (theme) {
+        const html = document.documentElement;
+        html.classList.remove('light', 'dark', 'night');
+        html.classList.add(theme);
     }
 
     function editGrades() {
@@ -20,7 +28,7 @@ function onload() {
 
     function easterEggs() {
         if (n(id('mod-easter-eggs'))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s linear logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
             let i = 0;
             let j = 0;
             let k = 0;
@@ -1087,7 +1095,7 @@ function onload() {
             }
         }
         // Save current version for update checks in future versions
-        set('version', version);
+        set('version', window.version);
     }
 
     // Update the CSS variables used by Somtoday and Somtoday Mod
@@ -2563,6 +2571,7 @@ function onload() {
                         tn('html', 0).style.overflowX = 'hidden';
                         tn('html', 0).style.overflowY = 'scroll';
                         window.isRecapping = false;
+                        document.exitFullscreen();
                         setTimeout(() => { closing = false; }, 200);
                         endMusic();
                     });
@@ -3049,6 +3058,7 @@ function onload() {
                     endMusic();
                 }, 550);
                 window.isRecapping = false;
+                document.exitFullscreen();
             });
             return;
         }
@@ -3818,10 +3828,6 @@ function onload() {
         }
     }
 
-
-
-
-
     // 8 - MODSETTINGS
 
     // Open modsettings
@@ -3883,19 +3889,95 @@ function onload() {
             }
             nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
             const updatechecker = (window.platform == 'Userscript' || window.platform == 'Android') ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
-            const updateinfo = (window.platform == 'Userscript' || window.platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
-            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" href="https://jonazwetsloot.nl/projecten/somtoday-mod" target="_blank"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" href="https://github.com/Jona-Zwetsloot/Somtoday-Mod/issues" target="_blank" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
-                '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
-                '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', window.darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
-                '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
-                '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div></div></div>' +
-                '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
-                '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div><div id="username-wrapper"><h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div></div><div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + (n(get('customfontname')) ? get("fontname") : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')) + '</option><option>' + (window.fonts || []).join('</option><option>')
- + '</option></select></div><label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Of upload lettertype</p></label><input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt"><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '<div class="br"></div><div class="br"></div><div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(14) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(14) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(14) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div><div class="br"></div><div class="br"></div><div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>' + '</div>' +
-                '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + (window.platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + (window.platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true) + '</div>' +
-                (window.platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (window.platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>') +
-                '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + (get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld vanwege een mislukte inlogpoging. Verbeter je inloggegevens om autologin weer in te schakelen.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '') + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt met SSO).', 'loginpass', 'password', '', '') + '</div>' +
-                '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + window.platform + '</span>!</p>' + updateinfo + (window.platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json"></div>') + '<div class="br"></div></div>');
+            const updateinfo = (window.platform == 'Userscript' || window.platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + window.platform + '.</p>';
+            
+            let settingsContent = getSettingsFile(get('settings_type'));
+
+            const replacements = {
+                '{{icon_floppy_disk}}': getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
+                '{{icon_rotate_left}}': getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
+                '{{icon_circle_info}}': getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
+                '{{icon_circle_exclamation}}': getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
+                '{{icon_upload}}': getIcon('upload', null, 'var(--fg-on-primary-weak)'),
+                '{{updatechecker}}': updatechecker,
+                '{{addSetting_primarycolor}}': addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2'),
+                '{{addSetting_secondarycolor}}': addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2'),
+                '{{backgroundtype_image_active}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'active' : '',
+                '{{backgroundtype_slideshow_active}}': get('backgroundtype') == 'slideshow' ? 'active' : '',
+                '{{backgroundtype_color_active}}': get('backgroundtype') == 'color' ? 'active' : '',
+                '{{display_bg_image}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none',
+                '{{display_mod_filters}}': n(get('background')) ? 'display:none;' : '',
+                '{{video_style}}': n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';',
+                '{{video_src}}': (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? get('background') : '',
+                '{{image_style}}': (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;' : ''),
+                '{{image_src}}': (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')),
+                '{{addSlider_brightness}}': addSlider('Helderheid', 'brightness', 0, 200, '%', 100),
+                '{{addSlider_contrast}}': addSlider('Contrast', 'contrast', 0, 200, '%', 100),
+                '{{addSlider_saturate}}': addSlider('Verzadiging', 'saturate', 0, 200, '%', 100),
+                '{{addSlider_opacity}}': addSlider('Opacity', 'opacity', 0, 100, '%', 100),
+                '{{addSlider_huerotate}}': addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0),
+                '{{addSlider_grayscale}}': addSlider('Grayscale', 'grayscale', 0, 100, '%', 0),
+                '{{addSlider_sepia}}': addSlider('Sepia', 'sepia', 0, 100, '%', 0),
+                '{{addSlider_invert}}': addSlider('Invert', 'invert', 0, 100, '%', 0),
+                '{{addSlider_blur}}': addSlider('Blur', 'blur', 0, 200, 'px', 0),
+                '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*'),
+                '{{display_bg_slideshow}}': get('backgroundtype') == 'slideshow' ? 'block' : 'none',
+                '{{backgroundHTML}}': backgroundHTML,
+                '{{display_bg_color}}': get('backgroundtype') == 'color' ? 'block' : 'none',
+                '{{addSetting_backgroundcolor}}': addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', window.darkmode ? '#20262d' : '#ffffff'),
+                '{{addSetting_ui_transparency}}': addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
+                '{{addSetting_ui_blur}}': addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur'),
+                '{{theme_wrapper}}': '',
+                '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
+                '{{layout_2}}': '<div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div>',
+                '{{layout_3}}': '<div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div>',
+                '{{layout_4}}': '<div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div>',
+                '{{layout_5}}': '<div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div>',
+                '{{menu_settings}}': addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false),
+                '{{nicknames}}': nicknames,
+                '{{username_wrapper}}': '<h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div>',
+                '{{font_settings}}': `
+                    <div class="mod-custom-select notranslate">
+                        <select id="mod-font-select" title="Selecteer een lettertype">
+                            <option selected disabled hidden>
+                                ${n(get('customfontname')) ? get("fontname") : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}
+                            </option>
+                            <option>${fonts.join('</option><option>')}</option>
+                        </select>
+                    </div>
+                    <label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">
+                        ${getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                        <p>Of upload lettertype</p>
+                    </label>
+                    <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt">
+                    <div class="example-box-wrapper">
+                        <div id="font-box">
+                            <h3 style="letter-spacing:normal;">Lettertype</h3>
+                            <p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p>
+                        </div>
+                    </div>
+                    <div class="br"></div><div class="br"></div><div class="br"></div>`,
+                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding.', 'profilepic', 'file', null, 'image/*', '120'),
+                '{{grade_reveal_setting}}': '<div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(14) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(14) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(14) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div>',
+                '{{letterbeoordelingen_setting}}': '<div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div>',
+                '{{extra_settings}}': addSetting('Compact rooster', 'Maak je rooster compacter.', 'bools03', 'checkbox', false) + addSetting('Deel debug-data', 'Verstuur debug-info.', 'bools04', 'checkbox', false),
+                '{{browser_settings}}': addSetting('Titel', 'Verander de titel van Somtoday.', 'title', 'text', '', 'Somtoday') + addSetting('Icoon', 'Verander het icoontje.', 'icon', 'file', null, 'image/*', '300'),
+                '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
+                '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
+                '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
+                '{{autologin_pass}}': addSetting('Wachtwoord', 'Voer je wachtwoord in.', 'loginpass', 'password', '', ''),
+                '{{somtoday_version}}': (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version_name + ' van Somtoday Mod',
+                '{{platform}}': 'Somtoday ' + platform,
+                '{{updateinfo}}': updateinfo,
+                '{{export_import_buttons}}': (window.platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json">')
+            };
+
+
+            for (const key in replacements) {
+                settingsContent = settingsContent.replaceAll(key, replacements[key]);
+            }
+
+            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', settingsContent);
             if (window.platform != 'Android') {
                 id('export-settings').addEventListener('click', exportSettings);
                 id('import-settings').addEventListener('click', function () {
@@ -4193,6 +4275,23 @@ function onload() {
                     }
                 });
             }
+        }
+    }
+
+    function getSettingsFile(type) {
+        let url = chrome.runtime.getURL('settings_content/familiair.html');
+        if (type === 'modern') {
+            url = chrome.runtime.getURL('settings_content/modern.html');
+        }
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url, false);
+        xhr.send(null);
+
+        if (xhr.status === 200) {
+            return xhr.responseText;
+        } else {
+            return '';
         }
     }
 
@@ -4665,12 +4764,15 @@ function onload() {
                     }
                 }
             }, 200);
+            
         }
         // Update background of modsetting link in settings menu
         else if (!n(id('mod-setting-button'))) {
             id('mod-setting-button').getElementsByTagName('i')[0].style.background = window.darkmode ? '#603d20' : '#ffefe3';
         }
     }
+
+
 
     // Executes when page changes
     function pageUpdate(updateStyle = true, updateLogo = true) {
@@ -4724,7 +4826,7 @@ function onload() {
 
     // Check if updates are available - userscript only (user initiated)
     function checkUpdate() {
-        fetch('https://jonazwetsloot.nl/somtoday-mod-update-checker?v=' + version).then(function (response) {
+        fetch('https://jonazwetsloot.nl/somtoday-mod-update-checker?v=' + window.version).then(function (response) {
             if (response.ok) {
                 return response.text();
             }
