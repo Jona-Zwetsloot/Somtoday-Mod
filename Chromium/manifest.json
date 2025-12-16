@@ -12,6 +12,7 @@
   },
   "content_scripts": [{
     "js": ["script.js"],
+    "css": ["styles.css"],
     "matches": ["*://*.somtoday.nl/*", "*://som.today/*"],
     "run_at": "document_start"
   }],
