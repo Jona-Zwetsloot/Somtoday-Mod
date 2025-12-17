@@ -3101,8 +3101,10 @@ function onload() {
                 let count = 0;
                 // points is sorted old -> new
                 for (let i = points.length - 1; i >= 0 && count < 3; i--) {
-                    recentSum += points[i] * weight[i];
-                    recentWeight += weight[i];
+                    let wRecent = weight[i];
+                    if (wRecent > 50) wRecent = 1;
+                    recentSum += points[i] * wRecent;
+                    recentWeight += wRecent;
                     count++;
                 }
 
@@ -3184,9 +3186,10 @@ function onload() {
         var rollingTotalWeight = 0;
         for (let i = 0; i < points.length; i++) {
             const grade = points[i];
-            const gradeWeight = weight[i];
-            totalGrades += points[i] * weight[i];
-            rollingTotalWeight += weight[i];
+            let wRolling = weight[i];
+            if (wRolling > 50) wRolling = 1;
+            totalGrades += points[i] * wRolling;
+            rollingTotalWeight += wRolling;
             values.push(Math.floor((totalGrades / rollingTotalWeight) * 100) / 100);
         }
         chartdata = {

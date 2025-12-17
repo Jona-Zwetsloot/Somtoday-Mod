@@ -3252,8 +3252,10 @@ function onload() {
                 let recentWeight = 0;
                 let count = 0;
                 for (let i = points.length - 1; i >= 0 && count < 3; i--) {
-                    recentSum += points[i] * weight[i];
-                    recentWeight += weight[i];
+                    let wRecent = weight[i];
+                    if (wRecent > 50) wRecent = 1;
+                    recentSum += points[i] * wRecent;
+                    recentWeight += wRecent;
                     count++;
                 }
                 if (recentWeight > 0) {
@@ -3326,13 +3328,14 @@ function onload() {
         ctx = canvas.getContext('2d');
         let values = [];
         var totalGrades = 0;
-        var totalWeight = 0;
+        var rollingTotalWeight = 0;
         for (let i = 0; i < points.length; i++) {
             const grade = points[i];
-            const gradeWeight = weight[i];
-            totalGrades += points[i] * weight[i];
-            totalWeight += weight[i];
-            values.push(Math.floor((totalGrades / totalWeight) * 100) / 100);
+            let wRolling = weight[i];
+            if (wRolling > 50) wRolling = 1;
+            totalGrades += points[i] * wRolling;
+            rollingTotalWeight += wRolling;
+            values.push(Math.floor((totalGrades / rollingTotalWeight) * 100) / 100);
         }
         chartdata = {
             labels: dates,
