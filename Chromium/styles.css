@@ -1,0 +1,303 @@
+/* Game CSS */
+#mod-play-game{color:dodgerblue;text-align:center;cursor:pointer;}
+sl-error-image svg{transition:1s transform ease,margin-top 0.3s ease !important;}
+.mod-game-playing sl-error-image svg{margin-top:100px;transform:scale(40);--fg-negative-normal:transparent;}
+.mod-game-playing sl-error-image svg *{transition:fill 0.3s ease !important;}
+.mod-game-playing body{height:100vh;overflow:hidden;}
+.mod-floor,.mod-wall,#mod-basefloor{background:#9b9b9c;position:absolute;height:2%;}
+.mod-wall{width:20px;}
+body.mod-game-playing{height:100vh;overflow:hidden;}
+#mod-player,#mod-basefloor,#mod-flag-end,.mod-level,h1#mod-h1-header{opacity:0;transition:opacity 0.3s ease;}
+.mod-game-playing #mod-player,.mod-game-playing #mod-basefloor,.mod-game-playing #mod-flag-end,.mod-game-playing .mod-active-level,.mod-game-playing h1#mod-h1-header{opacity:1;}
+.mod-lava{background:#fc9312;position:absolute;height:2%;}
+.mod-enemy{background:#fc1212;position:absolute;height:50px;width:50px;border-radius:6px;}
+.mod-enemy p{color:#fff;font-weight:700;text-align:center;font-size:18px;margin-top:12px;}
+.mod-trampoline{background:#1264fc;position:absolute;height:2%;}
+.mod-game-playing #mod-player{position:absolute;bottom:100px;height:50px;left:20px;}
+.mod-game-playing #mod-basefloor{position:absolute;left:0;right:0;bottom:0;height:100px}
+.mod-game-playing #mod-flag-end{position:absolute;width:50px;}
+#mod-player-container{position:absolute;top:0;left:0;right:0;bottom:100px;}
+.mod-game-playing *{user-select:none !important;touch-action:none !important;}
+.mod-moving-platform-up,.mod-moving-platform-right{position:absolute;}
+.mod-moving-platform-up div{width:100%;height:30px;}
+.mod-moving-platform-right div{height:30px;width:30%;}
+.mod-game-playing h1,.mod-game-playing h3,#mod-playtime{text-shadow:2px 2px 4px var(--border-neutral-weak);font-size:48px;color:#9b9b9c;font-weight:700;position:absolute;top:50%;transform:translateY(-50%);text-align:center;width:100%;box-sizing:border-box;}
+
+/* Easter Egg CSS */
+#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}
+#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}
+#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}
+#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}
+#mod-logo-decoration:hover{transform:scale(1.1);}
+#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}
+#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}
+#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}
+@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}
+body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}
+@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}
+#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}
+.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk infinite;width:200px;height:200px;}
+@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}
+body.rainbow{animation:rainbow 4s infinite;}
+body.rainbow #mod-background{opacity:0.25;}
+@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}
+
+/* General Style */
+html, body{scrollbar-width:none !important;}
+*{user-select:auto !important;}
+body{overflow-y:scroll !important;background:var(--bg-elevated-none);}
+html.dark .cijfer.neutraal{color:var(--fg-primary-normal) !important;}
+sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}
+hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}
+sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}
+sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}
+sl-rooster-tijden > div:first-of-type span{padding-top:10px;}
+.tijd{text-wrap:nowrap;}
+sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}
+.zoekresultaten-inner{max-height:368px !important;}
+.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}
+@media (min-width:1280px){sl-tab-bar{background:none !important;}}
+.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}
+.zoekresultaten{border:none !important;}
+sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}
+sl-cijfers .tabs{border-radius:6px;}
+sl-account-modal .content,.tabs .filler{position:relative;}
+#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}
+#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}
+#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}
+@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}}
+
+@media (max-width:48em){#mod-grade-calculate,#mod-grades-graphs{padding:0 20px;box-sizing:border-box;}}
+.input-veld{border-width:2px !important;}
+button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover){background:var(--bg-neutral-none) !important;}
+#mod-grades-graphs > div{margin-bottom:50px;width:100%;position:relative;}
+#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}
+#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}
+.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;position:relative;}
+.mod-info-notice > svg{height:20px;position:absolute;top:50%;transform:translateY(-50%);left:18px;}
+#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}
+#mod-grade-calculate input{width:calc(50% - 80px);margin-right:15px;display:inline-block;}
+#mod-grade-calculate #mod-grade-one-three,#mod-grade-calculate #mod-grade-two-three{width:115px;}
+#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}
+#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}
+.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}
+.mod-grades-download svg{height: 25px;}
+sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}
+sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-neutral-none) !important;}
+
+@media (max-width:767px){
+    .mod-huiswerk strong,.mod-huiswerk p{width:calc(100% - 65px) !important;}
+    sl-studiewijzer-dag .mod-huiswerk{margin-top:-12px !important;}
+    sl-studiewijzer-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:-12px !important;}
+    sl-studiewijzer-lijst-dag .mod-huiswerk,sl-studiewijzer-lijst-dag .mod-add-homework{margin-top:4px !important;}
+    sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:4px !important;}
+    sl-studiewijzer-lijst-dag .dag-header{background:transparent !important;}
+    #mod-message > center > div{padding:20px !important;}
+    .mod-multi-choice span{padding:10px !important;}
+    .mod-huiswerk.mod-huiswerk-done div svg{opacity:1 !important;padding:2px !important;width:16px !important;height:16px !important;}
+    .mod-huiswerk div{right:15px !important;width:20px !important;height:20px !important;}
+    .laad-eerdere{background:var(--bg-neutral-none) !important;}
+    .berichten-lijst{min-height:calc(var(--min-content-vh) - 64px - 32px) !important;margin-bottom:0 !important;}
+    sl-cijfers > .container{padding-bottom:0 !important;}
+    sl-cijfers .tabs{border-radius:0;}
+}
+@media (min-width:1120px) and (min-height:550px){#mod-actions{position:sticky;}}
+@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}
+@media (min-width:767px){
+    :root{--min-content-vh:calc(100vh - 74px) !important;}
+    .mod-add-homework{opacity:0;transition:0.2s opacity ease;}
+}
+
+/* Grade Assistant */
+#mod-grade-assistant-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: var(--action-primary-normal);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    transition: transform 0.2s ease;
+}
+#mod-grade-assistant-btn:hover {
+    transform: scale(1.1);
+}
+#mod-grade-assistant-btn svg {
+    width: 30px;
+    height: 30px;
+    fill: #fff;
+}
+#mod-assistant-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-elevated-none);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 10000;
+    width: 400px;
+    max-width: 90%;
+    display: none;
+    border: 1px solid var(--border-neutral-normal);
+}
+#mod-assistant-modal.active {
+    display: block;
+    animation: 0.3s modpopupscale ease;
+}
+@keyframes modpopupscale{0%{transform:translate(-50%, -50%) scale(0.8);opacity:0;}100%{transform:translate(-50%, -50%) scale(1);opacity:1;}}
+#mod-assistant-modal h2 {
+    margin-top: 0;
+    color: var(--text-strong);
+}
+.mod-assistant-bubble {
+    background: var(--bg-primary-weak);
+    color: var(--text-strong);
+    padding: 15px;
+    border-radius: 12px;
+    border-bottom-left-radius: 0;
+    margin-bottom: 20px;
+    position: relative;
+    font-size: 15px;
+    line-height: 1.4;
+}
+.mod-assistant-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    border-width: 10px 10px 0 0;
+    border-style: solid;
+    border-color: var(--bg-primary-weak) transparent transparent transparent;
+}
+#mod-assistant-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: var(--text-weak);
+}
+#mod-assistant-inputs input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: 1px solid var(--border-neutral-normal);
+    background: var(--bg-elevated-weakest);
+    color: var(--text-strong);
+}
+#mod-assistant-calculate {
+    width: 100%;
+    background: var(--action-primary-normal);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 5px;
+}
+#mod-assistant-calculate:hover {
+    background: var(--action-primary-strong);
+}
+
+/* Grade Defender */
+#grade-defender-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    background: rgba(0, 0, 0, 0.85);
+    cursor: crosshair;
+    display: none;
+}
+#grade-defender-canvas.active {
+    display: block;
+}
+#grade-defender-ui {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100001;
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-size: 24px;
+    pointer-events: none;
+    display: none;
+}
+#grade-defender-ui.active {
+    display: block;
+}
+#grade-defender-close {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100001;
+    color: #fff;
+    font-size: 40px;
+    cursor: pointer;
+    line-height: 30px;
+    display: none;
+}
+#grade-defender-close.active {
+    display: block;
+}
+#grade-defender-gameover {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100002;
+    color: #fff;
+    text-align: center;
+    display: none;
+}
+#grade-defender-gameover.active {
+    display: block;
+}
+#grade-defender-gameover h1 {
+    font-size: 60px;
+    margin: 0;
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255,0,0,0.5);
+}
+#grade-defender-restart {
+    background: #fff;
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+/* Live Wallpaper */
+#mod-background-live {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+#mod-bg-live {
+    padding: 20px;
+    background: var(--bg-elevated-weakest);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
