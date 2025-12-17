@@ -3232,6 +3232,55 @@ function onload() {
                 }
             }
         }
+        // Calculate average and suggestions
+        let totalWeight = 0;
+        let weightedSum = 0;
+        for (let i = 0; i < points.length; i++) {
+            let w = weight[i];
+            if (w > 50) w = 1;
+            totalWeight += w;
+            weightedSum += points[i] * w;
+        }
+        let suggestionText = "Er zijn nog niet genoeg cijfers om een analyse te maken.";
+        if (totalWeight > 0) {
+            const average = weightedSum / totalWeight;
+            const roundedAverage = Math.round(average * 10) / 10;
+            // Trend analysis (laatste 3 cijfers)
+            let trend = "stabiel";
+            if (points.length >= 2) {
+                let recentSum = 0;
+                let recentWeight = 0;
+                let count = 0;
+                for (let i = points.length - 1; i >= 0 && count < 3; i--) {
+                    recentSum += points[i] * weight[i];
+                    recentWeight += weight[i];
+                    count++;
+                }
+                if (recentWeight > 0) {
+                    const recentAverage = recentSum / recentWeight;
+                    if (recentAverage > average + 0.3) trend = "stijgend";
+                    else if (recentAverage < average - 0.3) trend = "dalend";
+                }
+            }
+            let advice = "";
+            if (average < 5.5) {
+                const needed = ((5.5 * (totalWeight + 1)) - weightedSum);
+                advice = `Je staat helaas onvoldoende (${roundedAverage}). Probeer een <b>${Math.ceil(needed * 10) / 10}</b> of hoger te halen voor je volgende toets (1x wegend) om weer voldoende te staan. Zet 'm op!`;
+            } else if (average < 6.5) {
+                advice = `Je staat een voldoende (${roundedAverage}), maar het kan altijd beter! Blijf goed opletten in de les.`;
+            } else if (average < 7.5) {
+                advice = `Lekker bezig! Je staat een mooie ${roundedAverage}. Ga zo door!`;
+            } else {
+                advice = `Wauw! Je staat een ${roundedAverage}! Jij bent echt goed bezig!`;
+            }
+            let trendText = "";
+            if (trend == "stijgend") trendText = " <br>🚀 Je laatste cijfers zitten in de lift!";
+            else if (trend == "dalend") trendText = " <br>📉 Pas op, je laatste cijfers zijn wat lager dan gemiddeld.";
+            suggestionText = advice + trendText;
+        }
+        if (!n(id('mod-grade-suggestions'))) {
+            id('mod-grade-suggestions').innerHTML = suggestionText;
+        }
         if (points.length < 2) {
             hide(id('mod-grades-graphs'));
             return;
@@ -3750,12 +3799,20 @@ function onload() {
         if (!n(tn('sl-vakresultaten', 0))) {
             execute([insertCalculationTool, insertGradeAssistant]);
             const examPage = !n(tn('sl-examenresultaten', 0));
-            // Insert graphs at subject grades page when enabled (2 or more grades need to be present)
+            // Insert graphs + automatische cijferanalyse op de vakpagina wanneer ingeschakeld
             if (n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1') {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
             else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
@@ -3763,7 +3820,15 @@ function onload() {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
         }

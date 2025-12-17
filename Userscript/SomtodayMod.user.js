@@ -2135,7 +2135,7 @@ function onload() {
                 break;
             case 'map-location-dot':
                 viewbox = '0 0 576 512',
-                svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
+                    svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
                 break;
             case 'sun':
                 svg = 'M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z';
@@ -3070,6 +3070,72 @@ function onload() {
                 }
             }
         }
+
+        // Calculate average and suggestions
+        let totalWeight = 0;
+        let weightedSum = 0;
+        let earnedWeight = 0;
+        let earnedSum = 0;
+
+        for (let i = 0; i < points.length; i++) {
+            let w = weight[i];
+            // Cap extreme weights to avoid skewing if data is weird
+            if (w > 50) w = 1;
+
+            totalWeight += w;
+            weightedSum += points[i] * w;
+        }
+
+        let suggestionText = "Er zijn nog niet genoeg cijfers om een analyse te maken.";
+
+        if (totalWeight > 0) {
+            const average = weightedSum / totalWeight;
+            const roundedAverage = Math.round(average * 10) / 10;
+
+            // Trend analysis (last 3 grades vs others)
+            let trend = "stabiel";
+            if (points.length >= 2) {
+                // Get last 3 (or fewer) grades
+                let recentSum = 0;
+                let recentWeight = 0;
+                let count = 0;
+                // points is sorted old -> new
+                for (let i = points.length - 1; i >= 0 && count < 3; i--) {
+                    recentSum += points[i] * weight[i];
+                    recentWeight += weight[i];
+                    count++;
+                }
+
+                if (recentWeight > 0) {
+                    const recentAverage = recentSum / recentWeight;
+                    if (recentAverage > average + 0.3) trend = "stijgend";
+                    else if (recentAverage < average - 0.3) trend = "dalend";
+                }
+            }
+
+            let advice = "";
+            if (average < 5.5) {
+                const needed = ((5.5 * (totalWeight + 1)) - weightedSum);
+                advice = `Je staat helaas onvoldoende (${roundedAverage}). Probeer een <b>${Math.ceil(needed * 10) / 10}</b> of hoger te halen voor je volgende toets (1x wegend) om weer voldoende te staan. Zet 'm op!`;
+            } else if (average < 6.5) {
+                advice = `Je staat een voldoende (${roundedAverage}), maar het kan altijd beter! Blijf goed opletten in de les.`;
+            } else if (average < 7.5) {
+                advice = `Lekker bezig! Je staat een mooie ${roundedAverage}. Ga zo door!`;
+            } else {
+                advice = `Wauw! Je staat een ${roundedAverage}! Jij bent echt goed bezig!`;
+            }
+
+            let trendText = "";
+            if (trend == "stijgend") trendText = " <br>🚀 Je laatste cijfers zitten in de lift!";
+            else if (trend == "dalend") trendText = " <br>📉 Pas op, je laatste cijfers zijn wat lager dan gemiddeld.";
+
+            suggestionText = advice + trendText;
+        }
+
+        if (!n(id('mod-grade-suggestions'))) {
+            id('mod-grade-suggestions').innerHTML = suggestionText;
+        }
+
         if (points.length < 2) {
             hide(id('mod-grades-graphs'));
             return;
@@ -3115,13 +3181,13 @@ function onload() {
         ctx = canvas.getContext('2d');
         let values = [];
         var totalGrades = 0;
-        var totalWeight = 0;
+        var rollingTotalWeight = 0;
         for (let i = 0; i < points.length; i++) {
             const grade = points[i];
             const gradeWeight = weight[i];
             totalGrades += points[i] * weight[i];
-            totalWeight += weight[i];
-            values.push(Math.floor((totalGrades / totalWeight) * 100) / 100);
+            rollingTotalWeight += weight[i];
+            values.push(Math.floor((totalGrades / rollingTotalWeight) * 100) / 100);
         }
         chartdata = {
             labels: dates,
@@ -3353,12 +3419,20 @@ function onload() {
         if (!n(tn('sl-vakresultaten', 0))) {
             execute([insertCalculationTool]);
             const examPage = !n(tn('sl-examenresultaten', 0));
-            // Insert graphs at subject grades page when enabled (2 or more grades need to be present)
+            // Insert graphs + automatische cijferanalyse op de vakpagina wanneer ingeschakeld
             if (n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1') {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
             else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
@@ -3366,7 +3440,15 @@ function onload() {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
         }
@@ -5296,7 +5378,7 @@ function onload() {
             // Update grade graphs
             tryRemove(id('mod-grades-graphs'));
             if (get('bools').charAt(7) == '1' && !n(tn('sl-vakresultaten', 0))) {
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Cijferanalyse</h3><div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                 setTimeout(gradeGraphs, 500);
             }
             if (!n(tn('sl-modal', 0))) {
