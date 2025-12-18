@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extName__",
-  "version": "5.2",
+  "version": "5.3",
   "manifest_version": 3,
   "description": "__MSG_extDescription__",
   "default_locale": "nl",
@@ -12,6 +12,7 @@
   },
   "content_scripts": [{
     "js": ["script.js"],
+    "css": ["styles.css"],
     "matches": ["*://*.somtoday.nl/*", "*://som.today/*"],
     "run_at": "document_start"
   }],
