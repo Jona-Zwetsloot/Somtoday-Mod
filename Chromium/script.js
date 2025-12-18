@@ -950,6 +950,7 @@ function onload() {
             let k = 0;
             let l = 0;
             let m = 0;
+            let p = 0;
             document.addEventListener('keydown', function (e) {
                 let konamikeys = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
                 if (e.key.toLowerCase() == konamikeys[i]) {
@@ -1017,6 +1018,25 @@ function onload() {
                 if (m == recapkeys.length) {
                     ignoreRecapConditions = true;
                     somtodayRecap();
+                }
+                // Party Mode
+                let partykeys = 'party';
+                if (e.key.toLowerCase() == partykeys.charAt(p)) {
+                    p++;
+                }
+                else {
+                    p = 0;
+                }
+                if (p == partykeys.length) {
+                    toggleConfetti();
+                    try {
+                        let tada = new Audio(getAudioUrl('tada'));
+                        tada.volume = 0.5;
+                        tada.play();
+                    } catch (e) {
+                        console.warn(e);
+                    }
+                    p = 0;
                 }
             });
         }
@@ -1720,41 +1740,6 @@ function onload() {
     let normalRosterHeight = 0;
     let originalTimelineTop = null;
     function rosterSimplify() {
-    // Add New Year countdown
-    if (!document.getElementById('new-year-countdown')) {
-        const rosterContainer = document.querySelector('sl-rooster-weken');
-        if (rosterContainer) {
-            const countdownElement = document.createElement('div');
-            countdownElement.id = 'new-year-countdown';
-            const darkmode = document.documentElement.classList.contains('dark');
-            const textColor = darkmode ? 'white' : 'black';
-            const textGlow = darkmode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
-            countdownElement.style.textAlign = 'center';
-            countdownElement.style.padding = '10px';
-            countdownElement.style.fontSize = '14px';
-            countdownElement.style.fontWeight = 'bold';
-            countdownElement.style.color = textColor;
-            countdownElement.style.textShadow = `0 0 2px ${textGlow}, 0 0 5px ${textGlow}`;
-            rosterContainer.prepend(countdownElement);
-
-            function updateCountdown() {
-                const now = new Date();
-                const newYear = new Date(now.getFullYear() + 1, 0, 1);
-                const diff = newYear - now;
-
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                countdownElement.innerHTML = `Nieuwjaar over: ${days}d ${hours}u ${minutes}m ${seconds}s`;
-            }
-
-            setInterval(updateCountdown, 1000);
-            updateCountdown();
-
-        }
-    }
         // Only execute roster simplify when enabled and on roster page
         if (get('bools').charAt(3) == "1" && !n(tn('sl-rooster-weken', 0))) {
             if (!n(cn('tertiary normal action-primary-normal center', 0)) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
@@ -3106,6 +3091,141 @@ function onload() {
             });
             tempImg.src = svgObjectUrl;
             tn('sl-root', 0).removeAttribute('inert');
+        }
+    }
+
+    // Custom Header Text
+    function customHeaderText() {
+        if (!n(get('custom_header_text'))) {
+            // For layouts with logo text
+            let logoText = cn('header-text', 0); // Common class, need to verify or use selector
+            // Layout 1, 4 have text in titlewrap > h1 ? No, usually it's an image or text
+            // Let's target the Somtoday text specifically if possible, or replace the logo if it's text.
+            // Actually, usually it's an image. If it's text, it's in .header-logo-container span?
+            // Let's try to find "Somtoday" text and replace it.
+            // Or better, inject a style to hide original and show custom?
+            // Simpler: Look for the branding element.
+            const branding = cn('branding-text', 0) || cn('app-title', 0); // Hypothethical classes
+            // Adjusting based on standard Somtoday structure observation (usually image)
+            // If user wants text, we might need to overlay it or replace the image container's content.
+            // Let's look for the main logo container.
+            const logoContainer = cn('header-logo-container', 0) || cn('navbar-brand', 0);
+            if (logoContainer) {
+                 // Implementation depends heavily on DOM. Assuming we can replace text content if it exists, or append.
+                 // For now, let's target the page title in the browser tab as a fallback/start.
+                 // Real header replacement:
+                 const headerTitle = document.querySelector('sl-header .header-content .title') || document.querySelector('.app-title');
+                 if(headerTitle) headerTitle.innerText = get('custom_header_text');
+            }
+        }
+    }
+
+    // Snowfall Effect
+    let snowInterval;
+    function snowFall() {
+        const enabled = get('snowfall_enabled');
+        if (enabled === true || enabled === 'true') {
+            if (id('snow-canvas')) return;
+            // Create canvas
+            let canvas = document.createElement('canvas');
+            canvas.id = 'snow-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '99999';
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            const particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 3 + 1,
+                    d: Math.random() * 100
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                // Use light blue for light mode (default) and white for dark mode
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(173, 216, 230, 0.8)';
+                ctx.beginPath();
+                for (let i = 0; i < 100; i++) {
+                    let p = particles[i];
+                    ctx.moveTo(p.x, p.y);
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+                }
+                ctx.fill();
+                update();
+            }
+
+            let angle = 0;
+            function update() {
+                angle += 0.01;
+                for (let i = 0; i < 100; i++) {
+                    let p = particles[i];
+                    p.y += Math.cos(angle + p.d) + 1 + p.r / 2;
+                    p.x += Math.sin(angle) * 2;
+                    if (p.x > width + 5 || p.x < -5 || p.y > height) {
+                        if (i % 3 > 0) {
+                            particles[i] = { x: Math.random() * width, y: -10, r: p.r, d: p.d };
+                        } else {
+                            if (Math.sin(angle) > 0) {
+                                particles[i] = { x: -5, y: Math.random() * height, r: p.r, d: p.d };
+                            } else {
+                                particles[i] = { x: width + 5, y: Math.random() * height, r: p.r, d: p.d };
+                            }
+                        }
+                    }
+                }
+            }
+            
+            snowInterval = setInterval(draw, 33);
+            
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+        } else {
+            if (id('snow-canvas')) id('snow-canvas').remove();
+            if (snowInterval) clearInterval(snowInterval);
+        }
+    }
+
+    // Animate Grades
+    function animateGrades() {
+        const enabled = get('improved_animations');
+        if (enabled === true || enabled === 'true') {
+            const items = document.querySelectorAll('sl-resultaat-item:not(.mod-grade-item-animated), sl-vakgemiddelde-item:not(.mod-grade-item-animated), sl-vakresultaat-item:not(.mod-grade-item-animated)');
+            items.forEach((item, index) => {
+                // Only animate if element is visible
+                if (item.offsetParent !== null) {
+                    item.style.animationDelay = (index * 0.05) + 's';
+                    item.classList.add('mod-grade-item-animated');
+                }
+            });
+        }
+    }
+
+    // Improved Animations
+    function improvedAnimations() {
+        const enabled = get('improved_animations');
+        if (enabled === true || enabled === 'true') {
+            tn('body', 0).classList.add('mod-improved-animations');
+        } else {
+            tn('body', 0).classList.remove('mod-improved-animations');
         }
     }
 
