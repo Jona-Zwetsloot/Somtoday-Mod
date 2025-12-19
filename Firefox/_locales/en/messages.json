@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Firefox v5.2"
+    "message": "Somtoday Mod Chromium v5.3"
   },
   "newOne": {
-    "message": "Teacher nicknames finally working again (and now REALLY) 🥳"
+    "message": "Live backgrounds added by compiledkernel-idk"
   },
   "newTwo": {
-    "message": "Letter reviews are now properly saved 🔤"
+    "message": "Night mode added by levkris"
   },
   "newThree": {
-    "message": "Bug reporting moved to Github 🪲"
+    "message": "ELO renamed to Somtoday by timmah12341"
   },
   "extName": {
     "message": "Somtoday Mod"

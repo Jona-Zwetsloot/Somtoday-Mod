@@ -1,6 +1,7 @@
-Chromium-release.zip
-Chromium-v5.3.zip
-Chromium.crx
-Chromium.pem
-Firefox-v5.3.zip
-web-ext-artifacts/
+builds/
+vendor/
+Android/app/release/
+Android/.idea/
+chromium.zip
+firefox.zip
+android.apk
