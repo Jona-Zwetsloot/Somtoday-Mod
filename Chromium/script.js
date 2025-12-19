@@ -3,7 +3,7 @@
 // Contains code to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 5.2;
+const version = 5.3;
 const platform = 'Chromium';
 const minified = false;
 let data;
@@ -195,6 +195,49 @@ function sanitizeString(str) {
     return str.replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;').replaceAll('\'', '&#x27;');
 }
 
+// New Helper: Wait for element
+function waitForElement(selector, timeout = 30000) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        setTimeout(() => {
+            observer.disconnect();
+            resolve(null);
+        }, timeout);
+    });
+}
+
+const BOOL_INDEX = {
+    MENU_ALWAYS_SHOW: 0,
+    MENU_PAGE_NAME: 1,
+    HIDE_MESSAGE_COUNT: 2,
+    ROSTER_SIMPLIFY: 3,
+    SHARE_DEBUG_DATA: 4,
+    GRADE_DOWNLOAD_BTN: 5,
+    CONGRATULATIONS: 6,
+    SUBJECT_GRAPHS: 7,
+    MOD_LOGO: 8,
+    REDIRECT_ELO: 9,
+    CALCULATION_TOOL: 10,
+    SCROLLBAR: 11,
+    RECAP: 12,
+    TEXT_SELECTION: 13,
+    GRADE_REVEAL: 14,
+    ROSTER_GRID: 15,
+    CUSTOM_HOMEWORK: 16
+};
+
 
 
 
@@ -266,7 +309,8 @@ function toBrightnessValue(color, target) {
 // A minigame on the error page
 function errorPage() {
     if (!n(tn('hmy-button', 0))) {
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style>#mod-play-game{color:dodgerblue;text-align:center;cursor:pointer;}sl-error-image svg{transition:1s transform ease,margin-top 0.3s ease !important;}.mod-game-playing sl-error-image svg{margin-top:100px;transform:scale(40);--fg-negative-normal:transparent;}.mod-game-playing sl-error-image svg *{transition:fill 0.3s ease !important;}.mod-game-playing body{height:100vh;overflow:hidden;}.mod-floor,.mod-wall,#mod-basefloor{background:#9b9b9c;position:absolute;height:2%;}.mod-wall{width:20px;}body.mod-game-playing{height:100vh;overflow:hidden;}#mod-player,#mod-basefloor,#mod-flag-end,.mod-level,h1#mod-h1-header{opacity:0;transition:opacity 0.3s ease;}.mod-game-playing #mod-player,.mod-game-playing #mod-basefloor,.mod-game-playing #mod-flag-end,.mod-game-playing .mod-active-level,.mod-game-playing h1#mod-h1-header{opacity:1;}.mod-lava{background:#fc9312;position:absolute;height:2%;}.mod-enemy{background:#fc1212;position:absolute;height:50px;width:50px;border-radius:6px;}.mod-enemy p{color:#fff;font-weight:700;text-align:center;font-size:18px;margin-top:12px;}.mod-trampoline{background:#1264fc;position:absolute;height:2%;}.mod-game-playing #mod-player{position:absolute;bottom:100px;height:50px;left:20px;}.mod-game-playing #mod-basefloor{position:absolute;left:0;right:0;bottom:0;height:100px}.mod-game-playing #mod-flag-end{position:absolute;width:50px;}#mod-player-container{position:absolute;top:0;left:0;right:0;bottom:100px;}.mod-game-playing *{user-select:none !important;touch-action:none !important;}.mod-moving-platform-up,.mod-moving-platform-right{position:absolute;}.mod-moving-platform-up div{width:100%;height:30px;}.mod-moving-platform-right div{height:30px;width:30%;}.mod-game-playing h1,.mod-game-playing h3,#mod-playtime{text-shadow:2px 2px 4px var(--border-neutral-weak);font-size:48px;color:#9b9b9c;font-weight:700;position:absolute;top:50%;transform:translateY(-50%);text-align:center;width:100%;box-sizing:border-box;padding:0 10%;}#mod-playtime,#mod-close-button{position:absolute;top:40px;left:30px;padding:0;width:fit-content;margin:0;font-size:24px;}#mod-close-button{left:unset;right:30px;z-index:1000;top:15px;font-size:32px;cursor:pointer;}.mod-game-playing h3{font-size:28px;padding-top:100px;}#mod-play-again,#mod-close-game{position:absolute;width:300px;max-width:90%;background:#3f8541;color:#fff;font-weight:700;padding:20px;transform:translateX(50%);right:50%;transition:background 0.3s ease !important;border-radius:12px;}#mod-play-again:hover,#mod-close-game:hover{background:#145716;cursor:pointer;}@media (max-width:700px){#mod-h3-header{transform:unset;}}.mod-level h1{background:rgba(0,0,0,0.1);height:fit-content;padding:0;}</style>');
+        // CSS loaded from styles.css
+
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
         id('mod-play-game').addEventListener('click', function () {
             tn('body', 0).classList.add('mod-game-playing');
@@ -673,15 +717,13 @@ async function autoLogin() {
     }
 
     // Wait until school input field is loaded
-    for (let i = 0; true; i++) {
-        if (!n(cn('feedbackPanelERROR', 0))) {
-            set('logincredentialsincorrect', '1');
-            return;
-        }
-        else if (!n(id('organisatieSearchField')) || !n(id('organisatieInput'))) {
-            break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 10));
+    const schoolField = await waitForElement('#organisatieSearchField, #organisatieInput');
+    
+    if (!n(cn('feedbackPanelERROR', 0))) {
+        set('logincredentialsincorrect', '1');
+        return;
+    } else if (!schoolField) {
+        return;
     }
 
     // Fill in the school name
@@ -706,15 +748,13 @@ async function autoLogin() {
     }
 
     // Wait until username input field is loaded
-    for (let i = 0; true; i++) {
-        if (!n(cn('feedbackPanelERROR', 0))) {
-            set('logincredentialsincorrect', '1');
-            return;
-        }
-        else if (!n(id('usernameField'))) {
-            break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 10));
+    const usernameField = await waitForElement('#usernameField');
+    
+    if (!n(cn('feedbackPanelERROR', 0))) {
+        set('logincredentialsincorrect', '1');
+        return;
+    } else if (!usernameField) {
+        return;
     }
 
     // Fill in the username (and password if set)
@@ -733,65 +773,59 @@ async function autoLogin() {
     }
 
     // Wait until submit button event is added
-    for (let i = 0; true; i++) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        if (!n(cn('button--stpanel primary-button', 0))) {
-            break;
-        }
-    }
+    const submitButton = await waitForElement('.button--stpanel.primary-button');
+    if (!submitButton) return;
+    await new Promise(resolve => setTimeout(resolve, 50)); // Small delay for event listeners
 
     // Login
     cn('button--stpanel primary-button', 0).click();
 
     // Check if credentials were correct
-    for (let i = 0; true; i++) {
+    // We can't really wait for this easily without blocking, so we'll check once after a delay or let the page reload handle it.
+    // The original code looped to check.
+    setTimeout(() => {
         if (!n(cn('feedbackPanelERROR', 0))) {
             set('logincredentialsincorrect', '1');
-            return;
         }
-        await new Promise(resolve => setTimeout(resolve, 10));
-    }
+    }, 1000);
 }
 
 const isExtension = platform != 'Userscript' && platform != 'Android';
 async function waitForPageLoad() {
-    while (true) {
-        const saveDataLoaded = !isExtension || data != null;
-        const somtodayLoaded = !n(tn('sl-home', 0)) && !n(tn('sl-home', 0).children[1]);
-        const errorPageLoaded = !n(tn('sl-error', 0)) || !n(cn('errorTekst', 0));
-
-        if (saveDataLoaded) {
-            // Remember to open settings if settings hash is present
-            if (hasSettingsHash) {
-                set('opensettingsIntention', '1');
-            }
-            // If user has disabled Somtoday Mod, return
-            if (isExtension && !data.enabled) {
-                return;
-            }
-            // Autologin user if enabled
-            else if (window.location.origin.indexOf('inloggen') != -1) {
-                execute([autoLogin]);
-                return;
-            }
-            // Redirect user to login page if enabled
-            else if (window.location.origin.indexOf('som.today') != -1) {
-                if (get('bools') == null || get('bools').charAt(9) == '1') {
-                    window.location.replace('https://inloggen.somtoday.nl');
-                }
-                return;
-            }
-            // Load Somtoday Mod main script
-            else if (somtodayLoaded || errorPageLoaded) {
-                execute([onload]);
-                return;
-            }
-            // If Somtoday is updating and therefore unavailable, return
-            else if (!n(tn('iframe', 0)) && tn('iframe', 0).src == 'https://som.today/updaten/') {
-                return;
-            }
-        }
+    // Wait for data to load
+    while (isExtension && data == null) {
         await new Promise(resolve => setTimeout(resolve, 25));
+    }
+
+    // Remember to open settings if settings hash is present
+    if (hasSettingsHash) {
+        set('opensettingsIntention', '1');
+    }
+    // If user has disabled Somtoday Mod, return
+    if (isExtension && !data.enabled) {
+        return;
+    }
+    // Autologin user if enabled
+    else if (window.location.origin.indexOf('inloggen') != -1) {
+        execute([autoLogin]);
+        return;
+    }
+    // Redirect user to login page if enabled
+    else if (window.location.origin.indexOf('som.today') != -1) {
+        if (get('bools') == null || get('bools').charAt(BOOL_INDEX.REDIRECT_ELO) == '1') {
+            window.location.replace('https://inloggen.somtoday.nl');
+        }
+        return;
+    }
+
+    // Wait for Somtoday to load
+    const loadedElement = await waitForElement('sl-home > *:nth-child(2), sl-error, .errorTekst, iframe[src="https://som.today/updaten/"]');
+    
+    if (loadedElement) {
+        if (loadedElement.tagName === 'IFRAME') {
+            return;
+        }
+        execute([onload]);
     }
 }
 
@@ -909,12 +943,14 @@ function onload() {
 
     function easterEggs() {
         if (n(id('mod-easter-eggs'))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
+            // CSS loaded from styles.css
+            // tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards !important;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
             let i = 0;
             let j = 0;
             let k = 0;
             let l = 0;
             let m = 0;
+            let p = 0;
             document.addEventListener('keydown', function (e) {
                 let konamikeys = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
                 if (e.key.toLowerCase() == konamikeys[i]) {
@@ -982,6 +1018,25 @@ function onload() {
                 if (m == recapkeys.length) {
                     ignoreRecapConditions = true;
                     somtodayRecap();
+                }
+                // Party Mode
+                let partykeys = 'party';
+                if (e.key.toLowerCase() == partykeys.charAt(p)) {
+                    p++;
+                }
+                else {
+                    p = 0;
+                }
+                if (p == partykeys.length) {
+                    toggleConfetti();
+                    try {
+                        let tada = new Audio(getAudioUrl('tada'));
+                        tada.volume = 0.5;
+                        tada.play();
+                    } catch (e) {
+                        console.warn(e);
+                    }
+                    p = 0;
                 }
             });
         }
@@ -2524,12 +2579,155 @@ function onload() {
         }
     }
 
+    // Live Wallpaper
+    let liveWallpaperFrame;
+    let gl;
+    function stopLiveWallpaper() {
+        if (liveWallpaperFrame) {
+            cancelAnimationFrame(liveWallpaperFrame);
+            liveWallpaperFrame = null;
+        }
+        tryRemove(id('mod-background-live'));
+    }
+
+    function startLiveWallpaper() {
+        stopLiveWallpaper();
+        tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
+        const canvas = id('mod-background-live');
+        gl = canvas.getContext("webgl");
+        if (!gl) return;
+
+        // Simple vertex shader
+        const vsSource = `
+            attribute vec4 aVertexPosition;
+            void main() {
+                gl_Position = aVertexPosition;
+            }
+        `;
+
+        // Fragment shader with random color noise
+        const fsSource = `
+            precision mediump float;
+            uniform float u_time;
+            uniform vec2 u_resolution;
+            uniform float u_seed;
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                float t = u_time * 0.5;
+                
+                // Randomize base colors based on seed
+                vec3 col1 = 0.5 + 0.5 * cos(u_seed + vec3(0,2,4));
+                vec3 col2 = 0.5 + 0.5 * cos(u_seed + 2.0 + vec3(0,2,4));
+                vec3 col3 = 0.5 + 0.5 * cos(u_seed + 4.0 + vec3(0,2,4));
+
+                // Create plasma/noise effect
+                float v = 0.0;
+                vec2 c = uv * 2.0 - 1.0;
+                v += sin((c.x+t));
+                v += sin((c.y+t)/2.0);
+                v += sin((c.x+c.y+t)/2.0);
+                c += 1.0/2.0 * vec2(sin(t/3.0), cos(t/2.0));
+                v += sin(sqrt(c.x*c.x+c.y*c.y+1.0)+t);
+                v = v/2.0;
+
+                // Mix colors
+                vec3 color = mix(col1, col2, smoothstep(0.0, 1.0, sin(v * 3.0 + t)));
+                color = mix(color, col3, smoothstep(0.0, 1.0, cos(v * 2.0 - t)));
+
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `;
+
+        const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+        const programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+            },
+            uniformLocations: {
+                time: gl.getUniformLocation(shaderProgram, 'u_time'),
+                resolution: gl.getUniformLocation(shaderProgram, 'u_resolution'),
+                seed: gl.getUniformLocation(shaderProgram, 'u_seed'),
+            },
+        };
+
+        const buffers = initBuffers(gl);
+        const seed = parseFloat(get('live_seed')) || Math.random() * 100;
+
+        function render(now) {
+            if (!gl) return;
+            now *= 0.001; // convert to seconds
+            
+            // Resize if needed
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(programInfo.program);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+            gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+            gl.uniform1f(programInfo.uniformLocations.time, now);
+            gl.uniform2f(programInfo.uniformLocations.resolution, canvas.width, canvas.height);
+            gl.uniform1f(programInfo.uniformLocations.seed, seed);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            liveWallpaperFrame = requestAnimationFrame(render);
+        }
+        liveWallpaperFrame = requestAnimationFrame(render);
+    }
+
+    function initShaderProgram(gl, vsSource, fsSource) {
+        const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+        return shaderProgram;
+    }
+
+    function loadShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            gl.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+
+    function initBuffers(gl) {
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        const positions = [
+            1.0,  1.0,
+            -1.0,  1.0,
+            1.0, -1.0,
+            -1.0, -1.0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        return { position: positionBuffer };
+    }
+
     // Insert the background
     function setBackground() {
         tryRemove(id('mod-background'));
         tryRemove(id('mod-backgroundcolor'));
         tryRemove(id('mod-backgroundslide'));
         tryRemove(id('mod-background-style'));
+        stopLiveWallpaper();
+
         if ((n(get('backgroundtype')) || get('backgroundtype') == 'image') && !n(get('background'))) {
             // Unfortunately, localStorage can only save strings, so check for 'false' too
             if (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') {
@@ -2548,6 +2746,9 @@ function onload() {
             const randomChoice = Math.floor(Math.random() * get('slides'));
             id('somtoday-mod', 0).insertAdjacentHTML('beforeend', '<img id="mod-backgroundslide" src="' + get('background' + randomChoice) + '">');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-background-style">#mod-backgroundslide{pointer-events:none;user-select:none;position:fixed;left:0;width:100%;top:0;height:100%;object-fit:cover;z-index:-1;}</style>');
+        }
+        else if (get('backgroundtype') == 'live') {
+            startLiveWallpaper();
         }
     }
 
@@ -2893,6 +3094,141 @@ function onload() {
         }
     }
 
+    // Custom Header Text
+    function customHeaderText() {
+        if (!n(get('custom_header_text'))) {
+            // For layouts with logo text
+            let logoText = cn('header-text', 0); // Common class, need to verify or use selector
+            // Layout 1, 4 have text in titlewrap > h1 ? No, usually it's an image or text
+            // Let's target the Somtoday text specifically if possible, or replace the logo if it's text.
+            // Actually, usually it's an image. If it's text, it's in .header-logo-container span?
+            // Let's try to find "Somtoday" text and replace it.
+            // Or better, inject a style to hide original and show custom?
+            // Simpler: Look for the branding element.
+            const branding = cn('branding-text', 0) || cn('app-title', 0); // Hypothethical classes
+            // Adjusting based on standard Somtoday structure observation (usually image)
+            // If user wants text, we might need to overlay it or replace the image container's content.
+            // Let's look for the main logo container.
+            const logoContainer = cn('header-logo-container', 0) || cn('navbar-brand', 0);
+            if (logoContainer) {
+                 // Implementation depends heavily on DOM. Assuming we can replace text content if it exists, or append.
+                 // For now, let's target the page title in the browser tab as a fallback/start.
+                 // Real header replacement:
+                 const headerTitle = document.querySelector('sl-header .header-content .title') || document.querySelector('.app-title');
+                 if(headerTitle) headerTitle.innerText = get('custom_header_text');
+            }
+        }
+    }
+
+    // Snowfall Effect
+    let snowInterval;
+    function snowFall() {
+        const enabled = get('snowfall_enabled');
+        if (enabled === true || enabled === 'true') {
+            if (id('snow-canvas')) return;
+            // Create canvas
+            let canvas = document.createElement('canvas');
+            canvas.id = 'snow-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '99999';
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            const particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 3 + 1,
+                    d: Math.random() * 100
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                // Use light blue for light mode (default) and white for dark mode
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(173, 216, 230, 0.8)';
+                ctx.beginPath();
+                for (let i = 0; i < 100; i++) {
+                    let p = particles[i];
+                    ctx.moveTo(p.x, p.y);
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+                }
+                ctx.fill();
+                update();
+            }
+
+            let angle = 0;
+            function update() {
+                angle += 0.01;
+                for (let i = 0; i < 100; i++) {
+                    let p = particles[i];
+                    p.y += Math.cos(angle + p.d) + 1 + p.r / 2;
+                    p.x += Math.sin(angle) * 2;
+                    if (p.x > width + 5 || p.x < -5 || p.y > height) {
+                        if (i % 3 > 0) {
+                            particles[i] = { x: Math.random() * width, y: -10, r: p.r, d: p.d };
+                        } else {
+                            if (Math.sin(angle) > 0) {
+                                particles[i] = { x: -5, y: Math.random() * height, r: p.r, d: p.d };
+                            } else {
+                                particles[i] = { x: width + 5, y: Math.random() * height, r: p.r, d: p.d };
+                            }
+                        }
+                    }
+                }
+            }
+            
+            snowInterval = setInterval(draw, 33);
+            
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+        } else {
+            if (id('snow-canvas')) id('snow-canvas').remove();
+            if (snowInterval) clearInterval(snowInterval);
+        }
+    }
+
+    // Animate Grades
+    function animateGrades() {
+        const enabled = get('improved_animations');
+        if (enabled === true || enabled === 'true') {
+            const items = document.querySelectorAll('sl-resultaat-item:not(.mod-grade-item-animated), sl-vakgemiddelde-item:not(.mod-grade-item-animated), sl-vakresultaat-item:not(.mod-grade-item-animated)');
+            items.forEach((item, index) => {
+                // Only animate if element is visible
+                if (item.offsetParent !== null) {
+                    item.style.animationDelay = (index * 0.05) + 's';
+                    item.classList.add('mod-grade-item-animated');
+                }
+            });
+        }
+    }
+
+    // Improved Animations
+    function improvedAnimations() {
+        const enabled = get('improved_animations');
+        if (enabled === true || enabled === 'true') {
+            tn('body', 0).classList.add('mod-improved-animations');
+        } else {
+            tn('body', 0).classList.remove('mod-improved-animations');
+        }
+    }
+
     // Chart.js v3.9.0
     // Copyright 2022 Chart.js Contributors
     // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -3051,6 +3387,57 @@ function onload() {
                 }
             }
         }
+        // Calculate average and suggestions
+        let totalWeight = 0;
+        let weightedSum = 0;
+        for (let i = 0; i < points.length; i++) {
+            let w = weight[i];
+            if (w > 50) w = 1;
+            totalWeight += w;
+            weightedSum += points[i] * w;
+        }
+        let suggestionText = "Er zijn nog niet genoeg cijfers om een analyse te maken.";
+        if (totalWeight > 0) {
+            const average = weightedSum / totalWeight;
+            const roundedAverage = Math.round(average * 10) / 10;
+            // Trend analysis (laatste 3 cijfers)
+            let trend = "stabiel";
+            if (points.length >= 2) {
+                let recentSum = 0;
+                let recentWeight = 0;
+                let count = 0;
+                for (let i = points.length - 1; i >= 0 && count < 3; i--) {
+                    let wRecent = weight[i];
+                    if (wRecent > 50) wRecent = 1;
+                    recentSum += points[i] * wRecent;
+                    recentWeight += wRecent;
+                    count++;
+                }
+                if (recentWeight > 0) {
+                    const recentAverage = recentSum / recentWeight;
+                    if (recentAverage > average + 0.3) trend = "stijgend";
+                    else if (recentAverage < average - 0.3) trend = "dalend";
+                }
+            }
+            let advice = "";
+            if (average < 5.5) {
+                const needed = ((5.5 * (totalWeight + 1)) - weightedSum);
+                advice = `Je staat helaas onvoldoende (${roundedAverage}). Probeer een <b>${Math.ceil(needed * 10) / 10}</b> of hoger te halen voor je volgende toets (1x wegend) om weer voldoende te staan. Zet 'm op!`;
+            } else if (average < 6.5) {
+                advice = `Je staat een voldoende (${roundedAverage}), maar het kan altijd beter! Blijf goed opletten in de les.`;
+            } else if (average < 7.5) {
+                advice = `Lekker bezig! Je staat een mooie ${roundedAverage}. Ga zo door!`;
+            } else {
+                advice = `Wauw! Je staat een ${roundedAverage}! Jij bent echt goed bezig!`;
+            }
+            let trendText = "";
+            if (trend == "stijgend") trendText = " <br>🚀 Je laatste cijfers zitten in de lift!";
+            else if (trend == "dalend") trendText = " <br>📉 Pas op, je laatste cijfers zijn wat lager dan gemiddeld.";
+            suggestionText = advice + trendText;
+        }
+        if (!n(id('mod-grade-suggestions'))) {
+            id('mod-grade-suggestions').innerHTML = suggestionText;
+        }
         if (points.length < 2) {
             hide(id('mod-grades-graphs'));
             return;
@@ -3096,13 +3483,14 @@ function onload() {
         ctx = canvas.getContext('2d');
         let values = [];
         var totalGrades = 0;
-        var totalWeight = 0;
+        var rollingTotalWeight = 0;
         for (let i = 0; i < points.length; i++) {
             const grade = points[i];
-            const gradeWeight = weight[i];
-            totalGrades += points[i] * weight[i];
-            totalWeight += weight[i];
-            values.push(Math.floor((totalGrades / totalWeight) * 100) / 100);
+            let wRolling = weight[i];
+            if (wRolling > 50) wRolling = 1;
+            totalGrades += points[i] * wRolling;
+            rollingTotalWeight += wRolling;
+            values.push(Math.floor((totalGrades / rollingTotalWeight) * 100) / 100);
         }
         chartdata = {
             labels: dates,
@@ -3329,17 +3717,260 @@ function onload() {
         }
     }
 
+    // Grade Assistant
+    function insertGradeAssistant() {
+        // Only on subject grades page
+        if (!n(tn('sl-vakresultaten', 0)) && !n(id('mod-grade-assistant-btn'))) {
+            return;
+        }
+        if (n(tn('sl-vakresultaten', 0))) {
+            tryRemove(id('mod-grade-assistant-btn'));
+            return;
+        }
+        if (id('mod-grade-assistant-btn')) return;
+
+        tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-grade-assistant-btn" title="Cijfer Assistent">' + getIcon('brain') + '</div>');
+        tn('body', 0).insertAdjacentHTML('beforeend', `
+            <div id="mod-assistant-modal">
+                <div id="mod-assistant-close">&times;</div>
+                <h2>Cijfer Assistent</h2>
+                <div class="mod-assistant-bubble" id="mod-assistant-text">
+                    Hallo! Ik ben je persoonlijke cijfer-assistent. Ik kan je helpen met het berekenen van wat je moet halen.
+                </div>
+                <div id="mod-assistant-inputs">
+                    <input type="number" id="mod-assistant-target" placeholder="Welk gemiddelde wil je staan? (bijv. 5.5)">
+                    <input type="number" id="mod-assistant-weight" placeholder="Weging van de volgende toets (bijv. 1)">
+                    <button id="mod-assistant-calculate">Berekenen</button>
+                </div>
+            </div>
+        `);
+
+        id('mod-grade-assistant-btn').addEventListener('click', function() {
+            id('mod-assistant-modal').classList.add('active');
+            let avgData = calculateAverage();
+            let currentAvg = avgData.weight > 0 ? (avgData.total / avgData.weight).toFixed(2) : 'onbekend';
+            id('mod-assistant-text').innerHTML = `Je staat nu een <b>${currentAvg.replace('.', ',')}</b>. Wat is je doel?`;
+        });
+
+        id('mod-assistant-close').addEventListener('click', function() {
+            id('mod-assistant-modal').classList.remove('active');
+        });
+
+        id('mod-assistant-calculate').addEventListener('click', function() {
+            let target = parseFloat(id('mod-assistant-target').value);
+            let weight = parseFloat(id('mod-assistant-weight').value);
+            if (isNaN(target) || isNaN(weight)) {
+                id('mod-assistant-text').innerHTML = "Vul alsjeblieft geldige getallen in.";
+                return;
+            }
+
+            let avgData = calculateAverage();
+            let required = ((target * (avgData.weight + weight)) - avgData.total) / weight;
+            required = Math.ceil(required * 10) / 10; // Round up to 1 decimal
+
+            if (required > 10) {
+                id('mod-assistant-text').innerHTML = `Oei, dat wordt lastig. Je zou een <b>${required.toFixed(1).replace('.', ',')}</b> moeten halen. Misschien is een ${((avgData.total + 10 * weight) / (avgData.weight + weight)).toFixed(1).replace('.', ',')} haalbaarder?`;
+            } else if (required < 1) {
+                id('mod-assistant-text').innerHTML = `Makkie! Zelfs met een 1.0 sta je nog boven de ${target}. Je hebt minimaal een <b>${required.toFixed(1).replace('.', ',')}</b> nodig.`;
+            } else {
+                id('mod-assistant-text').innerHTML = `Om een ${target} te staan, moet je minimaal een <b>${required.toFixed(1).replace('.', ',')}</b> halen. Succes!`;
+            }
+        });
+    }
+
+    // Grade Defender Minigame
+    function gradeDefenderGame() {
+        // Setup canvas
+        if (id('grade-defender-canvas')) id('grade-defender-canvas').remove();
+        if (id('grade-defender-ui')) id('grade-defender-ui').remove();
+        if (id('grade-defender-close')) id('grade-defender-close').remove();
+        if (id('grade-defender-gameover')) id('grade-defender-gameover').remove();
+
+        tn('body', 0).insertAdjacentHTML('beforeend', `
+            <canvas id="grade-defender-canvas" class="active"></canvas>
+            <div id="grade-defender-ui" class="active">Score: <span id="gd-score">0</span> | Levens: <span id="gd-lives">3</span></div>
+            <div id="grade-defender-close" class="active">&times;</div>
+            <div id="grade-defender-gameover">
+                <h1>GAME OVER</h1>
+                <h3>Je score: <span id="gd-final-score"></span></h3>
+                <div id="grade-defender-restart">Opnieuw</div>
+            </div>
+        `);
+
+        const canvas = id('grade-defender-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        let lives = 3;
+        let gameRunning = true;
+        let enemies = [];
+        let projectiles = [];
+        let playerX = canvas.width / 2;
+        let lastTime = 0;
+        let spawnTimer = 0;
+
+        // Assets
+        // Using emoji/text for simplicity
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+
+        // Controls
+        canvas.addEventListener('mousemove', (e) => {
+            playerX = e.clientX;
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            playerX = e.touches[0].clientX;
+        });
+        canvas.addEventListener('click', () => {
+            if (gameRunning) {
+                projectiles.push({ x: playerX, y: canvas.height - 60, speed: 10 });
+            }
+        });
+
+        // Close
+        id('grade-defender-close').addEventListener('click', () => {
+            gameRunning = false;
+            canvas.remove();
+            id('grade-defender-ui').remove();
+            id('grade-defender-close').remove();
+            id('grade-defender-gameover').remove();
+            tn('html', 0).style.overflowY = 'auto';
+        });
+
+        // Restart
+        id('grade-defender-restart').addEventListener('click', () => {
+            score = 0;
+            lives = 3;
+            enemies = [];
+            projectiles = [];
+            gameRunning = true;
+            id('grade-defender-gameover').classList.remove('active');
+            requestAnimationFrame(gameLoop);
+        });
+
+        tn('html', 0).style.overflowY = 'hidden';
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Spawn enemies
+            spawnTimer += dt;
+            if (spawnTimer > 1000) { // Spawn every second
+                const type = Math.random();
+                let text = (Math.floor(Math.random() * 40) + 10) / 10; // 1.0 - 5.0
+                let isBad = true;
+                if (type > 0.8) {
+                    text = (Math.floor(Math.random() * 45) + 55) / 10; // 5.5 - 10.0
+                    isBad = false;
+                }
+                enemies.push({
+                    x: Math.random() * (canvas.width - 50) + 25,
+                    y: -50,
+                    text: text.toFixed(1),
+                    isBad: isBad,
+                    speed: Math.random() * 2 + 1 + (score / 50) // Speed increases with score
+                });
+                spawnTimer = 0;
+            }
+
+            // Update & Draw Projectiles
+            ctx.fillStyle = '#0099ff';
+            for (let i = 0; i < projectiles.length; i++) {
+                let p = projectiles[i];
+                p.y -= p.speed;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                if (p.y < 0) {
+                    projectiles.splice(i, 1);
+                    i--;
+                }
+            }
+
+            // Update & Draw Enemies
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i < enemies.length; i++) {
+                let e = enemies[i];
+                e.y += e.speed;
+                
+                ctx.fillStyle = e.isBad ? '#ff4444' : '#44ff44';
+                ctx.fillText(e.text, e.x, e.y);
+
+                // Collision with floor (missed)
+                if (e.y > canvas.height) {
+                    enemies.splice(i, 1);
+                    i--;
+                    if (e.isBad) {
+                        lives--;
+                        id('gd-lives').innerText = lives;
+                        if (lives <= 0) {
+                            gameRunning = false;
+                            id('grade-defender-gameover').classList.add('active');
+                            id('gd-final-score').innerText = score;
+                        }
+                    }
+                }
+
+                // Collision with projectiles
+                for (let j = 0; j < projectiles.length; j++) {
+                    let p = projectiles[j];
+                    let dist = Math.hypot(p.x - e.x, p.y - e.y);
+                    if (dist < 30) {
+                        // Hit!
+                        projectiles.splice(j, 1);
+                        enemies.splice(i, 1);
+                        i--;
+                        if (e.isBad) {
+                            score += 10;
+                        } else {
+                            score -= 20; // Hit a good grade
+                        }
+                        id('gd-score').innerText = score;
+                        break;
+                    }
+                }
+            }
+
+            // Draw Player
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(playerX - 25, canvas.height - 50, 50, 20);
+            ctx.fillRect(playerX - 5, canvas.height - 70, 10, 20);
+
+            requestAnimationFrame(gameLoop);
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
     // Manage calculation tool and graph on subject grades page
     function subjectGradesPage() {
         if (!n(tn('sl-vakresultaten', 0))) {
-            execute([insertCalculationTool]);
+            execute([insertCalculationTool, insertGradeAssistant]);
             const examPage = !n(tn('sl-examenresultaten', 0));
-            // Insert graphs at subject grades page when enabled (2 or more grades need to be present)
+            // Insert graphs + automatische cijferanalyse op de vakpagina wanneer ingeschakeld
             if (n(id('mod-grades-graphs')) && get('bools').charAt(7) == '1') {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
             else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
@@ -3347,7 +3978,15 @@ function onload() {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
         }
@@ -4748,15 +5387,16 @@ function onload() {
             const updateinfo = (platform == 'Userscript' || platform == 'Android') ? '' : '<p>Je browser controleert automatisch op updates voor de Somtoday Mod-extensie. Het is wel mogelijk dat een nieuwe update in het review-proces is bij ' + platform + '.</p>';
             const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', '<div id="mod-setting-panel"><div id="mod-actions"><a id="save" class="mod-setting-button" tabindex="0"><span>' + getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)') + 'Instellingen opslaan</span></a><a id="reset" class="mod-setting-button" tabindex="0"><span>' + getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)') + 'Reset instellingen</span></a>' + updatechecker + '<a class="mod-setting-button" tabindex="0" href="https://jonazwetsloot.nl/projecten/somtoday-mod" target="_blank"><span>' + getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)') + 'Informatie over mod</span></a><a class="mod-setting-button" tabindex="0" href="https://github.com/Jona-Zwetsloot/Somtoday-Mod/issues" target="_blank" id="mod-bug-report"><span>' + getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)') + 'Bug melden</span></a></div>' +
                 '<h3 class="category" data-category="color" tabindex="0">Kleuren</h3><div id="category-color">' + addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2') + '<div class="br"></div><div class="br"></div>' + addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2') + '</div>' +
-                '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
+                '<h3 class="category" data-category="background" tabindex="0">Achtergrond</h3><div id="category-background"><div id="mod-background-type"><a tabindex="0" id="type-image"' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? ' class="active"' : '') + '>Afbeelding</a><a tabindex="0" id="type-slideshow"' + (get('backgroundtype') == 'slideshow' ? ' class="active"' : '') + '>Diavoorstelling</a><a tabindex="0" id="type-color"' + (get('backgroundtype') == 'color' ? ' class="active"' : '') + '>Effen kleur</a><a tabindex="0" id="type-live"' + (get('backgroundtype') == 'live' ? ' class="active"' : '') + '>Live</a></div><div id="mod-bg-image" style="display:' + ((n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*') + '<div tabindex="0" class="mod-button" id="mod-random-background">Random</div><div class="br"></div><div class="br"></div><div id="mod-filters"' + (n(get('background')) ? ' style="display:none;"' : '') + '><h3>Filters</h3><p>Gebruik filters om de afbeelding aan te passen.</p><video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? '" src="' + get('background') + '"' : 'display:none;"') + '></video><img id="mod-background-preview-image" class="mod-background-preview" style="' + (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;"' : '" src="' + (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')) + '"') + '/><div class="br"></div>' + addSlider('Helderheid', 'brightness', 0, 200, '%', 100) + addSlider('Contrast', 'contrast', 0, 200, '%', 100) + addSlider('Verzadiging', 'saturate', 0, 200, '%', 100) + addSlider('Opacity', 'opacity', 0, 100, '%', 100) + addSlider('Kleurrotatie', 'huerotate', 0, 360, 'deg', 0) + addSlider('Grayscale', 'grayscale', 0, 100, '%', 0) + addSlider('Sepia', 'sepia', 0, 100, '%', 0) + addSlider('Invert', 'invert', 0, 100, '%', 0) + addSlider('Blur', 'blur', 0, 200, 'px', 0) + '<a tabindex="0" id="mod-reset-filters" style="display:inline-block;padding:5px 0;" class="dodgerblue">Reset filters</a></div></div><div id="mod-bg-slideshow" style="display:' + (get('backgroundtype') == 'slideshow' ? 'block' : 'none') + '" class="mod-background-type-content"><h3>Achtergrondafbeeldingen</h3><p>Stel afbeeldingen in voor op de achtergrond, waar elke keer &eacute;&eacute;n random afbeelding uit geselecteerd zal worden.</p><div id="mod-background-wrapper">' + backgroundHTML + '<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div></div><div id="mod-bg-color" style="display:' + (get('backgroundtype') == 'color' ? 'block' : 'none') + '" class="mod-background-type-content">' + addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff') + '</div><div id="mod-bg-live" style="display:' + (get('backgroundtype') == 'live' ? 'block' : 'none') + '" class="mod-background-type-content"><p>Een live, bewegende achtergrond die willekeurige kleuren genereert.</p><div tabindex="0" class="mod-button" id="mod-live-randomize">Kies een willekeurig effect</div></div><div class="br"></div><div class="br"></div>' + addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity') + addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur') + '</div>' +
                 '<h3 class="category" data-category="themes" tabindex="0">Thema\'s</h3><div id="category-themes"><div class="br"></div><div id="theme-wrapper"></div><div class="br"></div></div>' +
                 '<h3 class="category" data-category="layout" tabindex="0">Layout</h3><div id="category-layout"><div id="layout-wrapper"><div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div><div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div></div></div>' +
                 '<h3 class="category" data-category="menu" tabindex="0">Menu</h3><div id="category-menu">' + addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false) + '</div>' +
                 '<h3 class="category" data-category="general" tabindex="0">Algemeen</h3><div id="category-general">' + nicknames + '<div class="br"></div><div class="br"></div><div class="br"></div><div id="username-wrapper"><h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div></div><div class="br"></div><div class="br"></div><div class="br"></div><h3>Lettertype</h3>' + (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + '<div class="mod-custom-select notranslate"><select id="mod-font-select" title="Selecteer een lettertype"><option selected disabled hidden>' + (n(get('customfontname')) ? get("fontname") : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')) + '</option><option>' + fonts.join('</option><option>') + '</option></select></div><label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Of upload lettertype</p></label><input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt"><div class="example-box-wrapper"><div id="font-box"><h3 style="letter-spacing:normal;">Lettertype</h3><p style="letter-spacing:normal;margin-bottom:0;">Kies een lettertype voor Somtoday.</p></div></div><div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120') + '<div class="br"></div><div class="br"></div><div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(14) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(14) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(14) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div><div class="br"></div><div class="br"></div><div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>' + '</div>' +
                 '<h3 class="category" data-category="extra" tabindex="0">Aanvullende opties</h3><div id="category-extra">' + (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true) + '</div>' +
+                '<h3 class="category" data-category="games" tabindex="0">Spellen</h3><div id="category-games"><p>Speel minispellen om de stress van school even te vergeten.</p><div tabindex="0" class="mod-button" id="mod-play-defender">Speel Grade Defender</div><div class="br"></div></div>' +
                 (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>') +
                 '<h3 class="category" data-category="autologin" tabindex="0">Autologin</h3><div id="category-autologin"><p>Vul de onderstaande tekstvelden in om automatisch in te loggen.</p>' + (get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld vanwege een mislukte inlogpoging. Verbeter je inloggegevens om autologin weer in te schakelen.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '') + addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', '') + '<div class="br"></div><div class="br"></div>' + addSetting('Wachtwoord', 'Voer je wachtwoord in (hoeft niet als je inlogt met SSO).', 'loginpass', 'password', '', '') + '</div>' +
-                '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + platform + '</span>!</p>' + updateinfo + (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json"></div>') + '<div class="br"></div></div>');
+                '<div class="br"></div><p>' + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version + ' van Somtoday Mod</p><p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">Somtoday Mod ' + platform + '</span>!</p><p>Met dank aan: Jona-Zwetsloot, Berkay en jxxIT</p>' + updateinfo + (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json"></div>') + '<div class="br"></div></div>');
             if (platform != 'Android') {
                 id('export-settings').addEventListener('click', exportSettings);
                 id('import-settings').addEventListener('click', function () {
@@ -4897,6 +5537,15 @@ function onload() {
                 hide(id('mod-bg-image'));
                 hide(id('mod-bg-slideshow'));
                 show(id('mod-bg-color'));
+                hide(id('mod-bg-live'));
+            });
+            id('type-live').addEventListener('click', function () {
+                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                this.classList.add('active');
+                hide(id('mod-bg-image'));
+                hide(id('mod-bg-slideshow'));
+                hide(id('mod-bg-color'));
+                show(id('mod-bg-live'));
             });
             // Make section collapsing work
             let number = 0;
@@ -5007,6 +5656,32 @@ function onload() {
             if (platform == 'Userscript' || platform == 'Android') {
                 id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
             }
+            id('mod-play-defender').addEventListener('click', function () {
+                id('mod-setting-panel').remove();
+                tn('sl-root', 0).inert = false;
+                if (!n(tn('sl-modal', 0))) {
+                    tn('sl-modal', 0).inert = false;
+                }
+                // Close modal if open
+                if (tn('sl-account-modal', 0)) {
+                    try {
+                        const headers = tn('sl-account-modal-header');
+                        // Try to find the close button in the last header or any header
+                        let closeBtn;
+                        for (let i = headers.length - 1; i >= 0; i--) {
+                            const btns = headers[i].getElementsByClassName('close-button');
+                            if (btns.length > 0) {
+                                closeBtn = btns[0];
+                                break;
+                            }
+                        }
+                        if (closeBtn) closeBtn.click();
+                    } catch (e) {
+                        console.warn('Somtoday Mod: Could not close account modal', e);
+                    }
+                }
+                setTimeout(gradeDefenderGame, 200);
+            });
             // Make random background button work
             // Random background images thanks to Lorem Picsum: https://picsum.photos
             id('mod-random-background').addEventListener('click', function () {
@@ -5021,6 +5696,12 @@ function onload() {
                         id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
                     }
                 }
+            });
+
+            // Live Wallpaper Randomize
+            id('mod-live-randomize').addEventListener('click', function() {
+                set('live_seed', Math.random() * 100);
+                startLiveWallpaper();
             });
             // Add script to make the font select element work
             if (!n(id('mod-font-select-script'))) {
@@ -5646,3 +6327,4 @@ function onload() {
         tryRemove(id('transitions-disabled'));
     }, 400);
 }
+
