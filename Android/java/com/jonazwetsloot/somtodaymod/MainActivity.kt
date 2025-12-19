@@ -3185,7 +3185,15 @@ function onload() {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
             else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
@@ -3193,7 +3201,15 @@ function onload() {
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '"><h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                tn('sl-vakresultaten', 0).insertAdjacentHTML(
+                    'beforeend',
+                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
+                    '<h3>Cijferanalyse</h3>' +
+                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
+                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
+                    '</div>'
+                );
                 setTimeout(function () { execute([gradeGraphs]); }, 500);
             }
         }
