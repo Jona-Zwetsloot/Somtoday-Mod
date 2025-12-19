@@ -13,7 +13,7 @@
 // ==/UserScript==
 
 // SOMTODAY MOD MINIFIED
-// Somtoday Mod (c) 2023-2024 by Jona Zwetsloot is licensed under CC BY-NC-SA 4.0
+// Somtoday Mod (c) 2023-2025 by Jona Zwetsloot is licensed under CC BY-NC-SA 4.0
 // This means you are free to edit and share this code if you attribute the creator.
 // You also have to use the same license and you are not allowed to use this software for commercial purposes.
 
