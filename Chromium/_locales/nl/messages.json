@@ -1,6 +1,6 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v5.2"
+    "message": "Somtoday Mod Chromium v5.3"
   },
   "newOne": {
     "message": "De docent-nicknames werken eindelijk weer (en nu ECHT) 🥳"
@@ -39,7 +39,7 @@
     "message": "Somtoday Mod aanzetten"
   },
   "toSomtoday": {
-    "message": "Naar ELO"
+    "message": "Naar Somtoday"
   },
   "resetAll": {
     "message": "Reset alles"
@@ -53,4 +53,5 @@
   "no": {
     "message": "Nee"
   }
+
 }
