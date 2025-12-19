@@ -2,9 +2,51 @@
 // This script is used to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
 // If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
 
-const version = 5.3;
-const platform = 'Chromium';
-const minified = false;
+let version_json = {};
+
+function loadJson() {
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', chrome.runtime.getURL('version_info.json'), false);
+        xhr.send();
+        if (xhr.status === 200) {
+            version_json = JSON.parse(xhr.responseText);
+            getFromJson.data = version_json;
+        } else {
+            version_json = {};
+            getFromJson.data = {};
+        }
+    } catch (err) {
+        console.error('Somtoday Mod ERROR: Could not load version_info.json', err);
+        version_json = {};
+        getFromJson.data = {};
+    }
+}
+
+function getFromJson(key) {
+    if (!getFromJson.data) loadJson();
+
+    const value = getFromJson.data[key];
+    if (value == null) return '';
+
+    if (typeof value === 'string') {
+        try {
+            return JSON.parse(value);
+        } catch {
+            return value;
+        }
+    }
+
+    return value;
+}
+
+loadJson();
+
+const version = getFromJson('version');
+const platform = getFromJson('platform');
+const minified = getFromJson('minified');
+const version_name = getFromJson('version_name');
+
 let data;
 const hasSettingsHash = window.location.hash == '#mod-settings';
 // Check if userscriptmanager allows storage access
