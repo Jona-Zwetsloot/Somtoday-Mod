@@ -82,7 +82,7 @@ async function autoLogin() {
 }
 
 async function waitForPageLoad() {
-    while (isExtension && data == null) {
+    while ((storageMethod == 'extension' || storageMethod == 'indexedDB') && data == null) {
         await new Promise(resolve => setTimeout(resolve, 25));
     }
     

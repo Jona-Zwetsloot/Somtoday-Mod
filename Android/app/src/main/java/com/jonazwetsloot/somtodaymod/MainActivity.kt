@@ -270,17 +270,20 @@ const contributors = {"Jona-Zwetsloot":"https:\/\/avatars.githubusercontent.com\
 
 let data;
 const isExtension = platform != 'Userscript' && platform != 'Android';
-const hasSettingsHash = window.location.hash == '#mod-settings';if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
-    function get(e) {
-        return GM_getValue(e, null);
+const hasSettingsHash = window.location.hash == '#mod-settings';
+let storageMethod;if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
+    storageMethod = 'userscript';
+    function get(key) {
+        return GM_getValue(key, null);
     }
-    function set(e, t) {
-        return GM_setValue(e, t);
+    function set(key, value) {
+        return GM_setValue(key, value);
     }
     if (platform != 'Userscript') {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Userscript storage is used while the platform is not set to Userscript.'));
     }
 }else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.local) {
+    storageMethod = 'extension';
     chrome.storage.local.get(null).then((result) => {
         data = result;
     });
@@ -289,36 +292,132 @@ const hasSettingsHash = window.location.hash == '#mod-settings';if (typeof GM_ge
             window.location.reload();
         }
     });
-    
-    function get(e) {
+
+    function get(key) {
         if (data == null) {
             return '';
         }
-        if (data[e] == null) {
+        if (data[key] == null) {
             return '';
         }
-        return data[e];
+        return data[key];
     }
-    function set(e, t) {
-        let prop = e;
+    function set(key, value) {
+        let prop = key;
         let obj = {};
-        obj[prop] = t;
+        obj[prop] = value;
         try {
             chrome.storage.local.set(obj);
         }
         catch (e) {
             setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Couldn\'t save value. Somtoday Mod is probably updating right now.\nError: ' + e));
         }
-        data[e] = t;
+        data[key] = value;
     }
     if (!isExtension) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Extension storage is used while the platform is set to ' + platform + '.'));
     }
-}else if (window.localStorage) {
-    let messageShown = false;
-    function set(name, value) {
+}else if (window?.indexedDB) {
+    storageMethod = 'indexedDB';
+    const DB_NAME = 'app-storage';
+    const STORE_NAME = 'kv';
+    const DB_VERSION = 1;
+
+    async function persistStorage() {
+        if (!navigator.storage || !navigator.storage.persist) {
+            return false;
+        }
+
+        const alreadyPersisted = await navigator.storage.persisted();
+        if (alreadyPersisted) {
+            return true;
+        }
+
         try {
-            localStorage.setItem(name, value);
+            return await navigator.storage.persist();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function openDB() {
+        const persistent = await persistStorage();
+        if (!persistent) {
+            setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Storage is not persistent.'));
+        }
+
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onupgradeneeded = () => {
+                const db = request.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function getAllFromStore() {
+        data = await realGetAllFromStore();
+    }
+
+    async function realGetAllFromStore() {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+
+            const valuesReq = store.getAll();
+            const keysReq = store.getAllKeys();
+
+            tx.oncomplete = () => {
+                const map = {};
+                keysReq.result.forEach((key, i) => {
+                    map[key] = valuesReq.result[i];
+                });
+                resolve(map);
+            };
+
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    function set(key, value) {
+        data[key] = value;
+        realSet(key, value);
+    }
+
+    async function realSet(key, value) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put(value, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    function get(key) {
+        if (data == null) {
+            return '';
+        }
+        if (data[key] == null) {
+            return '';
+        }
+        return data[key];
+    }
+
+    getAllFromStore();
+}else if (window?.localStorage) {
+    storageMethod = 'localStorage';
+    let messageShown = false;
+    function set(key, value) {
+        try {
+            localStorage.setItem(key, value);
         }
         catch (e) {
             if (messageShown == false) {
@@ -1075,7 +1174,7 @@ async function autoLogin() {
 }
 
 async function waitForPageLoad() {
-    while (isExtension && data == null) {
+    while ((storageMethod == 'extension' || storageMethod == 'indexedDB') && data == null) {
         await new Promise(resolve => setTimeout(resolve, 25));
     }
     
@@ -2385,12 +2484,12 @@ function onload() {
                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + '</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}}</style>');
                if (n(get('customfontname'))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + '}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get('fontname') == "Oswald") ? "letter-spacing:1px;" : "") + '}</style>');
         }
         else {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");@font-face{font-family:modCustomFont;src:url("' + get('customfont') + '");}*{font-family:modCustomFont,"Open Sans",sans-serif !important;}</style>');
         }
-               if (get('layout') != 4 && ((get("backgroundtype") == 'image' && !n(get("background"))) || (get("backgroundtype") == 'color') || (get("backgroundtype") == 'slideshow' && !n(get("background0"))) || get("backgroundtype") == 'live')) {
+               if (get('layout') != 4 && ((get('backgroundtype') == 'image' && !n(get('background'))) || (get('backgroundtype') == 'color') || (get('backgroundtype') == 'slideshow' && !n(get('background0'))) || get('backgroundtype') == 'live')) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:6px;padding:10px;background-color:var(--bg-neutral-none);}.content:has(sl-registraties){background:var(--mod-transparent);}sl-studiewijzer-week{border-bottom:2px solid var(--mod-transparent) !important;}sl-studiewijzer-dag{border-right:2px solid var(--mod-transparent) !important;}' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '1' ? 'sl-rooster-week .uur{border-left:2px solid var(--mod-transparent) !important;border-bottom:2px solid var(--mod-transparent) !important;}' : '') + '.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:var(--bg-neutral-none);padding:20px !important; padding-bottom:40px !important;}hmy-geen-data > span{margin-top:20px;}hmy-geen-data{background:var(--mod-ui-transparent);padding:30px 60px;border-radius:24px;}</style>');
         }
                if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
@@ -2513,7 +2612,7 @@ function onload() {
         layoutValue = get('layout');
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
-        if (get('ui') != 0 || get("backgroundtype") == 'live') {
+        if (get('ui') != 0 || get('backgroundtype') == 'live') {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
                const purple100 = toBrightnessValue(get('secondarycolor'), 41);
@@ -2529,14 +2628,14 @@ function onload() {
         const green20 = toBrightnessValue(get('secondarycolor'), 209);
         const green10 = toBrightnessValue(get('secondarycolor'), 228);
         const green0 = toBrightnessValue(get('secondarycolor'), 245);
-        const blue100 = toBrightnessValue(get("primarycolor"), 48);
-        const blue80 = toBrightnessValue(get("primarycolor"), 56);
-        const blue70 = toBrightnessValue(get("primarycolor"), 81);
-        const blue60 = toBrightnessValue(get("primarycolor"), 89);
-        const blue40 = toBrightnessValue(get("primarycolor"), 140);
-        const blue30 = toBrightnessValue(get("primarycolor"), 169);
-        const blue20 = toBrightnessValue(get("primarycolor"), 198);
-        const blue0 = toBrightnessValue(get("primarycolor"), 241);
+        const blue100 = toBrightnessValue(get('primarycolor'), 48);
+        const blue80 = toBrightnessValue(get('primarycolor'), 56);
+        const blue70 = toBrightnessValue(get('primarycolor'), 81);
+        const blue60 = toBrightnessValue(get('primarycolor'), 89);
+        const blue40 = toBrightnessValue(get('primarycolor'), 140);
+        const blue30 = toBrightnessValue(get('primarycolor'), 169);
+        const blue20 = toBrightnessValue(get('primarycolor'), 198);
+        const blue0 = toBrightnessValue(get('primarycolor'), 241);
         const yellow60 = toBrightnessValue(get('secondarycolor'), 162);
         const yellow50 = toBrightnessValue(get('secondarycolor'), 173);
         const yellow20 = toBrightnessValue(get('secondarycolor'), 198);
@@ -5556,7 +5655,7 @@ function onload() {
                     <div class="mod-custom-select notranslate">
                         <select id="mod-font-select" title="Selecteer een lettertype">
                             <option selected disabled hidden>
-                                ${"$"}{n(get('customfontname')) ? get("fontname") : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}
+                                ${"$"}{n(get('customfontname')) ? get('fontname') : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}
                             </option>
                             <option>${"$"}{fonts.join('</option><option>')}</option>
                         </select>

@@ -55,13 +55,15 @@ const contributors = getFromJson('contributors');
 let data;
 const isExtension = platform != 'Userscript' && platform != 'Android';
 const hasSettingsHash = window.location.hash == '#mod-settings';
+let storageMethod;
 // Check if userscriptmanager allows storage access
 if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
-    function get(e) {
-        return GM_getValue(e, null);
+    storageMethod = 'userscript';
+    function get(key) {
+        return GM_getValue(key, null);
     }
-    function set(e, t) {
-        return GM_setValue(e, t);
+    function set(key, value) {
+        return GM_setValue(key, value);
     }
     if (platform != 'Userscript') {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Userscript storage is used while the platform is not set to Userscript.'));
@@ -69,6 +71,7 @@ if (typeof GM_getValue === 'function' && typeof GM_setValue === 'function') {
 }
 // Check if extension allows storage access
 else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.local) {
+    storageMethod = 'extension';
     chrome.storage.local.get(null).then((result) => {
         data = result;
     });
@@ -77,38 +80,136 @@ else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.l
             window.location.reload();
         }
     });
-    
-    function get(e) {
+
+    function get(key) {
         if (data == null) {
             return '';
         }
-        if (data[e] == null) {
+        if (data[key] == null) {
             return '';
         }
-        return data[e];
+        return data[key];
     }
-    function set(e, t) {
-        let prop = e;
+    function set(key, value) {
+        let prop = key;
         let obj = {};
-        obj[prop] = t;
+        obj[prop] = value;
         try {
             chrome.storage.local.set(obj);
         }
         catch (e) {
             setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Couldn\'t save value. Somtoday Mod is probably updating right now.\nError: ' + e));
         }
-        data[e] = t;
+        data[key] = value;
     }
     if (!isExtension) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Extension storage is used while the platform is set to ' + platform + '.'));
     }
 }
-// Fallback to local storage
-else if (window.localStorage) {
-    let messageShown = false;
-    function set(name, value) {
+// Check if indexedDB is supported
+else if (window?.indexedDB) {
+    storageMethod = 'indexedDB';
+    const DB_NAME = 'app-storage';
+    const STORE_NAME = 'kv';
+    const DB_VERSION = 1;
+
+    async function persistStorage() {
+        if (!navigator.storage || !navigator.storage.persist) {
+            return false;
+        }
+
+        const alreadyPersisted = await navigator.storage.persisted();
+        if (alreadyPersisted) {
+            return true;
+        }
+
         try {
-            localStorage.setItem(name, value);
+            return await navigator.storage.persist();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function openDB() {
+        const persistent = await persistStorage();
+        if (!persistent) {
+            setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Storage is not persistent.'));
+        }
+
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+            request.onupgradeneeded = () => {
+                const db = request.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function getAllFromStore() {
+        data = await realGetAllFromStore();
+    }
+
+    async function realGetAllFromStore() {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+
+            const valuesReq = store.getAll();
+            const keysReq = store.getAllKeys();
+
+            tx.oncomplete = () => {
+                const map = {};
+                keysReq.result.forEach((key, i) => {
+                    map[key] = valuesReq.result[i];
+                });
+                resolve(map);
+            };
+
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    function set(key, value) {
+        data[key] = value;
+        realSet(key, value);
+    }
+
+    async function realSet(key, value) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put(value, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    function get(key) {
+        if (data == null) {
+            return '';
+        }
+        if (data[key] == null) {
+            return '';
+        }
+        return data[key];
+    }
+
+    getAllFromStore();
+}
+// Fallback to local storage
+else if (window?.localStorage) {
+    storageMethod = 'localStorage';
+    let messageShown = false;
+    function set(key, value) {
+        try {
+            localStorage.setItem(key, value);
         }
         catch (e) {
             if (messageShown == false) {
