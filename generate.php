@@ -185,7 +185,6 @@ $android .= "package com.jonazwetsloot.somtodaymod
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
@@ -194,15 +193,19 @@ import android.os.Environment
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.File
 
 
@@ -211,100 +214,149 @@ class MainActivity : ComponentActivity() {
     private var mUploadMessage: ValueCallback<Uri>? = null
     private var mUploadMessages: ValueCallback<Array<Uri>>? = null
     private var mCapturedImageURI: Uri? = null
-    private var myWebView: WebView? = null
+    private lateinit var webView: WebView
+    private lateinit var errorLayout: View
     var progressBar : ProgressBar? = null
     var isProgressBarShown : Boolean = false
 
     override fun onBackPressed() {
-        if (myWebView!!.canGoBack()) {
-            myWebView!!.goBack()
+        if (webView.canGoBack()) {
+            webView.goBack()
         } else {
             super.onBackPressed()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        myWebView = WebView(this)
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        webView = WebView(this)
+        val root = FrameLayout(this)
         appContext = applicationContext
-        myWebView!!.settings.javaScriptEnabled = true
-        myWebView!!.webViewClient = MyWebViewClient()
-        myWebView!!.getSettings().setDomStorageEnabled(true)
-        myWebView!!.getSettings().setLoadWithOverviewMode(true)
-        myWebView!!.getSettings().setAllowFileAccess(true)
-        setContentView(myWebView)
-        myWebView!!.loadUrl(\"https://leerling.somtoday.nl/\")
-        myWebView!!.webChromeClient = object : WebChromeClient() {
-            // openFileChooser for Android 3.0+
-            fun openFileChooser(uploadMsg: ValueCallback<Uri?>, acceptType: String?) {
-                mUploadMessage = uploadMsg as ValueCallback<Uri>
-                openImageChooser()
-            }
+
+        webView = WebView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.loadWithOverviewMode = true
+            settings.allowFileAccess = true
+            setBackgroundColor(Color.TRANSPARENT)
+            webViewClient = MyWebViewClient()
+            webChromeClient = object : WebChromeClient() {
+                // openFileChooser for Android 3.0+
+                fun openFileChooser(uploadMsg: ValueCallback<Uri?>, acceptType: String?) {
+                    mUploadMessage = uploadMsg as ValueCallback<Uri>
+                    openImageChooser()
+                }
 
 
-            // For Lollipop 5.0+ Devices
-            override fun onShowFileChooser(
-                mWebView: WebView?,
-                filePathCallback: ValueCallback<Array<Uri?>?>,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-                mUploadMessages = filePathCallback as ValueCallback<Array<Uri>>
-                openImageChooser()
-                return true
-            }
+                // For Lollipop 5.0+ Devices
+                override fun onShowFileChooser(
+                    mWebView: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri?>?>,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    mUploadMessages = filePathCallback as ValueCallback<Array<Uri>>
+                    openImageChooser()
+                    return true
+                }
 
 
-            // openFileChooser for Android < 3.0
-            fun openFileChooser(uploadMsg: ValueCallback<Uri?>) {
-                openFileChooser(uploadMsg, \"\")
-            }
+                // openFileChooser for Android < 3.0
+                fun openFileChooser(uploadMsg: ValueCallback<Uri?>) {
+                    openFileChooser(uploadMsg, \"\")
+                }
 
 
-            // openFileChooser for other Android versions
-            fun openFileChooser(
-                uploadMsg: ValueCallback<Uri?>,
-                acceptType: String?,
-                capture: String?
-            ) {
-                openFileChooser(uploadMsg, acceptType)
-            }
+                // openFileChooser for other Android versions
+                fun openFileChooser(
+                    uploadMsg: ValueCallback<Uri?>,
+                    acceptType: String?,
+                    capture: String?
+                ) {
+                    openFileChooser(uploadMsg, acceptType)
+                }
 
-            private fun openImageChooser() {
-                try {
-                    val imageStorageDir = File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                        \"FolderName\"
-                    )
-                    if (!imageStorageDir.exists()) {
-                        imageStorageDir.mkdirs()
+                private fun openImageChooser() {
+                    try {
+                        val imageStorageDir = File(
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                            \"FolderName\"
+                        )
+                        if (!imageStorageDir.exists()) {
+                            imageStorageDir.mkdirs()
+                        }
+                        val file = File(
+                            imageStorageDir.toString() + File.separator + \"IMG_\" + System.currentTimeMillis()
+                                .toString() + \".jpg\"
+                        )
+                        mCapturedImageURI = Uri.fromFile(file)
+
+                        val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedImageURI)
+
+                        val i = Intent(Intent.ACTION_GET_CONTENT)
+                        i.addCategory(Intent.CATEGORY_OPENABLE)
+                        i.setType(\"image/*\")
+                        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                        val chooserIntent = Intent.createChooser(i, \"Kies een bestand\")
+                        chooserIntent.putExtra(
+                            Intent.EXTRA_INITIAL_INTENTS,
+                            arrayOf<Parcelable>(captureIntent)
+                        )
+
+                        startActivityForResult(chooserIntent, fileChooserResultCode)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                    val file = File(
-                        imageStorageDir.toString() + File.separator + \"IMG_\" + System.currentTimeMillis()
-                            .toString() + \".jpg\"
-                    )
-                    mCapturedImageURI = Uri.fromFile(file)
-
-                    val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                    captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCapturedImageURI)
-
-                    val i = Intent(Intent.ACTION_GET_CONTENT)
-                    i.addCategory(Intent.CATEGORY_OPENABLE)
-                    i.setType(\"image/*\")
-                    i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                    val chooserIntent = Intent.createChooser(i, \"Kies een bestand\")
-                    chooserIntent.putExtra(
-                        Intent.EXTRA_INITIAL_INTENTS,
-                        arrayOf<Parcelable>(captureIntent)
-                    )
-
-                    startActivityForResult(chooserIntent, fileChooserResultCode)
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 }
             }
-
-
         }
+
+        if (webView.parent != null) {
+            (webView.parent as ViewGroup).removeView(webView)
+        }
+        root.addView(webView)
+
+        errorLayout = createErrorLayout()
+        errorLayout.visibility = View.GONE
+        root.addView(errorLayout)
+
+        setContentView(root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            v.setPadding(
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
+
+        root.requestApplyInsets()
+
+        webView.loadUrl(\"https://leerling.somtoday.nl/\")
+    }
+
+    private fun createErrorLayout(): View {
+        val layout = RelativeLayout(appContext)
+        val progressBar =
+            ProgressBar(appContext, null, android.R.attr.progressBarStyleLarge)
+        progressBar.isIndeterminate = true
+        progressBar.visibility = View.VISIBLE
+        progressBar.setProgressTintList(ColorStateList.valueOf(Color.RED))
+        val params = RelativeLayout.LayoutParams(100, 100)
+        params.addRule(RelativeLayout.CENTER_IN_PARENT)
+        layout.addView(progressBar, params)
+        return layout
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -339,14 +391,14 @@ class MainActivity : ComponentActivity() {
         mUploadMessage = null
     }
 
-    public override fun onSaveInstanceState(outBundle: Bundle) {
-        super.onSaveInstanceState(outBundle)
-        myWebView!!.saveState(outBundle)
+    public override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView.saveState(outState)
     }
 
     public override fun onRestoreInstanceState(savedBundle: Bundle) {
         super.onRestoreInstanceState(savedBundle)
-        myWebView!!.restoreState(savedBundle)
+        webView.restoreState(savedBundle)
     }
 
     private fun handleUploadMessages(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -384,26 +436,11 @@ class MainActivity : ComponentActivity() {
 
         override fun onPageFinished(view: WebView, url: String) {
             if (isPageError) {
-                if (!isProgressBarShown) {
-                    view.visibility = View.GONE
-                    val layout = RelativeLayout(appContext)
-                    val progressBar =
-                        ProgressBar(appContext, null, android.R.attr.progressBarStyleLarge)
-                    progressBar.isIndeterminate = true
-                    progressBar.visibility = View.VISIBLE
-                    progressBar.setProgressTintList(ColorStateList.valueOf(Color.RED))
-                    val params = RelativeLayout.LayoutParams(100, 100)
-                    params.addRule(RelativeLayout.CENTER_IN_PARENT)
-                    layout.addView(progressBar, params)
-
-                    setContentView(layout)
-                    isProgressBarShown = true
-                }
-            }
-            else {
-                view.visibility = View.VISIBLE
-                setContentView(view)
-                isProgressBarShown = false
+                webView.visibility = View.GONE
+                errorLayout.visibility = View.VISIBLE
+            } else {
+                errorLayout.visibility = View.GONE
+                webView.visibility = View.VISIBLE
             }
             view.loadUrl(\"\"\"javascript:(function loadEverything() {
 const version = {$version_info['version']};
@@ -529,7 +566,7 @@ file_put_contents('Firefox/manifest.json', $manifest_firefox);
 $build_gradle_kts = file_get_contents("Android/app/build.gradle.kts", true);
 preg_match("/versionCode = (\d+)/", $build_gradle_kts, $match);
 $num = ((int)$match[1]) + 1;
-$build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = $num", $build_gradle_kts);
+$build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = " . (str_replace('.', '', $version_info['version'])), $build_gradle_kts);
 $build_gradle_kts = preg_replace("/versionName = \"[^\"]+\"/", "versionName = \"{$version_info['version']}\"", $build_gradle_kts);
 file_put_contents("Android/app/build.gradle.kts", $build_gradle_kts);
 

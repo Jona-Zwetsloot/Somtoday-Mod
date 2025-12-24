@@ -5,13 +5,13 @@ plugins {
 
 android {
     namespace = "com.jonazwetsloot.somtodaymod"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.jonazwetsloot.somtodaymod"
         minSdk = 21
-        targetSdk = 34
-        versionCode = 7
+        targetSdk = 36
+        versionCode = 53
         versionName = "5.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

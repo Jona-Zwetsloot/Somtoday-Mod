@@ -2625,7 +2625,7 @@ function onload() {
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
         if (!n(recapData)) {
-            let recapChart = Chart.getChart('recap-chart')
+            let recapChart = Chart.getChart('recap-chart');
             if (recapChart) {
                 recapChart.destroy();
             }
@@ -2691,11 +2691,11 @@ function onload() {
             return;
         }
 
-        let modChart1 = Chart.getChart('mod-chart-1')
+        let modChart1 = Chart.getChart('mod-chart-1');
         if (modChart1) {
             modChart1.destroy();
         }
-        let modChart2 = Chart.getChart('mod-chart-2')
+        let modChart2 = Chart.getChart('mod-chart-2');
         if (modChart2) {
             modChart2.destroy();
         }
