@@ -1,0 +1,208 @@
+#mod-play-game {
+    color: dodgerblue;
+    text-align: center;
+    cursor: pointer;
+}
+
+sl-error-image svg {
+    transition: 1s transform ease, margin-top 0.3s ease !important;
+}
+
+.mod-game-playing sl-error-image svg {
+    margin-top: 100px;
+    transform: scale(40);
+    --fg-negative-normal: transparent;
+}
+
+.mod-game-playing sl-error-image svg * {
+    transition: fill 0.3s ease !important;
+}
+
+.mod-game-playing body {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.mod-floor,
+.mod-wall,
+#mod-basefloor {
+    background: #9b9b9c;
+    position: absolute;
+    height: 2%;
+}
+
+.mod-wall {
+    width: 20px;
+}
+
+body.mod-game-playing {
+    height: 100vh;
+    overflow: hidden;
+}
+
+#mod-player,
+#mod-basefloor,
+#mod-flag-end,
+.mod-level,
+h1#mod-h1-header {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mod-game-playing #mod-player,
+.mod-game-playing #mod-basefloor,
+.mod-game-playing #mod-flag-end,
+.mod-game-playing .mod-active-level,
+.mod-game-playing h1#mod-h1-header {
+    opacity: 1;
+}
+
+.mod-lava {
+    background: #fc9312;
+    position: absolute;
+    height: 2%;
+}
+
+.mod-enemy {
+    background: #fc1212;
+    position: absolute;
+    height: 50px;
+    width: 50px;
+    border-radius: 6px;
+}
+
+.mod-enemy p {
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+    font-size: 18px;
+    margin-top: 12px;
+}
+
+.mod-trampoline {
+    background: #1264fc;
+    position: absolute;
+    height: 2%;
+}
+
+.mod-game-playing #mod-player {
+    position: absolute;
+    bottom: 100px;
+    height: 50px;
+    left: 20px;
+}
+
+.mod-game-playing #mod-basefloor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100px
+}
+
+.mod-game-playing #mod-flag-end {
+    position: absolute;
+    width: 50px;
+}
+
+#mod-player-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 100px;
+}
+
+.mod-game-playing * {
+    user-select: none !important;
+    touch-action: none !important;
+}
+
+.mod-moving-platform-up,
+.mod-moving-platform-right {
+    position: absolute;
+}
+
+.mod-moving-platform-up div {
+    width: 100%;
+    height: 30px;
+}
+
+.mod-moving-platform-right div {
+    height: 30px;
+    width: 30%;
+}
+
+.mod-game-playing h1,
+.mod-game-playing h3,
+#mod-playtime {
+    text-shadow: 2px 2px 4px var(--border-neutral-weak);
+    font-size: 48px;
+    color: #9b9b9c;
+    font-weight: 700;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 10%;
+}
+
+#mod-playtime,
+#mod-close-button {
+    position: absolute;
+    top: 40px;
+    left: 30px;
+    padding: 0;
+    width: fit-content;
+    margin: 0;
+    font-size: 24px;
+}
+
+#mod-close-button {
+    left: unset;
+    right: 30px;
+    z-index: 1000;
+    top: 15px;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.mod-game-playing h3 {
+    font-size: 28px;
+    padding-top: 100px;
+}
+
+#mod-play-again,
+#mod-close-game {
+    position: absolute;
+    width: 300px;
+    max-width: 90%;
+    background: #3f8541;
+    color: #fff;
+    font-weight: 700;
+    padding: 20px;
+    transform: translateX(50%);
+    right: 50%;
+    transition: background 0.3s ease !important;
+    border-radius: 12px;
+}
+
+#mod-play-again:hover,
+#mod-close-game:hover {
+    background: #145716;
+    cursor: pointer;
+}
+
+@media (max-width:700px) {
+    #mod-h3-header {
+        transform: unset;
+    }
+}
+
+.mod-level h1 {
+    background: rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    padding: 0;
+}

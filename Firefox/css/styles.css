@@ -1,164 +1,12 @@
-/* Game CSS */
-#mod-play-game {
-    color: dodgerblue;
-    text-align: center;
-    cursor: pointer;
+:root {
+    --ruimvoldoende-cijfer-color: #3f8541 !important;
 }
 
-sl-error-image svg {
-    transition: 1s transform ease, margin-top 0.3s ease !important;
-}
-
-.mod-game-playing sl-error-image svg {
-    margin-top: 100px;
-    transform: scale(40);
-    --fg-negative-normal: transparent;
-}
-
-.mod-game-playing sl-error-image svg * {
-    transition: fill 0.3s ease !important;
-}
-
-.mod-game-playing body {
-    height: 100vh;
-    overflow: hidden;
-}
-
-.mod-floor,
-.mod-wall,
-#mod-basefloor {
-    background: #9b9b9c;
-    position: absolute;
-    height: 2%;
-}
-
-.mod-wall {
-    width: 20px;
-}
-
-body.mod-game-playing {
-    height: 100vh;
-    overflow: hidden;
-}
-
-#mod-player,
-#mod-basefloor,
-#mod-flag-end,
-.mod-level,
-h1#mod-h1-header {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.mod-game-playing #mod-player,
-.mod-game-playing #mod-basefloor,
-.mod-game-playing #mod-flag-end,
-.mod-game-playing .mod-active-level,
-.mod-game-playing h1#mod-h1-header {
-    opacity: 1;
-}
-
-.mod-lava {
-    background: #fc9312;
-    position: absolute;
-    height: 2%;
-}
-
-.mod-enemy {
-    background: #fc1212;
-    position: absolute;
-    height: 50px;
-    width: 50px;
-    border-radius: 6px;
-}
-
-.mod-enemy p {
-    color: #fff;
-    font-weight: 700;
-    text-align: center;
-    font-size: 18px;
-    margin-top: 12px;
-}
-
-.mod-trampoline {
-    background: #1264fc;
-    position: absolute;
-    height: 2%;
-}
-
-.mod-game-playing #mod-player {
-    position: absolute;
-    bottom: 100px;
-    height: 50px;
-    left: 20px;
-}
-
-.mod-game-playing #mod-basefloor {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100px
-}
-
-.mod-game-playing #mod-flag-end {
-    position: absolute;
-    width: 50px;
-}
-
-#mod-player-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 100px;
-}
-
-.mod-game-playing * {
-    user-select: none !important;
-    touch-action: none !important;
-}
-
-.mod-moving-platform-up,
-.mod-moving-platform-right {
-    position: absolute;
-}
-
-.mod-moving-platform-up div {
-    width: 100%;
-    height: 30px;
-}
-
-.mod-moving-platform-right div {
-    height: 30px;
-    width: 30%;
-}
-
-.mod-game-playing h1,
-.mod-game-playing h3,
-#mod-playtime {
-    text-shadow: 2px 2px 4px var(--border-neutral-weak);
-    font-size: 48px;
-    color: #9b9b9c;
-    font-weight: 700;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
+:root.dark {
+    --ruimvoldoende-cijfer-color: #90ea93 !important;
 }
 
 /* General Style */
-html,
-body {
-    scrollbar-width: none !important;
-}
-
-* {
-    user-select: auto !important;
-}
-
 body {
     overflow-y: scroll !important;
     background: var(--bg-elevated-none);
@@ -179,11 +27,6 @@ hmy-switch-group:has(hmy-switch),
 sl-bericht-detail .header,
 sl-bericht-nieuw>.titel {
     position: relative;
-}
-
-sl-rooster-week .uur {
-    border-left: none !important;
-    border-bottom: none !important;
 }
 
 sl-bericht-nieuw .nieuw-bericht-form input,
@@ -246,17 +89,25 @@ sl-account-modal .content,
     position: relative;
 }
 
-#nickname-wrapper>div>input:first-of-type,
-#username-wrapper>div>input:first-of-type {
-    width: calc(40% - 20px);
-    margin-right: 20px;
+#nickname-wrapper>div,
+#username-wrapper>div {
+    display: flex;
+    margin-bottom: 10px;
+    gap: 15px;
 }
 
-#nickname-wrapper input,
-#username-wrapper input {
-    width: 60%;
-    display: inline-block;
-    margin-bottom: 10px;
+#nickname-wrapper>div input,
+#username-wrapper>div input {
+    flex-grow: 1;
+}
+
+#nickname-wrapper>div>input:first-of-type,
+#username-wrapper>div>input:first-of-type {
+    width: 42%;
+}
+
+#nickname-wrapper>div>input:nth-child(2) {
+    width: 24%;
 }
 
 #mod-setting-panel {
@@ -284,6 +135,72 @@ sl-account-modal .content,
     .mod-range-preview {
         right: 15px;
     }
+
+    input[type="range"] {
+        width: calc(100% - 50px) !important;
+    }
+
+    .mod-slider p:last-of-type {
+        height: 7px;
+        transform: translateY(-72px);
+        float: right;
+        margin: 0 !important;
+    }
+
+    .mod-slider input[type="range"] {
+        width: 100% !important;
+    }
+
+    #mod-grade-calculate input {
+        width: calc(100% - 30px) !important;
+        margin-bottom: 10px;
+    }
+
+    #nickname-wrapper input,
+    #username-wrapper input {
+        width: 100% !important;
+    }
+
+    #nickname-wrapper div,
+    #username-wrapper div {
+        flex-wrap: wrap;
+    }
+
+    .layout-container {
+        width: calc(50% - 16px) !important;
+    }
+}
+
+#grade-reveal-select {
+    margin-bottom: 20px;
+}
+
+#studiewijzer-afspraak-toevoegen-select {
+    margin-top: 20px;
+}
+
+.mod-multi-choice {
+    display: inline-block;
+    vertical-align: top;
+    border: var(--thinnest-solid-neutral-normal);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.mod-multi-choice span {
+    padding: 10px 15px;
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s ease;
+}
+
+.mod-multi-choice span:hover {
+    background: var(--bg-elevated-weakest);
+}
+
+.mod-multi-choice span.active {
+    background: var(--bg-elevated-weak);
 }
 
 @media (max-width:48em) {
@@ -390,6 +307,18 @@ sl-vakresultaat-item {
     background: var(--bg-neutral-none) !important;
 }
 
+sl-rooster-week-header .dag {
+    align-content: start !important;
+}
+
+sl-rooster-week-header .dag p {
+    height: fit-content;
+}
+
+sl-rooster-week-header .mod-add-homework {
+    display: none !important;
+}
+
 @media (max-width:767px) {
 
     .mod-huiswerk strong,
@@ -474,139 +403,11 @@ sl-vakresultaat-item {
 }
 
 @media (min-width:767px) {
-    :root {
-        --min-content-vh: calc(100vh - 74px) !important;
-    }
 
     .mod-add-homework {
         opacity: 0;
         transition: 0.2s opacity ease;
     }
-}
-
-/* Grade Assistant */
-#mod-grade-assistant-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background: var(--action-primary-normal);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    transition: transform 0.2s ease;
-}
-
-#mod-grade-assistant-btn:hover {
-    transform: scale(1.1);
-}
-
-#mod-grade-assistant-btn svg {
-    width: 30px;
-    height: 30px;
-    fill: #fff;
-}
-
-#mod-assistant-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--bg-elevated-none);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
-    width: 400px;
-    max-width: 90%;
-    display: none;
-    border: 1px solid var(--border-neutral-normal);
-}
-
-#mod-assistant-modal.active {
-    display: block;
-    animation: 0.3s modpopupscale ease;
-}
-
-@keyframes modpopupscale {
-    0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-}
-
-#mod-assistant-modal h2 {
-    margin-top: 0;
-    color: var(--text-strong);
-}
-
-.mod-assistant-bubble {
-    background: var(--bg-primary-weak);
-    color: var(--text-strong);
-    padding: 15px;
-    border-radius: 12px;
-    border-bottom-left-radius: 0;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    position: relative;
-    font-size: 15px;
-    line-height: 1.4;
-}
-
-.mod-assistant-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    border-width: 10px 10px 0 0;
-    border-style: solid;
-    border-color: var(--bg-primary-weak) transparent transparent transparent;
-}
-
-#mod-assistant-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 30px;
-    cursor: pointer;
-    color: var(--text-weak);
-}
-
-#mod-assistant-inputs input {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px;
-    box-sizing: border-box;
-    border-radius: 6px;
-    border: 1px solid var(--border-neutral-normal);
-    background: var(--bg-elevated-weakest);
-    color: var(--text-strong);
-}
-
-#mod-assistant-calculate {
-    width: 100%;
-    background: var(--action-primary-normal);
-    color: #fff;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 5px;
-}
-
-#mod-assistant-calculate:hover {
-    background: var(--action-primary-strong);
 }
 
 /* Grade Defender */
@@ -713,13 +514,30 @@ sl-vakresultaat-item {
 
 #mod-new-year {
     padding: 20px;
-    background: var(--bg-accent-weak);
+    background: linear-gradient(to bottom, #39497b, #182859);
+    color: #fff;
+    position: relative;
+    transition: height .3s ease, padding .3s ease;
+    height: 142px;
+    box-sizing: border-box;
 }
 
 #mod-new-year button {
     position: absolute;
     right: 20px;
     cursor: pointer;
+    color: #fff;
+    background: #fff2;
+    border: none;
+    font-size: 26px;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    transition: background .2s ease;
+}
+
+#mod-new-year button:hover {
+    background: #fff4;
 }
 
 #mod-new-year h3 {
@@ -727,16 +545,15 @@ sl-vakresultaat-item {
     display: block;
 }
 
-#mod-new-year>div {
+#mod-new-year>div:last-of-type {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-top: 15px;
 }
 
-#mod-new-year>div>div {
-    background: var(--bg-accent-normal);
-    color: var(--fg-on-accent-normal);
+#mod-new-year>div:last-of-type>div {
+    background: #fff2;
     display: block;
     width: 80px;
     padding: 6px 12px;
@@ -771,6 +588,15 @@ sl-vakresultaat-item {
     transform: translateY(-3px);
 }
 
+#mod-new-year-fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
 #mod-fireworks {
     position: fixed;
     top: 0px;
@@ -782,34 +608,34 @@ sl-vakresultaat-item {
 }
 
 #mod-contributors {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	flex-wrap: wrap;
-	row-gap: 5px;
-	margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    row-gap: 5px;
+    margin-bottom: 25px;
 }
 
 #mod-contributors a {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	background: var(--bg-elevated-weak);
-	border-radius: 100dvh;
-	padding-right: 15px;
-	transition: background .2s ease;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg-elevated-weak);
+    border-radius: 100dvh;
+    padding-right: 15px;
+    transition: background .2s ease;
 }
 
 #mod-contributors a img {
-	height: 2em;
-	border-radius: 50%;
+    height: 2em;
+    border-radius: 50%;
 }
 
 #mod-contributors a p {
-	margin: 0;
+    margin: 0;
 }
 
 #mod-contributors a:hover {
-	background: var(--bg-elevated-strong);
-	cursor: pointer;
+    background: var(--bg-elevated-strong);
+    cursor: pointer;
 }

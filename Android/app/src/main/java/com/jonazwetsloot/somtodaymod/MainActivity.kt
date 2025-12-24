@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.view.View
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ProgressBar
@@ -44,11 +45,6 @@ class MainActivity : ComponentActivity() {
         myWebView = WebView(this)
         super.onCreate(savedInstanceState)
         appContext = applicationContext
-        window.statusBarColor = resources.getColor(R.color.black)
-        val nightModeFlags: Int = this.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
-            myWebView!!.setBackgroundColor(resources.getColor(R.color.black))
-        }
         myWebView!!.settings.javaScriptEnabled = true
         myWebView!!.webViewClient = MyWebViewClient()
         myWebView!!.getSettings().setDomStorageEnabled(true)
@@ -428,7 +424,9 @@ const BOOL_INDEX = {
     TEXT_SELECTION: 13,
     GRADE_REVEAL: 14,
     ROSTER_GRID: 15,
-    CUSTOM_HOMEWORK: 16
+    CUSTOM_HOMEWORK: 16,
+    EVENTS: 17,
+    GRADE_ANALYSIS: 18,
 };
 
 const adjust = (col, amt) => {
@@ -482,25 +480,55 @@ function addNightTheme() {
     if (id('mod-night-theme')) {
         return;
     }
-    const blokDiv = document.querySelector('div.blok');
+
+    if (cn('toggle-systeemvoorkeur', 0)) {
+               set('autotheme', cn('toggle-systeemvoorkeur', 0).ariaChecked == 'true' ? 'true' : 'false');
+
+        cn('toggle-systeemvoorkeur', 0).addEventListener('click', function () {
+                       if (this.ariaChecked == 'true') {
+                set('autotheme', 'true');
+                               if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    if (cn('container dark', 0) && cn('container dark', 0).ariaChecked == 'false') {
+                        cn('container dark', 0).click();
+                        this.click();
+                    }
+                }
+                               else {
+                    if (cn('container light', 0) && cn('container light', 0).ariaChecked == 'false') {
+                        cn('container light', 0).click();
+                        this.click();
+                    }
+                }
+            }
+                       else {
+                set('autotheme', 'false');
+            }
+
+                       updateTheme();
+        });
+    }
+
+       const blokDiv = document.querySelector('div.blok');
     const darkDiv = blokDiv.querySelector('div[data-gtm="instellingen-weergave-theme-dark-mode"]');
-    const darkImage = blokDiv.querySelector('input[value="dark"]')?.parentElement.querySelector('img');
-    const nightDiv = darkImage.parentElement.cloneNode(true);
+    const darkImage = darkDiv.getElementsByTagName('img')[0];
+    const nightDiv = darkDiv.cloneNode(true);
     nightDiv.id = 'mod-night-theme';
     nightDiv.getElementsByTagName('label')[0].title = 'Toegevoegd door Somtoday Mod';
-    nightDiv.getElementsByTagName('label')[0].innerHTML = 'Night ' + window.getIcon('logo', null, 'var(--text-moderate)');
+    nightDiv.getElementsByTagName('label')[0].innerHTML = 'Night ' + window.logo(null, null, '#0099ff', 'height:1em;width:fit-content;margin-left:5px;transform:translateY(2px);');
     nightDiv.getElementsByTagName('input')[0].value = 'night';
+    nightDiv.getElementsByTagName('input')[0].checked = get('theme') == 'night';
     nightDiv.setAttribute('aria-label', 'Weergave nacht');
-    if (darkImage) {
+          if (darkImage) {
         if (isExtension) {
             darkImage.src = chrome.runtime.getURL('images/dark-mode.svg');
         }
         else {
-            darkImage.src = 'data:image/svg+xml,%3Csvg%20width%3D%22128%22%20height%3D%2295%22%20viewBox%3D%220%200%20128%2095%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20clip-path%3D%22url%28%23clip0_4_2%29%22%3E%3Cpath%20d%3D%22M122%200.5H6C2.96243%200.5%200.5%202.96243%200.5%206V89C0.5%2092.0376%202.96243%2094.5%206%2094.5H122C125.038%2094.5%20127.5%2092.0376%20127.5%2089V6C127.5%202.96243%20125.038%200.5%20122%200.5Z%22%20fill%3D%22%23778091%22%20stroke%3D%22%23E2E5E9%22%2F%3E%3Cpath%20d%3D%22M32.2441%2033C32.2441%2031.3431%2033.5873%2030%2035.2441%2030H127.023V89C127.023%2091.7614%20124.784%2094%20122.023%2094H32.2441V33Z%22%20fill%3D%22%23181C20%22%2F%3E%3Cpath%20d%3D%22M46.8223%2053L45.7051%2049.8281H41.3379L40.2207%2053H38.2441L42.4941%2041.5312H44.5723L48.8145%2053H46.8223ZM45.2207%2048.2188L44.1348%2045.0938C44.0931%2044.9583%2044.0332%2044.7682%2043.9551%2044.5234C43.877%2044.2734%2043.7988%2044.0208%2043.7207%2043.7656C43.6426%2043.5052%2043.5775%2043.2866%2043.5254%2043.1095C43.4733%2043.323%2043.4082%2043.5625%2043.3301%2043.8281C43.2572%2044.0885%2043.1842%2044.3333%2043.1113%2044.5625C43.0436%2044.7917%2042.9915%2044.9688%2042.9551%2045.0938L41.8613%2048.2188H45.2207ZM53.5254%2044.1875C54.6191%2044.1875%2055.4447%2044.4298%2056.002%2044.9142C56.5645%2045.3985%2056.8457%2046.1536%2056.8457%2047.1797V53H55.541L55.1895%2051.7734H55.127C54.8822%2052.0859%2054.6296%2052.3439%2054.3691%2052.547C54.1087%2052.7501%2053.8066%2052.901%2053.4629%2053C53.1243%2053.1042%2052.7103%2053.1562%2052.2207%2053.1562C51.7051%2053.1562%2051.2441%2053.0625%2050.8379%2052.875C50.4316%2052.6823%2050.1113%2052.3906%2049.877%2052C49.6426%2051.6094%2049.5254%2051.1146%2049.5254%2050.5156C49.5254%2049.625%2049.8561%2048.9558%2050.5176%2048.5079C51.1842%2048.06%2052.1895%2047.8125%2053.5332%2047.7656L55.0332%2047.7109V47.2579C55.0332%2046.659%2054.8926%2046.2319%2054.6113%2045.9767C54.3353%2045.7215%2053.9447%2045.5938%2053.4395%2045.5938C53.0072%2045.5938%2052.5879%2045.6562%2052.1816%2045.7812C51.7754%2045.9062%2051.3796%2046.0599%2050.9941%2046.2422L50.4004%2044.9454C50.8223%2044.7215%2051.3014%2044.5391%2051.8379%2044.3984C52.3796%2044.2578%2052.9421%2044.1875%2053.5254%2044.1875ZM55.0254%2048.8672L53.9082%2048.9062C52.9915%2048.9376%2052.3483%2049.0938%2051.9785%2049.375C51.6087%2049.6562%2051.4238%2050.0418%2051.4238%2050.5312C51.4238%2050.9584%2051.5514%2051.2708%2051.8066%2051.4688C52.0618%2051.6615%2052.3978%2051.7579%2052.8145%2051.7579C53.4499%2051.7579%2053.9759%2051.5781%2054.3926%2051.2188C54.8145%2050.8542%2055.0254%2050.3203%2055.0254%2049.6172V48.8672Z%22%20fill%3D%22white%22%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%22clip0_4_2%22%3E%3Crect%20width%3D%22128%22%20height%3D%2295%22%20fill%3D%22white%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E';
+            darkImage.src = 'data:image/svg+xml,%3Csvg%20width%3D%22128%22%20height%3D%2295%22%20viewBox%3D%220%200%20128%2095%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20clip-path%3D%22url%28%23clip0_4_2%29%22%3E%3Cpath%20d%3D%22M122%200.5H6C2.96243%200.5%200.5%202.96243%200.5%206V89C0.5%2092.0376%202.96243%2094.5%206%2094.5H122C125.038%2094.5%20127.5%2092.0376%20127.5%2089V6C127.5%202.96243%20125.038%200.5%20122%200.5Z%22%20fill%3D%22%23778091%22%20stroke%3D%22%23E2E5E9%22%2F%3E%3Cpath%20d%3D%22M32.2441%2033C32.2441%2031.3431%2033.5873%2030%2035.2441%2030H127.023V89C127.023%2091.7614%20124.784%2094%20122.023%2094H32.2441V33Z%22%20fill%3D%22%2320262D%22%2F%3E%3Cpath%20d%3D%22M46.8223%2053L45.7051%2049.8281H41.3379L40.2207%2053H38.2441L42.4941%2041.5312H44.5723L48.8145%2053H46.8223ZM45.2207%2048.2188L44.1348%2045.0938C44.0931%2044.9583%2044.0332%2044.7682%2043.9551%2044.5234C43.877%2044.2734%2043.7988%2044.0208%2043.7207%2043.7656C43.6426%2043.5052%2043.5775%2043.2866%2043.5254%2043.1095C43.4733%2043.323%2043.4082%2043.5625%2043.3301%2043.8281C43.2572%2044.0885%2043.1842%2044.3333%2043.1113%2044.5625C43.0436%2044.7917%2042.9915%2044.9688%2042.9551%2045.0938L41.8613%2048.2188H45.2207ZM53.5254%2044.1875C54.6191%2044.1875%2055.4447%2044.4298%2056.002%2044.9142C56.5645%2045.3985%2056.8457%2046.1536%2056.8457%2047.1797V53H55.541L55.1895%2051.7734H55.127C54.8822%2052.0859%2054.6296%2052.3439%2054.3691%2052.547C54.1087%2052.7501%2053.8066%2052.901%2053.4629%2053C53.1243%2053.1042%2052.7103%2053.1562%2052.2207%2053.1562C51.7051%2053.1562%2051.2441%2053.0625%2050.8379%2052.875C50.4316%2052.6823%2050.1113%2052.3906%2049.877%2052C49.6426%2051.6094%2049.5254%2051.1146%2049.5254%2050.5156C49.5254%2049.625%2049.8561%2048.9558%2050.5176%2048.5079C51.1842%2048.06%2052.1895%2047.8125%2053.5332%2047.7656L55.0332%2047.7109V47.2579C55.0332%2046.659%2054.8926%2046.2319%2054.6113%2045.9767C54.3353%2045.7215%2053.9447%2045.5938%2053.4395%2045.5938C53.0072%2045.5938%2052.5879%2045.6562%2052.1816%2045.7812C51.7754%2045.9062%2051.3796%2046.0599%2050.9941%2046.2422L50.4004%2044.9454C50.8223%2044.7215%2051.3014%2044.5391%2051.8379%2044.3984C52.3796%2044.2578%2052.9421%2044.1875%2053.5254%2044.1875ZM55.0254%2048.8672L53.9082%2048.9062C52.9915%2048.9376%2052.3483%2049.0938%2051.9785%2049.375C51.6087%2049.6562%2051.4238%2050.0418%2051.4238%2050.5312C51.4238%2050.9584%2051.5514%2051.2708%2051.8066%2051.4688C52.0618%2051.6615%2052.3978%2051.7579%2052.8145%2051.7579C53.4499%2051.7579%2053.9759%2051.5781%2054.3926%2051.2188C54.8145%2050.8542%2055.0254%2050.3203%2055.0254%2049.6172V48.8672Z%22%20fill%3D%22white%22%2F%3E%3C%2Fg%3E%3Cdefs%3E%3CclipPath%20id%3D%22clip0_4_2%22%3E%3Crect%20width%3D%22128%22%20height%3D%2295%22%20fill%3D%22white%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3C%2Fsvg%3E';
         }
     }
     darkDiv.insertAdjacentElement('afterend', nightDiv);
-    const allRadios = blokDiv.querySelectorAll('input[type="radio"][name="thema"]');
+
+          const allRadios = blokDiv.querySelectorAll('input[type="radio"][name="thema"]');
     const html = document.documentElement;
     const currentTheme = ['light', 'dark', 'night'].find(t => html.classList.contains(t));
     if (currentTheme) {
@@ -509,16 +537,21 @@ function addNightTheme() {
             activeRadio.checked = true;
         }
     }
-    function updateTheme() {
+
+       function updateTheme() {
         const html = document.documentElement;
         allRadios.forEach(r => {
             r.parentElement.setAttribute('aria-checked', r.checked ? 'true' : 'false');
         });
         html.classList.remove('light', 'dark', 'night');
         const checkedRadio = Array.from(allRadios).find(r => r.checked);
-        if (checkedRadio) {
-            html.classList.add(checkedRadio.value);
+        if (checkedRadio && (checkedRadio.value == 'light' || checkedRadio.value == 'dark' || checkedRadio.value == 'night')) {
+                       html.classList.add(checkedRadio.value);
             set('theme', checkedRadio.value);
+
+                       if (checkedRadio.value == 'night' && cn('toggle-systeemvoorkeur', 0) && cn('toggle-systeemvoorkeur', 0).ariaChecked == 'true') {
+                cn('toggle-systeemvoorkeur', 0).click();
+            }
         }
     }
     updateTheme();
@@ -550,7 +583,7 @@ function errorPage() {
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
         id('mod-play-game').addEventListener('click', function () {
             tn('body', 0).classList.add('mod-game-playing');
-            const svg = tn('sl-error-image', 0).getElementsByTagName('svg')[0];
+                    const svg = tn('sl-error-image', 0).getElementsByTagName('svg')[0];
             tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-game"><p id="mod-playtime"></p><p id="mod-close-button">&times;</p><div id="mod-basefloor"></div><div id="mod-player-container"><svg id="mod-flag-end" viewBox="0 0 147.6 250.5"><defs><linearGradient x1="154.8" y1="129.9" x2="287" y2="129.9" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="#ca0000"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-width="0" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m155 76 132 54-132 54z" data-paper-data="{&quot;index&quot;:null}" fill="url(#a)" transform="translate(-139 -56)"/><path d="M5 244V14h11v230z" fill="#ffad66"/><path d="M22 10a11 11 0 1 1-22 2 11 11 0 0 1 22-2zm-6 235a5 5 0 1 1-11 0 5 5 0 0 1 11 0z" fill="#ffad66"/></g></svg><svg id="mod-player" viewBox="0 0 49 49"><rect id="mod-player-rect" x="0" y="39" width="49" height="10" fill="transparent"></rect><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="var(--bg-primary-normal)" /></svg>' +
                 '<div id="mod-level-0" class="mod-level" data-title="Je hebt de geheime kamer gevonden!" data-description="Druk op <i>pijl omlaag</i> of <i>S</i> om laag te blijven" data-right="5" data-bottom="2"><svg style="position:absolute;top:0;right:5%;transform:rotate(195deg);width:200px;" viewBox="0 0 333 303"><g><path d="M101 64V0h232v64H131l-30 28z" fill="#fff"></path><path d="M46 291v-71h27v71z" fill="#4750ff"></path><path d="M86 290c0 6-9 11-20 11s-20-5-20-11c0-7 9-12 20-12s20 5 20 12z" fill="#4750ff"></path><path d="M17 292v-70h27v70z" fill="#636cff"></path><path d="M57 291c0 7-9 12-20 12s-20-5-20-12c0-6 9-11 20-11s20 5 20 11z" fill="#636cff"></path><path d="M92 194c0 28-20 50-44 50-25 0-45-22-45-50s20-50 45-50c24 0 44 22 44 50z" fill="#55b1ff"></path><path d="M56 81c0 10-9 18-19 18-11 0-20-8-20-18s9-18 20-18c10 0 19 8 19 18z" fill="#c17100"></path><path d="M93 118c0 24-20 43-45 43-24 0-44-19-44-43s20-43 44-43c25 0 45 19 45 43z" fill="#ff9898"></path><path d="M79 107c0 5-4 9-9 9-4 0-8-4-8-9s4-9 8-9c5 0 9 4 9 9z" fill="#fff"></path><path d="M76 107c0 2-2 4-4 4-1 0-3-2-3-4s2-3 3-3c2 0 4 1 4 3z"></path><path d="M39 88c0 10-9 18-20 18-10 0-19-8-19-18 0-9 9-17 19-17 11 0 20 8 20 17z" fill="#d47b00"></path><path d="M82 102 64 91l2-3 17 12z"></path><path d="m59 188 51-66 16 12-51 66z" fill="#55b1ff"></path><path d="M135 129c-5 6-14 8-21 3-6-5-7-14-2-21 5-6 14-7 21-3 6 5 7 14 2 21z" fill="#ffa9a9"></path><path d="m71 137 8-7 11 3-1 3z"></path><text transform="translate(136 26) scale(.43897)" font-size="40" font-family="sans-serif"><tspan x="0" dy="0">Kom hier,</tspan><tspan x="0" dy="46">jij schobbejak!</tspan></text></g></svg><div class="mod-trampoline" style="width:100%;bottom:0;" data-strength="1.45"></div><div class="mod-lava" style="width:100%;bottom:98%;"></div></div>' +
                 '<div id="mod-level-1" class="mod-level mod-active-level" data-title="Somtoday Platformer" data-description="Een van je docenten achtervolgt je omdat je je huiswerk niet hebt gemaakt. Ren gauw weg!" data-right="5" data-bottom="0"></div>' +
@@ -621,7 +654,6 @@ function errorPage() {
             }
 
             let time = 0;
-            let record = get('gamerecord');
             let timer;
             setTimeInterval();
             function setTimeInterval() {
@@ -634,11 +666,11 @@ function errorPage() {
 
             function setTime() {
                 if (!n(id('mod-playtime'))) {
-                    if (n(record)) {
+                    if (n(get('gamerecord'))) {
                         id('mod-playtime').innerHTML = 'Tijd: ' + time + 's';
                     }
                     else {
-                        id('mod-playtime').innerHTML = 'Tijd: ' + time + 's, ' + 'record: ' + record + 's';
+                        id('mod-playtime').innerHTML = 'Tijd: ' + time + 's, ' + 'record: ' + get('gamerecord') + 's';
                     }
                 }
             }
@@ -650,7 +682,7 @@ function errorPage() {
                     if (!n(timer)) {
                         clearInterval(timer);
                     }
-                    if (n(record) || time < record) {
+                    if (n(get('gamerecord')) || time < get('gamerecord')) {
                         set('gamerecord', time);
                     }
                 }
@@ -703,10 +735,10 @@ function errorPage() {
 
             id('mod-close-game').addEventListener('click', function () { openLevel(12); });
             id('mod-close-button').addEventListener('click', function () { openLevel(12); });
-            id('mod-play-again').addEventListener('click', function () { time = 0; record = get('gamerecord'); setTimeInterval(); openLevel(1); });
+            id('mod-play-again').addEventListener('click', function () { time = 0; setTimeInterval(); openLevel(1); });
 
             document.addEventListener('keyup', function (e) { pressedKeys[e.keyCode] = false; });
-            document.addEventListener('keydown', function (e) { pressedKeys[e.keyCode] = true; });
+            document.addEventListener('keydown', function (e) { if (e.keyCode == 40) { e.preventDefault(); } pressedKeys[e.keyCode] = true; });
 
             let touchX;
             let touchY;
@@ -931,6 +963,11 @@ function errorPage() {
                 }
             }, 10);
         });
+
+        if (window.location.hash == '#mod-play') {
+            id('mod-play-game').click();
+            history.replaceState('', document.title, window.location.pathname + window.location.search);
+        }
     }
 }
 async function autoLogin() {
@@ -949,7 +986,7 @@ async function autoLogin() {
 
        if (!n(id('organisatieSearchField'))) {
         id('organisatieSearchField').value = get('loginschool');
-               if (!n(cn('form--checkbox checkbox-label', 0))) {
+               if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
             cn('form--checkbox checkbox-label', 0).click();
         }
     }
@@ -981,7 +1018,7 @@ async function autoLogin() {
         }
         id('passwordField').value = get('loginpass');
     }
-       if (!n(cn('form--checkbox checkbox-label', 0))) {
+       if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
         cn('form--checkbox checkbox-label', 0).click();
     }
 
@@ -1069,12 +1106,11 @@ function onload() {
     let month = today.getMonth();
     let year = today.getFullYear();
     let filesProcessed;
-    let darkmode = tn('html', 0).classList.contains('dark');
-    let username;
-    let realname;
+    let darkmode = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
     let busy = false;
     let isRecapping = false;
     let ignoreRecapConditions = false;
+    let ignoreCountdownConditions = false;
     if (!n(tn('sl-root', 0))) {
         somtodayversion = tn('sl-root', 0).getAttribute('ng-version');
     }
@@ -1107,11 +1143,13 @@ function onload() {
         setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\nMet dank aan " + Object.keys(contributors).join(', ') + "\n" + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + " van Somtoday\nVersie " + version_name + " van Somtoday Mod " + platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
     }
 
-    const theme = get('theme');
-    if (theme) {
-        const html = document.documentElement;
-        html.classList.remove('light', 'dark', 'night');
-        html.classList.add(theme);
+    function initTheme() {
+        const theme = get('theme');
+        if ((theme == 'light' || theme == 'dark' || theme == 'night') && get('autotheme') !== 'true') {
+            const html = document.documentElement;
+            html.classList.remove('light', 'dark', 'night');
+            html.classList.add(theme);
+        }
     }
 
     function editGrades() {
@@ -1131,6 +1169,7 @@ function onload() {
             let k = 0;
             let l = 0;
             let m = 0;
+            let n = 0;
             let p = 0;
             document.addEventListener('keydown', function (e) {
                 let konamikeys = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
@@ -1196,6 +1235,17 @@ function onload() {
                     ignoreRecapConditions = true;
                     somtodayRecap();
                 }
+                               let countdownkeys = 'countdown';
+                if (e.key.toLowerCase() == countdownkeys.charAt(n)) {
+                    n++;
+                }
+                else {
+                    n = 0;
+                }
+                if (n == countdownkeys.length) {
+                    ignoreCountdownConditions = true;
+                    newYearCountdown();
+                }
                                let partykeys = 'party';
                 if (e.key.toLowerCase() == partykeys.charAt(p)) {
                     p++;
@@ -1218,7 +1268,7 @@ function onload() {
         }
         if (!n(id('somtoday-mod-version-easter-egg')) && !id('somtoday-mod-version-easter-egg').classList.contains('mod-easter-egg')) {
             id('somtoday-mod-version-easter-egg').addEventListener('click', function () {
-                tn('body', 0).insertAdjacentHTML('beforeend', logo(null, 'mod-easter-egg-logo mod-add-eventlistener" data-add-event-listener="true', '#0099ff'));
+                tn('body', 0).insertAdjacentHTML('beforeend', window.logo(null, 'mod-easter-egg-logo mod-add-eventlistener" data-add-event-listener="true', '#0099ff'));
                 for (const element of cn('mod-easter-egg-logo mod-add-eventlistener')) {
                     element.classList.remove('mod-add-eventlistener');
                     element.addEventListener('click', function () { this.remove(); });
@@ -1281,7 +1331,10 @@ function onload() {
     let homeworkBusy = false;
     let homework;
     function customHomework() {
-        if (get('bools').charAt(BOOL_INDEX.CUSTOM_HOMEWORK) == '1' && !homeworkBusy && !n(get('homework'))) {
+        if (n(get('homework'))) {
+            set('homework', '[]');
+        }
+        if (get('bools').charAt(BOOL_INDEX.CUSTOM_HOMEWORK) == '1' && !homeworkBusy) {
             if (document.documentElement.clientWidth <= 767) {
                 homeworkBusy = true;
                 document.querySelectorAll('.mod-huiswerk').forEach(e => e.remove());
@@ -1296,18 +1349,28 @@ function onload() {
                     break;
                 }
             }
-            let index = 0;
+                                  let index = 0;
             for (const element of tn('sl-studiewijzer-dag')) {
                 index = customHomeworkInner(element, index, startIndex);
             }
-            index = 0;
+                       index = 0;
             for (const element of tn('sl-studiewijzer-lijst-dag')) {
                 index = customHomeworkInner(element, index, startIndex);
             }
-            index = 0;
+                       index = 0;
             for (const element of tn('sl-studiewijzer-week')) {
                 if (element.getElementsByClassName('week')[0]) {
-                    index = customHomeworkInner(element.getElementsByClassName('week')[0], index, startIndex, true);
+                    index = customHomeworkInner(element.getElementsByClassName('week')[0], index, startIndex);
+                }
+            }
+                       if (tn('sl-rooster-week-header', 0)) {
+                               const elements = tn('sl-rooster-week-header', 0).getElementsByClassName('mod-huiswerk');
+                for (const element of elements) {
+                    element.remove();
+                }
+                               index = 0;
+                for (const element of tn('sl-rooster-week-header', 0).getElementsByClassName('dag')) {
+                    index = customHomeworkInner(element, index, startIndex);
                 }
             }
         }
@@ -1346,7 +1409,7 @@ function onload() {
             dateString = ((n(element.children[0].ariaLabel) || !element.children[0].ariaLabel.match(/ (\d*? [a-z]*?)${"$"}/, '')) ? '' : element.children[0].ariaLabel.match(/ (\d*? [a-z]*?)${"$"}/, '')[1]) + ' ';
         }
         else {
-            dateString = (n(element.children[0].ariaLabel) ? '' : element.children[0].ariaLabel.match(/^[A-Za-z]+? ([0-9]+? [A-Za-z]+)/, '')[1]) + ' ';
+            dateString = ((n(element.children[0].ariaLabel) || !element.children[0].ariaLabel.match(/^[A-Za-z]+? ([0-9]+?[ -][A-Za-z]+)/, '')) ? '' : element.children[0].ariaLabel.match(/^[A-Za-z]+? ([0-9]+?[ -][A-Za-z]+)/, '')[1]) + ' ';
         }
                if (dateString == ' ') {
             return;
@@ -1371,16 +1434,52 @@ function onload() {
         return dateObject = new Date(Date.parse(englishDateString));
     }
 
-    function customHomeworkInner(element, startIndex, recurringTasksEndIndex, isWeekHomework = false) {
-        if (homeworkBusy) { return; }
-        const currentStudiewijzerDate = ariaLabelToDate(element);
+    function customHomeworkIcons(activeIcon, activeColor) {
+        let icons = {
+            'edit': '--fg-warning-normal',
+            'homework': '--fg-primary-normal',
+            'assignment': '--fg-alternative-normal',
+            'test': '--fg-warning-normal',
+            'test': '--fg-negative-normal',
+            'book': '--fg-warning-normal',
+            'clock': '--fg-warning-normal',
+            'palm': '--fg-on-positive-weak',
+        };
+        let iconHTML = '';
+        for (const icon of Object.keys(icons)) {
+            iconHTML += getIcon(icon, 'mod-homework-icon' + (activeIcon == icon ? ' mod-active' : ''), 'var(' + icons[icon] + ')', 'data-icon="' + icon + '" ');
+        }
+        const col = window.getComputedStyle(document.documentElement).getPropertyValue('--fg-warning-normal');
+        return '<div style="display:flex;margin-top:20px;align-items:center;gap:10px;flex-wrap:wrap;">' + iconHTML + '<label tabindex="0" for="homeworkcolor" style="margin-left:auto;cursor:pointer;">Kleur kiezen</label><input style="display:none;" value="' + ((activeColor && activeColor.startsWith('#')) ? activeColor : col) + '" id="homeworkcolor" type="color"></div>';
+    }
+
+       function customHomeworkInner(element, startIndex, recurringTasksEndIndex) {
+        if (homeworkBusy) {
+            return;
+        }
+        const currentStudiewijzerDate = ariaLabelToDate(element.classList.contains('week') ? element.nextElementSibling : element);
         const isWeek = !n(element.getElementsByClassName('header')[0]);
         if (n(element.getElementsByClassName('mod-add-homework')[0])) {
-            element.insertAdjacentHTML('beforeend', '<div class="mod-add-homework">' + window.getIcon('plus') + 'Taak toevoegen</div>');
+            element.insertAdjacentHTML('beforeend', '<div class="mod-add-homework">' + getIcon('plus') + 'Taak toevoegen</div>');
             element.getElementsByClassName('mod-add-homework')[0].addEventListener('click', function () {
-                modMessage('Taak toevoegen', 'Voeg je eigen taak toe aan de kalender. De taak wordt alleen in deze ' + (platform == 'Android' ? 'app' : 'browser') + ' opgeslagen.</p><input id="mod-homework-subject" type="text" placeholder="Vul een vak in"><div class="br"></div><textarea id="mod-homework-description" placeholder="Vul een taak in"></textarea><div class="mod-multi-choice" id="studiewijzer-afspraak-toevoegen-select"><span class="active" tabindex="0">Eenmalig</span><span tabindex="0">Wekelijks</span>' + (isWeek ? '' : '<span tabindex="0">Maandelijks</span>') + '</div><p>', 'Toevoegen', 'Annuleren');
+                modMessage('Taak toevoegen', 'Voeg je eigen taak toe aan de kalender. De taak wordt alleen in deze ' + (platform == 'Android' ? 'app' : 'browser') + ' opgeslagen.</p>' +
+                    '<input id="mod-homework-subject" type="text" placeholder="Vul een vak in"><div class="br"></div><textarea id="mod-homework-description" placeholder="Vul een taak in"></textarea>' +
+                    '<div class="mod-multi-choice" id="studiewijzer-afspraak-toevoegen-select"><span class="active" tabindex="0">Eenmalig</span><span tabindex="0">Wekelijks</span>' + (isWeek ? '' : '<span tabindex="0">Maandelijks</span>') + '</div>' +
+                    customHomeworkIcons('edit') +
+                    '<p>', 'Toevoegen', 'Annuleren');
+                for (const element of cn('mod-homework-icon')) {
+                    element.addEventListener('click', function () {
+                        cn('mod-homework-icon mod-active', 0).classList.remove('mod-active');
+                        this.classList.add('mod-active');
+                    })
+                }
+                id('homeworkcolor').addEventListener('input', function () {
+                    for (const element of cn('mod-homework-icon')) {
+                        element.children[0].setAttribute('fill', this.value);
+                    }
+                });
                 id('mod-message-action1').addEventListener('click', function () {
-                    const dateObject = ariaLabelToDate(element);
+                    const dateObject = ariaLabelToDate(element.classList.contains('week') ? element.nextElementSibling : element);
                     homework.push({
                         'id': (Math.random() + '' + window.performance.now()).replaceAll('.', ''),
                         'date': dateObject,
@@ -1388,7 +1487,9 @@ function onload() {
                         'description': id('mod-homework-description').value,
                         'done': (id('studiewijzer-afspraak-toevoegen-select').children[0].classList.contains('active') ? false : {}),
                         'returning': (id('studiewijzer-afspraak-toevoegen-select').children[1].classList.contains('active') ? '1' : (id('studiewijzer-afspraak-toevoegen-select').children[0].classList.contains('active') ? '0' : '2')),
-                        'week': isWeek
+                        'week': isWeek,
+                        'icon': cn('mod-homework-icon mod-active', 0).dataset.icon,
+                        'color': cn('mod-homework-icon mod-active', 0).children[0].getAttribute('fill'),
                     });
                                        homework.sort(sortByDate);
                                        for (let i = 0; i < homework.length; i++) {
@@ -1452,6 +1553,9 @@ function onload() {
                         else if (element.getElementsByClassName('dag-header')[0]) {
                             element.getElementsByClassName('dag-header')[0].insertAdjacentHTML('afterend', '<sl-studiewijzer-items class="mod-added"></sl-studiewijzer-items>');
                         }
+                        else {
+                            element.insertAdjacentHTML('beforeend', '<sl-studiewijzer-items class="mod-added mod-rooster"></sl-studiewijzer-items>');
+                        }
                     }
                     let done;
                                        if (typeof homework[i].done === 'object') {
@@ -1464,10 +1568,11 @@ function onload() {
                         insertElement = element.getElementsByTagName('sl-studiewijzer-items')[0];
                     }
                     else {
-                        insertElement = element.getElementsByClassName('header')[0] ? element.getElementsByClassName('header')[0] : (element.getElementsByClassName('dag-header')[0] ? element.getElementsByClassName('dag-header')[0] : null);
+                        insertElement = element.getElementsByClassName('header')[0] ? element.getElementsByClassName('header')[0] : (element.getElementsByClassName('dag-header')[0] ? element.getElementsByClassName('dag-header')[0] : element.getElementsByTagName('sl-studiewijzer-items')[0]);
                     }
                     if (!n(insertElement)) {
-                        insertElement.insertAdjacentHTML('afterend', '<div class="mod-huiswerk ' + (done ? 'mod-huiswerk-done' : 'mod-before') + ' mod-homework-' + homework[i].id + '"><svg viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"></path></svg><strong>' + sanitizeString(homework[i].subject) + '</strong><p>' + sanitizeString(homework[i].description) + '</p><div><svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 24 24" display="block"><path fill-rule="evenodd" d="m9.706 21.576 13.876-14.05c.538-.55.56-1.43.044-1.998l-2.769-3.06a1.41 1.41 0 0 0-2.076-.025L9.83 11.858a1.41 1.41 0 0 1-2.06-.01L5.424 9.342a1.414 1.414 0 0 0-2.041-.032l-2.96 2.982a1.45 1.45 0 0 0 .003 2.052l7.27 7.242c.56.555 1.455.552 2.01-.01"></path></svg></div></div>');
+                        const noMoving = element.getElementsByTagName('sl-studiewijzer-items')[0] && element.getElementsByTagName('sl-studiewijzer-items')[0].classList.contains('mod-rooster');
+                        insertElement.insertAdjacentHTML('afterend', '<div class="mod-huiswerk ' + (done ? 'mod-huiswerk-done' : (noMoving ? '' : 'mod-before')) + ' mod-homework-' + homework[i].id + '"' + (homework[i].color ? ' style="border-left-color:' + homework[i].color + '"' : '') + '>' + getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color) + '<strong>' + sanitizeString(homework[i].subject) + '</strong><p>' + sanitizeString(homework[i].description) + '</p><div><svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 24 24" display="block"><path fill-rule="evenodd" d="m9.706 21.576 13.876-14.05c.538-.55.56-1.43.044-1.998l-2.769-3.06a1.41 1.41 0 0 0-2.076-.025L9.83 11.858a1.41 1.41 0 0 1-2.06-.01L5.424 9.342a1.414 1.414 0 0 0-2.041-.032l-2.96 2.982a1.45 1.45 0 0 0 .003 2.052l7.27 7.242c.56.555 1.455.552 2.01-.01"></path></svg></div></div>');
                         const homeworkItem = insertElement.nextElementSibling;
                         const homeworkClassName = 'mod-homework-' + homework[i].id;
                         function saveAdjustedHomework(e) {
@@ -1476,11 +1581,15 @@ function onload() {
                             homework[i].subject = id('mod-homework-subject').value;
                             homework[i].description = id('mod-homework-description').value;
                             homework[i].returning = id('studiewijzer-afspraak-toevoegen-select').children[1].classList.contains('active') ? '1' : (id('studiewijzer-afspraak-toevoegen-select').children[0].classList.contains('active') ? '0' : '2');
+                            homework[i].icon = cn('mod-homework-icon mod-active', 0).dataset.icon;
+                            homework[i].color = cn('mod-homework-icon mod-active', 0).children[0].getAttribute('fill');
                             const isRecurringAdjusted = lastRecurring != homework[i].returning;
                             lastRecurring = homework[i].returning;
                             for (const element of cn(homeworkClassName)) {
                                 element.getElementsByTagName('strong')[0].innerHTML = sanitizeString(homework[i].subject);
-                                element.getElementsByTagName('p')[0].innerHTML = sanitizeString(homework[i].description);
+                                element.getElementsByTagName('p')[0].innerHTML = sanitizeString(homework[i].description);;
+                                element.getElementsByTagName('svg')[0].outerHTML = getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color);
+                                element.style.borderLeftColor = homework[i].color;
                             }
                             set('homework', JSON.stringify(homework));
                             if (isRecurringAdjusted) {
@@ -1492,7 +1601,23 @@ function onload() {
                         }
                         homeworkItem.addEventListener('click', function () {
                             updateIndex();
-                            modMessage('', '</p><input id="mod-homework-subject" type="text" value="' + sanitizeString(homework[i].subject) + '" style="font-weight:700;font-size:20px;margin-top:-20px;"><div class="br"></div><textarea id="mod-homework-description" oninput="document.getElementById(\'mod-message-action1\').innerHTML = \'Opslaan\';">' + sanitizeString(homework[i].description) + '</textarea><div class="mod-multi-choice" id="studiewijzer-afspraak-toevoegen-select"><span' + (homework[i].returning == '0' ? ' class="active"' : '') + ' tabindex="0">Eenmalig</span><span' + (homework[i].returning == '1' ? ' class="active"' : '') + ' tabindex="0">Wekelijks</span>' + (isWeek ? '' : '<span' + (homework[i].returning == '2' ? ' class="active"' : '') + ' tabindex="0">Maandelijks</span>') + '</div><p>', 'Sluiten', 'Taak verwijderen', null, true, true);
+                            modMessage('', '</p>' +
+                                '<input id="mod-homework-subject" type="text" value="' + sanitizeString(homework[i].subject) + '" style="font-weight:700;font-size:20px;margin-top:-20px;"><div class="br"></div>' +
+                                '<textarea id="mod-homework-description" oninput="document.getElementById(\'mod-message-action1\').innerHTML = \'Opslaan\';">' + sanitizeString(homework[i].description) + '</textarea>' +
+                                '<div class="mod-multi-choice" id="studiewijzer-afspraak-toevoegen-select"><span' + (homework[i].returning == '0' ? ' class="active"' : '') + ' tabindex="0">Eenmalig</span><span' + (homework[i].returning == '1' ? ' class="active"' : '') + ' tabindex="0">Wekelijks</span>' + (isWeek ? '' : '<span' + (homework[i].returning == '2' ? ' class="active"' : '') + ' tabindex="0">Maandelijks</span>') + '</div>' +
+                                customHomeworkIcons(homework[i].icon, homework[i].color) +
+                                '<p>', 'Sluiten', 'Taak verwijderen', null, true, true);
+                            for (const element of cn('mod-homework-icon')) {
+                                element.addEventListener('click', function () {
+                                    cn('mod-homework-icon mod-active', 0).classList.remove('mod-active');
+                                    this.classList.add('mod-active');
+                                })
+                            }
+                            id('homeworkcolor').addEventListener('input', function () {
+                                for (const element of cn('mod-homework-icon')) {
+                                    element.children[0].setAttribute('fill', this.value);
+                                }
+                            });
                             id('mod-message-action1').addEventListener('click', saveAdjustedHomework);
                             id('mod-message-action2').addEventListener('click', function (e) {
                                 updateIndex();
@@ -1526,61 +1651,68 @@ function onload() {
                         homeworkItem.getElementsByTagName('div')[0].addEventListener('click', function (e) {
                             updateIndex();
                             e.stopPropagation();
-                            if (homeworkItem.classList.contains('mod-huiswerk-done')) {
+                            const noMoving = element.getElementsByTagName('sl-studiewijzer-items')[0] && element.getElementsByTagName('sl-studiewijzer-items')[0].classList.contains('mod-rooster');
+                                                                                  if (homeworkItem.classList.contains('mod-huiswerk-done')) {
                                 homeworkItem.classList.remove('mod-huiswerk-done');
                                 homeworkItem.classList.remove('mod-huiswerk-animation');
                                                                if (typeof homework[i].done === 'object') {
                                     homework[i].done[currentStudiewijzerDate.getTime()] = false;
                                 }
-                                else {
+                                                               else {
                                     homework[i].done = false;
                                 }
-                                if (n(element.getElementsByTagName('sl-studiewijzer-items')[0]) && element.getElementsByClassName('dag-header')[0]) {
-                                    element.insertBefore(homeworkItem, element.getElementsByClassName('dag-header')[0].nextSibling);
-                                }
-                                else {
-                                    element.insertBefore(homeworkItem, element.getElementsByTagName('sl-studiewijzer-items')[0]);
-                                }
-                                homeworkItem.classList.add('mod-before');
-                            }
-                            else {
-                                homeworkItem.classList.add('mod-huiswerk-done');
-                                let nextElement = homeworkItem.nextElementSibling;
-                                let loopBreak = 0;
-                                let isOnSamePosition = true;
-                                if (element.getElementsByTagName('sl-studiewijzer-item').length > 0) {
-                                    isOnSamePosition = false;
-                                }
-                                else {
-                                    while (loopBreak < 100 && !nextElement.classList.contains('mod-add-homework')) {
-                                        if (nextElement.classList.contains('mod-huiswerk')) {
-                                            isOnSamePosition = false;
-                                            return true;
-                                        }
-                                        nextElement = nextElement.nextElementSibling;
-                                        loopBreak++;
+                                if (!noMoving) {
+                                    if (n(element.getElementsByTagName('sl-studiewijzer-items')[0]) && element.getElementsByClassName('dag-header')[0]) {
+                                        element.insertBefore(homeworkItem, element.getElementsByClassName('dag-header')[0].nextSibling);
                                     }
+                                    else {
+                                        element.insertBefore(homeworkItem, element.getElementsByTagName('sl-studiewijzer-items')[0]);
+                                    }
+                                    homeworkItem.classList.add('mod-before');
                                 }
-                                let hoursToMove = element.getElementsByClassName('mod-huiswerk').length - 1;
-                                hoursToMove += element.getElementsByTagName('sl-studiewijzer-item').length;
-                                if (hoursToMove > 0 && !isOnSamePosition) {
-                                    homeworkItem.style.setProperty('--mod-hours-to-move', hoursToMove);
-                                    homeworkItem.classList.add('mod-huiswerk-animation');
-                                    element.getElementsByClassName('mod-add-homework')[0].insertAdjacentHTML('beforebegin', '<div class="mod-huiswerk mod-placeholder" style="visibility:hidden;"></div>');
-                                    homeworkItem.addEventListener('animationend', () => {
-                                        if (element.getElementsByClassName('mod-placeholder')[0]) {
-                                            element.getElementsByClassName('mod-placeholder')[0].remove();
+                            }
+                                                                                  else {
+                                homeworkItem.classList.add('mod-huiswerk-done');
+                                if (!noMoving) {
+                                    let nextElement = homeworkItem.nextElementSibling;
+                                    let isOnSamePosition = true;
+                                                                       if (element.getElementsByTagName('sl-studiewijzer-item').length > 0) {
+                                        isOnSamePosition = false;
+                                    }
+                                    else {
+                                                                               let loopBreak = 0;
+                                        while (loopBreak < 100 && !nextElement.classList.contains('mod-add-homework')) {
+                                            if (nextElement.classList.contains('mod-huiswerk')) {
+                                                isOnSamePosition = false;
+                                                break;
+                                            }
+                                            nextElement = nextElement.nextElementSibling;
+                                            loopBreak++;
                                         }
-                                    });
+                                    }
+                                    let hoursToMove = element.getElementsByClassName('mod-huiswerk').length - 1;
+                                    hoursToMove += element.getElementsByTagName('sl-studiewijzer-item').length;
+                                    if (hoursToMove > 0 && !isOnSamePosition) {
+                                        homeworkItem.style.setProperty('--mod-hours-to-move', hoursToMove);
+                                        homeworkItem.classList.add('mod-huiswerk-animation');
+                                        element.getElementsByClassName('mod-add-homework')[0].insertAdjacentHTML('beforebegin', '<div class="mod-huiswerk mod-placeholder" style="visibility:hidden;"></div>');
+                                        homeworkItem.addEventListener('animationend', () => {
+                                            if (element.getElementsByClassName('mod-placeholder')[0]) {
+                                                element.getElementsByClassName('mod-placeholder')[0].remove();
+                                            }
+                                        });
+                                    }
                                 }
                                                                if (typeof homework[i].done === 'object') {
                                     homework[i].done[currentStudiewijzerDate.getTime()] = true;
                                 }
-                                else {
+                                                               else {
                                     homework[i].done = true;
                                 }
-                                element.insertBefore(homeworkItem, element.getElementsByClassName('mod-add-homework')[0]);
-                                homeworkItem.classList.remove('mod-before');
+                                if (!noMoving) {
+                                    element.insertBefore(homeworkItem, element.getElementsByClassName('mod-add-homework')[0]);
+                                    homeworkItem.classList.remove('mod-before');
+                                }
                             }
                             set('homework', JSON.stringify(homework));
                         });
@@ -1607,7 +1739,7 @@ function onload() {
 
        function topMenu() {
         if (get('layout') == 5 && n(id('mod-top-menu'))) {
-            tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-top-menu"><h2 id="mod-top-menu-title">Titel</h2><div id="mod-logout">' + window.getIcon("right-from-bracket") + '</div><div id="mod-messages">' + window.getIcon("envelope") + '</div><div id="mod-profile-link"></div></div>');
+            tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-top-menu"><h2 id="mod-top-menu-title">Titel</h2><div id="mod-logout">' + getIcon("right-from-bracket") + '</div><div id="mod-messages">' + getIcon("envelope") + '</div><div id="mod-profile-link"></div></div>');
             id('mod-profile-link').addEventListener('click', function () {
                 cn('menu-avatar', 0).click();
             });
@@ -1773,13 +1905,16 @@ function onload() {
             let mayContainHTMLTag = false;
             let i = 0;
             for (const nickname of json) {
-                if (nickname.length != 2) {
+                if (nickname.length != 2 && nickname.length != 3) {
                     return false;
                 }
                 if (/<\/?[a-z][\s\S]*>/i.test(nickname[0]) || /<\/?[a-z][\s\S]*>/i.test(nickname[1])) {
                     mayContainHTMLTag = true;
                     json[i][0] = sanitizeString(nickname[0]);
                     json[i][1] = sanitizeString(nickname[1]);
+                    if (nickname.length == 3 && /<\/?[a-z][\s\S]*>/i.test(nickname[2])) {
+                        json[i][2] = sanitizeString(nickname[2]);
+                    }
                 }
                 i++;
             }
@@ -1845,7 +1980,7 @@ function onload() {
             return value.startsWith('data:');
         }
         else if (key == 'backgroundtype') {
-            return (value == 'image' || value == 'color' || value == 'slideshow');
+            return (value == 'image' || value == 'color' || value == 'slideshow' || value == 'live');
         }
         else if (key == 'fontname') {
             return fonts.includes(value);
@@ -1894,21 +2029,30 @@ function onload() {
 (function(c,u){typeof exports=="object"&&typeof module<"u"?u(exports):typeof define=="function"&&define.amd?define(["exports"],u):(c=typeof globalThis<"u"?globalThis:c||self,u(c.Fireworks={}))})(this,function(c){"use strict";function u(e){return Math.abs(Math.floor(e))}function p(e,t){return Math.random()*(t-e)+e}function o(e,t){return Math.floor(p(e,t+1))}function g(e,t,i,s){const n=Math.pow;return Math.sqrt(n(e-i,2)+n(t-s,2))}function f(e,t,i=1){if(e>360||e<0)throw new Error(`Expected hue 0-360 range, got \`${"$"}{e}\``);if(t>100||t<0)throw new Error(`Expected lightness 0-100 range, got \`${"$"}{t}\``);if(i>1||i<0)throw new Error(`Expected alpha 0-1 range, got \`${"$"}{i}\``);return`hsla(${"$"}{e}, 100%, ${"$"}{t}%, ${"$"}{i})`}const v=e=>{if(typeof e=="object"&&e!==null){if(typeof Object.getPrototypeOf=="function"){const t=Object.getPrototypeOf(e);return t===Object.prototype||t===null}return Object.prototype.toString.call(e)==="[object Object]"}return!1},b=["__proto__","constructor","prototype"],w=(...e)=>e.reduce((t,i)=>(Object.keys(i).forEach(s=>{b.includes(s)||(Array.isArray(t[s])&&Array.isArray(i[s])?t[s]=i[s]:v(t[s])&&v(i[s])?t[s]=w(t[s],i[s]):t[s]=i[s])}),t),{});function S(e,t){let i;return(...s)=>{i&&clearTimeout(i),i=setTimeout(()=>e(...s),t)}}class O{x;y;ctx;hue;friction;gravity;flickering;lineWidth;explosionLength;angle;speed;brightness;coordinates=[];decay;alpha=1;constructor({x:t,y:i,ctx:s,hue:n,decay:h,gravity:a,friction:r,brightness:l,flickering:d,lineWidth:x,explosionLength:m}){for(this.x=t,this.y=i,this.ctx=s,this.hue=n,this.gravity=a,this.friction=r,this.flickering=d,this.lineWidth=x,this.explosionLength=m,this.angle=p(0,Math.PI*2),this.speed=o(1,10),this.brightness=o(l.min,l.max),this.decay=p(h.min,h.max);this.explosionLength--;)this.coordinates.push([t,i])}update(t){this.coordinates.pop(),this.coordinates.unshift([this.x,this.y]),this.speed*=this.friction,this.x+=Math.cos(this.angle)*this.speed,this.y+=Math.sin(this.angle)*this.speed+this.gravity,this.alpha-=this.decay,this.alpha<=this.decay&&t()}draw(){const t=this.coordinates.length-1;this.ctx.beginPath(),this.ctx.lineWidth=this.lineWidth,this.ctx.fillStyle=f(this.hue,this.brightness,this.alpha),this.ctx.moveTo(this.coordinates[t][0],this.coordinates[t][1]),this.ctx.lineTo(this.x,this.y),this.ctx.strokeStyle=f(this.hue,this.flickering?p(0,this.brightness):this.brightness,this.alpha),this.ctx.stroke()}}class E{constructor(t,i){this.options=t,this.canvas=i,this.pointerDown=this.pointerDown.bind(this),this.pointerUp=this.pointerUp.bind(this),this.pointerMove=this.pointerMove.bind(this)}active=!1;x;y;get mouseOptions(){return this.options.mouse}mount(){this.canvas.addEventListener("pointerdown",this.pointerDown),this.canvas.addEventListener("pointerup",this.pointerUp),this.canvas.addEventListener("pointermove",this.pointerMove)}unmount(){this.canvas.removeEventListener("pointerdown",this.pointerDown),this.canvas.removeEventListener("pointerup",this.pointerUp),this.canvas.removeEventListener("pointermove",this.pointerMove)}usePointer(t,i){const{click:s,move:n}=this.mouseOptions;(s||n)&&(this.x=t.pageX-this.canvas.offsetLeft,this.y=t.pageY-this.canvas.offsetTop,this.active=i)}pointerDown(t){this.usePointer(t,this.mouseOptions.click)}pointerUp(t){this.usePointer(t,!1)}pointerMove(t){this.usePointer(t,this.active)}}class M{hue;rocketsPoint;opacity;acceleration;friction;gravity;particles;explosion;mouse;boundaries;sound;delay;brightness;decay;flickering;intensity;traceLength;traceSpeed;lineWidth;lineStyle;autoresize;constructor(){this.autoresize=!0,this.lineStyle="round",this.flickering=50,this.traceLength=3,this.traceSpeed=10,this.intensity=30,this.explosion=5,this.gravity=1.5,this.opacity=.5,this.particles=50,this.friction=.95,this.acceleration=1.05,this.hue={min:0,max:360},this.rocketsPoint={min:50,max:50},this.lineWidth={explosion:{min:1,max:3},trace:{min:1,max:2}},this.mouse={click:!1,move:!1,max:1},this.delay={min:30,max:60},this.brightness={min:50,max:80},this.decay={min:.015,max:.03},this.sound={enabled:!1,files:["explosion0.mp3","explosion1.mp3","explosion2.mp3"],volume:{min:4,max:8}},this.boundaries={debug:!1,height:0,width:0,x:50,y:50}}update(t){Object.assign(this,w(this,t))}}class z{constructor(t,i){this.options=t,this.render=i}tick=0;rafId=0;fps=60;tolerance=.1;now;mount(){this.now=performance.now();const t=1e3/this.fps,i=s=>{this.rafId=requestAnimationFrame(i);const n=s-this.now;n>=t-this.tolerance&&(this.render(),this.now=s-n%t,this.tick+=n*(this.options.intensity*Math.PI)/1e3)};this.rafId=requestAnimationFrame(i)}unmount(){cancelAnimationFrame(this.rafId)}}class L{constructor(t,i,s){this.options=t,this.updateSize=i,this.container=s}resizer;mount(){if(!this.resizer){const t=S(()=>this.updateSize(),100);this.resizer=new ResizeObserver(t)}this.options.autoresize&&this.resizer.observe(this.container)}unmount(){this.resizer&&this.resizer.unobserve(this.container)}}class T{constructor(t){this.options=t,this.init()}buffers=[];audioContext;onInit=!1;get isEnabled(){return this.options.sound.enabled}get soundOptions(){return this.options.sound}init(){!this.onInit&&this.isEnabled&&(this.onInit=!0,this.audioContext=new(window.AudioContext||window.webkitAudioContext),this.loadSounds())}async loadSounds(){for(const t of this.soundOptions.files){const i=await(await fetch(t)).arrayBuffer();this.audioContext.decodeAudioData(i).then(s=>{this.buffers.push(s)}).catch(s=>{throw s})}}play(){if(this.isEnabled&&this.buffers.length){const t=this.audioContext.createBufferSource(),i=this.buffers[o(0,this.buffers.length-1)],s=this.audioContext.createGain();t.buffer=i,s.gain.value=p(this.soundOptions.volume.min/100,this.soundOptions.volume.max/100),s.connect(this.audioContext.destination),t.connect(s),t.start(0)}else this.init()}}class C{x;y;sx;sy;dx;dy;ctx;hue;speed;acceleration;traceLength;totalDistance;angle;brightness;coordinates=[];currentDistance=0;constructor({x:t,y:i,dx:s,dy:n,ctx:h,hue:a,speed:r,traceLength:l,acceleration:d}){for(this.x=t,this.y=i,this.sx=t,this.sy=i,this.dx=s,this.dy=n,this.ctx=h,this.hue=a,this.speed=r,this.traceLength=l,this.acceleration=d,this.totalDistance=g(t,i,s,n),this.angle=Math.atan2(n-i,s-t),this.brightness=o(50,70);this.traceLength--;)this.coordinates.push([t,i])}update(t){this.coordinates.pop(),this.coordinates.unshift([this.x,this.y]),this.speed*=this.acceleration;const i=Math.cos(this.angle)*this.speed,s=Math.sin(this.angle)*this.speed;this.currentDistance=g(this.sx,this.sy,this.x+i,this.y+s),this.currentDistance>=this.totalDistance?t(this.dx,this.dy,this.hue):(this.x+=i,this.y+=s)}draw(){const t=this.coordinates.length-1;this.ctx.beginPath(),this.ctx.moveTo(this.coordinates[t][0],this.coordinates[t][1]),this.ctx.lineTo(this.x,this.y),this.ctx.strokeStyle=f(this.hue,this.brightness),this.ctx.stroke()}}class y{target;container;canvas;ctx;width;height;traces=[];explosions=[];waitStopRaf;running=!1;opts;sound;resize;mouse;raf;constructor(t,i={}){this.target=t,this.container=t,this.opts=new M,this.createCanvas(this.target),this.updateOptions(i),this.sound=new T(this.opts),this.resize=new L(this.opts,this.updateSize.bind(this),this.container),this.mouse=new E(this.opts,this.canvas),this.raf=new z(this.opts,this.render.bind(this))}get isRunning(){return this.running}get version(){return"2.10.8"}get currentOptions(){return this.opts}start(){this.running||(this.canvas.isConnected||this.createCanvas(this.target),this.running=!0,this.resize.mount(),this.mouse.mount(),this.raf.mount())}stop(t=!1){this.running&&(this.running=!1,this.resize.unmount(),this.mouse.unmount(),this.raf.unmount(),this.clear(),t&&this.canvas.remove())}async waitStop(t){if(this.running)return new Promise(i=>{this.waitStopRaf=()=>{this.waitStopRaf&&(requestAnimationFrame(this.waitStopRaf),!this.traces.length&&!this.explosions.length&&(this.waitStopRaf=null,this.stop(t),i()))},this.waitStopRaf()})}pause(){this.running=!this.running,this.running?this.raf.mount():this.raf.unmount()}clear(){this.ctx&&(this.traces=[],this.explosions=[],this.ctx.clearRect(0,0,this.width,this.height))}launch(t=1){for(let i=0;i<t;i++)this.createTrace();this.waitStopRaf||(this.start(),this.waitStop())}updateOptions(t){this.opts.update(t)}updateSize({width:t=this.container.clientWidth,height:i=this.container.clientHeight}={}){this.width=t,this.height=i,this.canvas.width=t,this.canvas.height=i,this.updateBoundaries({...this.opts.boundaries,width:t,height:i})}updateBoundaries(t){this.updateOptions({boundaries:t})}createCanvas(t){t instanceof HTMLCanvasElement?(t.isConnected||document.body.append(t),this.canvas=t):(this.canvas=document.createElement("canvas"),this.container.append(this.canvas)),this.ctx=this.canvas.getContext("2d"),this.updateSize()}render(){if(!this.ctx||!this.running)return;const{opacity:t,lineStyle:i,lineWidth:s}=this.opts;this.ctx.globalCompositeOperation="destination-out",this.ctx.fillStyle=`rgba(0, 0, 0, ${"$"}{t})`,this.ctx.fillRect(0,0,this.width,this.height),this.ctx.globalCompositeOperation="lighter",this.ctx.lineCap=i,this.ctx.lineJoin="round",this.ctx.lineWidth=p(s.trace.min,s.trace.max),this.initTrace(),this.drawTrace(),this.drawExplosion()}createTrace(){const{hue:t,rocketsPoint:i,boundaries:s,traceLength:n,traceSpeed:h,acceleration:a,mouse:r}=this.opts;this.traces.push(new C({x:this.width*o(i.min,i.max)/100,y:this.height,dx:this.mouse.x&&r.move||this.mouse.active?this.mouse.x:o(s.x,s.width-s.x*2),dy:this.mouse.y&&r.move||this.mouse.active?this.mouse.y:o(s.y,s.height*.5),ctx:this.ctx,hue:o(t.min,t.max),speed:h,acceleration:a,traceLength:u(n)}))}initTrace(){if(this.waitStopRaf)return;const{delay:t,mouse:i}=this.opts;(this.raf.tick>o(t.min,t.max)||this.mouse.active&&i.max>this.traces.length)&&(this.createTrace(),this.raf.tick=0)}drawTrace(){let t=this.traces.length;for(;t--;)this.traces[t].draw(),this.traces[t].update((i,s,n)=>{this.initExplosion(i,s,n),this.sound.play(),this.traces.splice(t,1)})}initExplosion(t,i,s){const{particles:n,flickering:h,lineWidth:a,explosion:r,brightness:l,friction:d,gravity:x,decay:m}=this.opts;let P=u(n);for(;P--;)this.explosions.push(new O({x:t,y:i,ctx:this.ctx,hue:s,friction:d,gravity:x,flickering:o(0,100)<=h,lineWidth:p(a.explosion.min,a.explosion.max),explosionLength:u(r),brightness:l,decay:m}))}drawExplosion(){let t=this.explosions.length;for(;t--;)this.explosions[t].draw(),this.explosions[t].update(()=>{this.explosions.splice(t,1)})}}c.Fireworks=y,c.default=y,Object.defineProperties(c,{__esModule:{value:!0},[Symbol.toStringTag]:{value:"Module"}})});
 
 
-       let timeIndicatorTop = 0;
-    let normalRosterHeight = 0;
-    function rosterSimplify() {
-               const now = new Date();
+       let newYearCountdownClosed = false;
+    function newYearCountdown() {
+        const now = new Date();
         const newYear = new Date(now.getFullYear() + 1, 0, 1);
         const diff = newYear - now;
-        if (!id('mod-new-year') && Math.floor(diff / (1000 * 60 * 60 * 24)) <= 10) {
+        if ((ignoreCountdownConditions || (get('bools').charAt(BOOL_INDEX.EVENTS) == '1' && Math.floor(diff / (1000 * 60 * 60 * 24)) <= 7)) && !newYearCountdownClosed && !id('mod-new-year')) {
             const rosterContainer = document.querySelector('sl-rooster-weken');
             if (rosterContainer) {
                 const parent = document.createElement('div');
                 parent.id = 'mod-new-year';
+                const div = document.createElement('div');
+                div.id = 'mod-new-year-fireworks'
+                parent.appendChild(div);
                 const button = document.createElement('button');
                 button.innerHTML = '&times;';
                 button.addEventListener('click', function () {
-                    this.parentElement.remove();
+                    newYearCountdownClosed = true;
+                    this.parentElement.style.height = '0px';
+                    this.parentElement.style.padding = '0px';
+                    setTimeout(function () {
+                        if (this && this.parentElement) {
+                            this.parentElement.remove();
+                        }
+                    }, 500);
                 });
                 parent.appendChild(button);
                 const h3 = document.createElement('h3');
@@ -1919,7 +2063,7 @@ function onload() {
                     'Wat is jouw goede voornemen?',
                     'Ga jij volgend jaar voor de 10\'en?',
                     'Al bijna nieuwjaar!',
-                    'KERSTVAKANTIE!!!',
+                    'KERSTVAKANTIE!!! (en bijna nieuwjaar dus)',
                     'Al zin in volgend jaar?',
                     'Wat ga je doen in de vakantie?',
                     'Neem tijd voor zelfreflectie en ga gamen ofzo',
@@ -1930,16 +2074,18 @@ function onload() {
                     'Als je je huiswerk verbrandt, is het dan vuurwerk?',
                     'Vanaf 1 januari is het {next_year}',
                     'Volgend jaar wordt minstens 10x beter',
-                    'Nog precies {seconds_to_next_year} seconden',
-                    'Over {seconds_to_next_year} seconden is {year} voorbij',
+                    'Nog ongeveer {seconds_to_next_year} seconden',
+                    'Over ≈{seconds_to_next_year} seconden is {year} voorbij',
                     'Nog maar even...'
                 ];
                 let current;
 
                 setInterval(function () {
                     const now = new Date();
-                    const newYear = new Date(now.getFullYear() + 1, 0, 1);
                     const diff = newYear - now;
+                    if (diff <= 0) {
+                        return;
+                    }
                     let random = Math.floor(Math.random() * texts.length);
                     while (current == random) {
                         random = Math.floor(Math.random() * texts.length);
@@ -1968,6 +2114,19 @@ function onload() {
                 }
                 parent.appendChild(countdownElement);
                 rosterContainer.parentElement.insertAdjacentElement('beforebegin', parent);
+                const fireworks = new Fireworks.default(id('mod-new-year-fireworks'), {
+                    intensity: 12,
+                    traceSpeed: 7,
+                });
+                fireworks.start();
+                window.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'hidden') {
+                        fireworks.stop();
+                    }
+                    else {
+                        fireworks.start();
+                    }
+                });
 
                 const p1 = countdownElement.children[0].getElementsByTagName('p')[0];
                 const p2 = countdownElement.children[1].getElementsByTagName('p')[0];
@@ -1975,15 +2134,14 @@ function onload() {
                 const p4 = countdownElement.children[3].getElementsByTagName('p')[0];
                 function updateCountdown() {
                     const now = new Date();
-                    const newYear = new Date(now.getFullYear() + 1, 0, 1);
                     const diff = newYear - now;
 
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const days = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
+                    const hours = Math.max(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), 0);
+                    const minutes = Math.max(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)), 0);
+                    const seconds = Math.max(Math.floor((diff % (1000 * 60)) / 1000), 0);
 
-                    if (p1.innerText != days) {
+                    if (p1.innerText !== days.toString()) {
                         p1.classList.add('mod-letter-slide');
                         p1.innerText = days;
                         countdownElement.children[0].getElementsByTagName('span')[0].innerText = days == 1 ? 'dag' : 'dagen';
@@ -1991,7 +2149,7 @@ function onload() {
                             p1.classList.remove('mod-letter-slide');
                         }, 500);
                     }
-                    if (p2.innerText != hours) {
+                    if (p2.innerText !== hours.toString()) {
                         p2.classList.add('mod-letter-slide');
                         p2.innerText = hours;
                         countdownElement.children[1].getElementsByTagName('span')[0].innerText = hours == 1 ? 'uur' : 'uren';
@@ -1999,7 +2157,7 @@ function onload() {
                             p2.classList.remove('mod-letter-slide');
                         }, 500);
                     }
-                    if (p3.innerText != minutes) {
+                    if (p3.innerText !== minutes.toString()) {
                         p3.classList.add('mod-letter-slide');
                         p3.innerText = minutes;
                         countdownElement.children[2].getElementsByTagName('span')[0].innerText = minutes == 1 ? 'minuut' : 'minuten';
@@ -2007,7 +2165,7 @@ function onload() {
                             p3.classList.remove('mod-letter-slide');
                         }, 500);
                     }
-                    if (p4.innerText != seconds) {
+                    if (p4.innerText !== seconds.toString()) {
                         p4.classList.add('mod-letter-slide');
                         p4.innerText = seconds;
                         countdownElement.children[3].getElementsByTagName('span')[0].innerText = seconds == 1 ? 'seconde' : 'seconden';
@@ -2016,16 +2174,22 @@ function onload() {
                         }, 500);
                     }
 
-                                       const isNewYear = now.getDate() == 1 && now.getMonth() == 0;
-                    if (isNewYear && !id('mod-fireworks')) {
+                                       if (days == 0 && hours == 0 && minutes == 0 && seconds == 0 && !id('mod-fireworks')) {
+                        h3.innerText = 'GELUKKIG NIEUWJAAR!';
                         const fireworkElement = document.createElement('div');
                         fireworkElement.id = 'mod-fireworks';
                         rosterContainer.insertAdjacentElement('beforebegin', fireworkElement);
                         const fireworks = new Fireworks.default(fireworkElement);
                         fireworks.start();
-                    }
-                    else if (!isNewYear && id('mod-fireworks')) {
-                        id('mod-fireworks').remove();
+                        startConfetti();
+                        window.addEventListener('visibilitychange', function () {
+                            if (document.visibilityState === 'hidden') {
+                                fireworks.stop();
+                            }
+                            else {
+                                fireworks.start();
+                            }
+                        });
                     }
                 }
 
@@ -2033,7 +2197,12 @@ function onload() {
                 updateCountdown();
             }
         }
+    }
 
+       let timeIndicatorTop = 0;
+    let normalRosterHeight = 0;
+    function rosterSimplify() {
+               execute([customHomework]);
                if (get('bools').charAt(BOOL_INDEX.ROSTER_SIMPLIFY) == "1" && !n(tn('sl-rooster-weken', 0))) {
             if (!n(cn('tertiary normal action-primary-normal center', 0)) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
                                               cn('tertiary normal action-primary-normal center', 0).addEventListener('click', function () {
@@ -2174,27 +2343,16 @@ function onload() {
         if (get('bools').charAt(BOOL_INDEX.TEXT_SELECTION) == '1') {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">*{user-select:auto !important;}</style>');
         }
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-play-game { color: dodgerblue; text-align: center; cursor: pointer;}sl-error-image svg { transition: 1s transform ease, margin-top 0.3s ease !important;}.mod-game-playing sl-error-image svg { margin-top: 100px; transform: scale(40); --fg-negative-normal: transparent;}.mod-game-playing sl-error-image svg * { transition: fill 0.3s ease !important;}.mod-game-playing body { height: 100vh; overflow: hidden;}.mod-floor,.mod-wall,#mod-basefloor { background: #9b9b9c; position: absolute; height: 2%;}.mod-wall { width: 20px;}body.mod-game-playing { height: 100vh; overflow: hidden;}#mod-player,#mod-basefloor,#mod-flag-end,.mod-level,h1#mod-h1-header { opacity: 0; transition: opacity 0.3s ease;}.mod-game-playing #mod-player,.mod-game-playing #mod-basefloor,.mod-game-playing #mod-flag-end,.mod-game-playing .mod-active-level,.mod-game-playing h1#mod-h1-header { opacity: 1;}.mod-lava { background: #fc9312; position: absolute; height: 2%;}.mod-enemy { background: #fc1212; position: absolute; height: 50px; width: 50px; border-radius: 6px;}.mod-enemy p { color: #fff; font-weight: 700; text-align: center; font-size: 18px; margin-top: 12px;}.mod-trampoline { background: #1264fc; position: absolute; height: 2%;}.mod-game-playing #mod-player { position: absolute; bottom: 100px; height: 50px; left: 20px;}.mod-game-playing #mod-basefloor { position: absolute; left: 0; right: 0; bottom: 0; height: 100px}.mod-game-playing #mod-flag-end { position: absolute; width: 50px;}#mod-player-container { position: absolute; top: 0; left: 0; right: 0; bottom: 100px;}.mod-game-playing * { user-select: none !important; touch-action: none !important;}.mod-moving-platform-up,.mod-moving-platform-right { position: absolute;}.mod-moving-platform-up div { width: 100%; height: 30px;}.mod-moving-platform-right div { height: 30px; width: 30%;}.mod-game-playing h1,.mod-game-playing h3,#mod-playtime { text-shadow: 2px 2px 4px var(--border-neutral-weak); font-size: 48px; color: #9b9b9c; font-weight: 700; position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: 100%; box-sizing: border-box;}html,body { scrollbar-width: none !important;}* { user-select: auto !important;}body { overflow-y: scroll !important; background: var(--bg-elevated-none);}html.dark .cijfer.neutraal { color: var(--fg-primary-normal) !important;}sl-scrollable-title { background: var(--bg-neutral-none); padding: 0 16px !important; margin: 0 !important; max-width: unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw>.titel { position: relative;}sl-rooster-week .uur { border-left: none !important; border-bottom: none !important;}sl-bericht-nieuw .nieuw-bericht-form input,sl-bericht-nieuw .nieuw-bericht-form textarea,sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie { background: none;}sl-rooster-tijden>div:first-of-type span { padding-top: 10px;}.tijd { text-wrap: nowrap;}sl-modal>div:has(sl-account-modal) { max-width: 2048px !important; height: 92% !important; max-height: 92% !important;}.zoekresultaten-inner { max-height: 368px !important;}.week:not(sl-rooster-week) { background: var(--bg-neutral-none) !important; color: var(--text-strong) !important;}@media (min-width:1280px) { sl-tab-bar { background: none !important; }}.navigation,.dagen,.actiepanel,.dag-afkortingen { background: none !important;}.zoekresultaten { border: none !important;}sl-plaatsingen,.nieuw-bericht-form { background: var(--bg-neutral-none);}sl-cijfers .tabs { border-radius: 6px;}sl-account-modal .content,.tabs .filler { position: relative;}#nickname-wrapper>div>input:first-of-type,#username-wrapper>div>input:first-of-type { width: calc(40% - 20px); margin-right: 20px;}#nickname-wrapper input,#username-wrapper input { width: 60%; display: inline-block; margin-bottom: 10px;}#mod-setting-panel { position: absolute; background: var(--bg-elevated-none); top: 2px; left: 0; width: 100%; height: fit-content; padding: 0 30px; box-sizing: border-box; z-index: 100;}@media (max-width:550px) { .mod-slider { width: 100%; } #mod-setting-panel h3, #mod-setting-panel div { clear: both; } .mod-range-preview { right: 15px; }}@media (max-width:48em) { #mod-grade-calculate, #mod-grades-graphs { padding: 0 20px; box-sizing: border-box; }}.input-veld { border-width: 2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover) { background: var(--bg-neutral-none) !important;}#mod-grades-graphs>div { margin-bottom: 50px; width: 100%; position: relative;}#mod-grades-graphs>div>canvas { position: relative; width: 100%; height: 100%;}#mod-grades-graphs>h3 { margin-top: 40px; margin-bottom: 10px; color: var(--text-strong);}.mod-info-notice { width: fit-content; margin-bottom: -15px; padding: 10px 20px; border: 2px solid var(--blue-0); color: var(--fg-on-primary-weak); line-height: 15px; border-radius: 16px; padding-left: 50px; position: relative;}.mod-info-notice>svg { height: 20px; position: absolute; top: 50%; transform: translateY(-50%); left: 18px;}#mod-grade-calculate { margin-top: 40px; color: var(--text-strong); width: calc(100% + 15px);}#mod-grade-calculate input { width: calc(50% - 80px); margin-right: 15px; display: inline-block;}#mod-grade-calculate #mod-grade-one-three,#mod-grade-calculate #mod-grade-two-three { width: 115px;}#mod-grade-calculate input[type=submit] { background: var(--action-primary-normal); color: var(--text-inverted); transition: background 0.3s ease !important; cursor: pointer;}#mod-grade-calculate input[type=submit]:hover { background: var(--action-primary-strong);}.mod-grades-download { right: 20px; position: absolute; margin-top: 5px; cursor: pointer;}.mod-grades-download svg { height: 25px;}sl-studiewijzer-week:has(.datum.vandaag) { background: var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item { background: var(--bg-neutral-none) !important;}@media (max-width:767px) { .mod-huiswerk strong, .mod-huiswerk p { width: calc(100% - 65px) !important; } sl-studiewijzer-dag .mod-huiswerk { margin-top: -12px !important; } sl-studiewijzer-dag .mod-huiswerk.mod-before { margin-top: 0 !important; margin-bottom: -12px !important; } sl-studiewijzer-lijst-dag .mod-huiswerk, sl-studiewijzer-lijst-dag .mod-add-homework { margin-top: 4px !important; } sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before { margin-top: 0 !important; margin-bottom: 4px !important; } sl-studiewijzer-lijst-dag .dag-header { background: transparent !important; } #mod-message>center>div { padding: 20px !important; } .mod-multi-choice span { padding: 10px !important; } .mod-huiswerk.mod-huiswerk-done div svg { opacity: 1 !important; padding: 2px !important; width: 16px !important; height: 16px !important; } .mod-huiswerk div { right: 15px !important; width: 20px !important; height: 20px !important; } .laad-eerdere { background: var(--bg-neutral-none) !important; } .berichten-lijst { min-height: calc(var(--min-content-vh) - 64px - 32px) !important; margin-bottom: 0 !important; } sl-cijfers>.container { padding-bottom: 0 !important; } sl-cijfers .tabs { border-radius: 0; }}@media (min-width:1120px) and (min-height:550px) { #mod-actions { position: sticky; }}@media (max-width:1279px) { sl-modal>div:has(sl-account-modal) { max-width: 2048px !important; height: 95% !important; max-height: 95% !important; }}@media (min-width:767px) { :root { --min-content-vh: calc(100vh - 74px) !important; } .mod-add-homework { opacity: 0; transition: 0.2s opacity ease; }}#mod-grade-assistant-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--action-primary-normal); border-radius: 50%; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: flex; justify-content: center; align-items: center; z-index: 999; transition: transform 0.2s ease;}#mod-grade-assistant-btn:hover { transform: scale(1.1);}#mod-grade-assistant-btn svg { width: 30px; height: 30px; fill: #fff;}#mod-assistant-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-elevated-none); padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); z-index: 10000; width: 400px; max-width: 90%; display: none; border: 1px solid var(--border-neutral-normal);}#mod-assistant-modal.active { display: block; animation: 0.3s modpopupscale ease;}@keyframes modpopupscale { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }}#mod-assistant-modal h2 { margin-top: 0; color: var(--text-strong);}.mod-assistant-bubble { background: var(--bg-primary-weak); color: var(--text-strong); padding: 15px; border-radius: 12px; border-bottom-left-radius: 0; margin-top: 10px; margin-bottom: 20px; position: relative; font-size: 15px; line-height: 1.4;}.mod-assistant-bubble::after { content: \'\'; position: absolute; bottom: -10px; left: 0; border-width: 10px 10px 0 0; border-style: solid; border-color: var(--bg-primary-weak) transparent transparent transparent;}#mod-assistant-close { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: var(--text-weak);}#mod-assistant-inputs input { width: 100%; margin-bottom: 10px; padding: 10px; box-sizing: border-box; border-radius: 6px; border: 1px solid var(--border-neutral-normal); background: var(--bg-elevated-weakest); color: var(--text-strong);}#mod-assistant-calculate { width: 100%; background: var(--action-primary-normal); color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px;}#mod-assistant-calculate:hover { background: var(--action-primary-strong);}#grade-defender-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: rgba(0, 0, 0, 0.85); cursor: crosshair; display: none;}#grade-defender-canvas.active { display: block;}#grade-defender-ui { position: fixed; top: 20px; left: 20px; z-index: 100001; color: #fff; font-family: \'Kanit\', sans-serif; font-size: 24px; pointer-events: none; display: none;}#grade-defender-ui.active { display: block;}#grade-defender-close { position: fixed; top: 20px; right: 20px; z-index: 100001; color: #fff; font-size: 40px; cursor: pointer; line-height: 30px; display: none;}#grade-defender-close.active { display: block;}#grade-defender-gameover { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100002; color: #fff; text-align: center; display: none;}#grade-defender-gameover.active { display: block;}#grade-defender-gameover h1 { font-size: 60px; margin: 0; color: #ff4444; text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);}#grade-defender-restart { background: #fff; color: #000; padding: 15px 30px; border-radius: 30px; font-size: 20px; cursor: pointer; margin-top: 20px; display: inline-block; font-weight: bold;}#mod-background-live { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;}#mod-bg-live { padding: 20px; background: var(--bg-elevated-weakest); border: 1px solid rgba(0, 0, 0, 0.1); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;}#mod-new-year { padding: 20px; background: var(--bg-accent-weak);}#mod-new-year button { position: absolute; right: 20px; cursor: pointer;}#mod-new-year h3 { text-align: center; display: block;}#mod-new-year>div { display: flex; justify-content: center; gap: 10px; margin-top: 15px;}#mod-new-year>div>div { background: var(--bg-accent-normal); color: var(--fg-on-accent-normal); display: block; width: 80px; padding: 6px 12px; border-radius: 8px; text-align: center; overflow: hidden;}#mod-new-year div p { margin: 0; font-size: 1.5em;}.mod-letter-slide { animation: mod-letter-slide .4s;}@keyframes mod-letter-slide { 0% { transform: translateY(-30px); } 100% { transform: translateY(0px); }}#mod-new-year div span { display: block; font-size: 0.7em; transform: translateY(-3px);}#mod-fireworks { position: fixed; top: 0px; left: 0px; width: 100dvw; height: 100dvh; z-index: 1000; pointer-events: none;}#mod-contributors {	display: flex;	align-items: center;	gap: 10px;	flex-wrap: wrap;	row-gap: 5px;	margin-bottom: 25px;}#mod-contributors a {	display: flex;	gap: 10px;	align-items: center;	background: var(--bg-elevated-weak);	border-radius: 100dvh;	padding-right: 15px;	transition: background .2s ease;}#mod-contributors a img {	height: 2em;	border-radius: 50%;}#mod-contributors a p {	margin: 0;}#mod-contributors a:hover {	background: var(--bg-elevated-strong);	cursor: pointer;}:root.night { --bg-mask-normal: rgba(0, 0, 0, 0.9); --shadow-color: rgba(0, 0, 0, 0.8); --raised-weak-x: 0; --raised-weak-y: 1px; --raised-weak-blur: 2px; --raised-normal-x: 0; --raised-normal-y: 1px; --raised-normal-blur: 4px; --raised-strong-x: 0; --raised-strong-y: 2px; --raised-strong-blur: 10px; --raised-strongest-x: 0; --raised-strongest-y: 3px; --raised-strongest-blur: 16px; --border-neutral-inverted: #ffffff; --border-neutral-weak: #3a3a3a; --border-neutral-normal: #2a2a2a; --border-neutral-strong: #1e1e1e; --border-neutral-strongest: #121212; --border-primary-weak: #444444; --border-primary-normal: #2c2c2c; --border-primary-strong: var(--blue-40); --border-accent-normal: #f2b94c; --border-accent-strong: #e8a41f; --border-warning-normal: #d96c3f; --border-warning-strong: #c74f20; --border-negative-normal: #d94a3f; --border-negative-strong: #b32a1c; --border-positive-normal: #3ca86c; --border-positive-strong: #2b7f4f; --border-alternative-normal: #8156d1; --border-alternative-strong: #5c2fa3; --bg-neutral-none: #0a0a0a; --bg-neutral-weakest: #0f0f0f; --bg-neutral-weak: #151515; --bg-neutral-moderate: #1a1a1a; --bg-neutral-strong: #1f1f1f; --bg-neutral-strongest: #242424; --bg-neutral-max: #2a2a2a; --bg-elevated-none: #0f0f0f; --bg-elevated-weakest: #141414; --bg-elevated-weak: #191919; --bg-elevated-strong: #1f1f1f; --bg-primary-normal: #575757; --bg-primary-strong: #121212; --bg-primary-strongest: #0a0a0a; --bg-primary-weak: #222222; --bg-accent-weak: #3a3a3a; --bg-accent-normal: #f2b94c; --bg-accent-strong: #e8a41f; --bg-accent-max: #d78f00; --bg-warning-weak: #3a3a3a; --bg-warning-normal: #d96c3f; --bg-warning-strong: #c74f20; --bg-warning-max: #a2340c; --bg-negative-weak: #3a3a3a; --bg-negative-normal: #d94a3f; --bg-negative-strong: #b32a1c; --bg-negative-max: #8b1200; --bg-positive-weak: #3a3a3a; --bg-positive-normal: #3ca86c; --bg-positive-strong: #2b7f4f; --bg-positive-max: #1a5035; --bg-alternative-weak: #3a3a3a; --bg-alternative-normal: #8156d1; --bg-alternative-strong: #5c2fa3; --bg-alternative-max: #3a1860; --fg-on-neutral-none: #eaeaea; --fg-on-neutral-weakest: #d7d7d7; --fg-on-neutral-weak: #c4c4c4; --fg-on-neutral-moderate: #b1b1b1; --fg-on-neutral-strong: #9e9e9e; --fg-on-neutral-strongest: #7f7f7f; --fg-on-neutral-max: #6f6f6f; --fg-on-primary-normal: #f5f5f5; --fg-on-primary-weak: #c4c4c4; --fg-on-primary-strong: #ffffff; --fg-on-primary-strongest: #b0b0b0; --fg-on-accent-weak: #fff8e0; --fg-on-accent-normal: #ffffff; --fg-on-accent-strong: #ffffff; --fg-on-accent-max: #fdf5cc; --fg-on-warning-weak: #f7dcc0; --fg-on-warning-normal: #ffffff; --fg-on-warning-strong: #ffffff; --fg-on-warning-max: #f0d4b0; --fg-on-negative-weak: #f4c9c3; --fg-on-negative-normal: #ffffff; --fg-on-negative-strong: #ffffff; --fg-on-negative-max: #e0b0a8; --fg-on-positive-weak: #b0e6c4; --fg-on-positive-normal: #ffffff; --fg-on-positive-strong: #ffffff; --fg-on-positive-max: #d1f0d6; --fg-on-alternative-weak: #d1b8f7; --fg-on-alternative-normal: #ffffff; --fg-on-alternative-strong: #ffffff; --fg-on-alternative-max: #c8a0f0; --text-strong: #ffffff; --text-moderate: #b0b0b0; --text-weak: #888888; --text-weakest: #666666; --text-inverted: #0a0a0a; --disabled-bg: #1b1b1b; --disabled-fg: #555555; --disabled-border: #2a2a2a;}:root.night ::-webkit-scrollbar { width: 12px; height: 12px;}:root.night ::-webkit-scrollbar-track { background: #1a1a1a;}:root.night ::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 6px; border: 3px solid #1a1a1a;}:root.night ::-webkit-scrollbar-thumb:hover { background-color: #666666;}:root.night .afgevinkt { background-color: transparent !important;}:root.night .datum.vandaag,:root.night .active-today,:root.night span.active { background-color: var(--bg-accent-max) !important;}@media screen and (max-width: 767px) { :root.night .datum.vandaag { background-color: unset !important; }}:root.night hmy-pill { --text-color: var(--fg-on-positive-weak); --background-color: transparent; --text-color-darker: var(--fg-on-positive-normal); --background-color-darker: var(--bg-positive-normal); --background-color-darker-hover: var(--bg-positive-strong); --border-color: var(--border-positive-strong); border: 1px solid;}:root.night .week:not(sl-rooster-week) { background: transparent !important;}:root.night .item { color: var(--bg-primary-normal) !important;}:root.night .icon.svg { background-color: var(--bg-primary-weak) !important;}:root.night .slider { border: 2px solid var(--border-neutral-normal) !important;}:root.night input:checked+.slider { background-color: var(--border-primary-strong) !important;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">body{overflow-y:scroll !important;background:var(--bg-elevated-none);}html.dark .cijfer.neutraal{color:var(--fg-primary-normal) !important;}sl-scrollable-title{background:var(--bg-neutral-none);padding:0 16px !important;margin:0 !important;max-width:unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{position:relative;}' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + 'sl-bericht-nieuw .nieuw-bericht-form input, sl-bericht-nieuw .nieuw-bericht-form textarea, sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie{background:none;}sl-rooster-tijden > div:first-of-type span{padding-top:10px;}.tijd{text-wrap:nowrap;}sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:92% !important;max-height:92% !important;}.zoekresultaten-inner{max-height:368px !important;}.week:not(sl-rooster-week){background:var(--bg-neutral-none) !important;color:var(--text-strong) !important;}@media (min-width:1280px){sl-tab-bar{background:none !important;}}.navigation,.dagen,.actiepanel,.dag-afkortingen{background:none !important;}.zoekresultaten{border:none !important;}sl-plaatsingen, .nieuw-bericht-form{background:var(--bg-neutral-none);}sl-cijfers .tabs{border-radius:6px;}sl-account-modal .content,.tabs .filler{position:relative;}#nickname-wrapper > div > input:first-of-type,#username-wrapper > div > input:first-of-type{width:calc(40% - 20px);margin-right:20px;}#nickname-wrapper input,#username-wrapper input{width:60%;display:inline-block;margin-bottom:10px;}#mod-setting-panel{position:absolute;background:var(--bg-elevated-none);top:2px;left:0;width:100%;height:fit-content;padding:0 30px;box-sizing:border-box;z-index:100;}@media (max-width:550px){.mod-slider{width:100%;}#mod-setting-panel h3,#mod-setting-panel div{clear:both;}.mod-range-preview{right:15px;}input[type="range"]{width:calc(100% - 50px) !important;}#mod-setting-panel > div > div:has(label.switch) > p{float:left;width:calc(100% - 70px) !important;}#mod-setting-panel > div > div > label.switch{float:right;}.mod-slider p:last-of-type{height:7px;transform:translateY(-72px);float:right;margin:0 !important;}.mod-slider input[type="range"]{width:100% !important;}#mod-grade-calculate input{width:calc(100% - 30px) !important;margin-bottom:10px;}#nickname-wrapper input,#username-wrapper input{width:100% !important;}#nickname-wrapper div:after{content:"";margin-bottom:10px;display:block;width:100%;border:2px solid var(--bg-primary-weak);}.layout-container{width:calc(50% - 16px) !important;}}#grade-reveal-select{margin-bottom:20px;}#studiewijzer-afspraak-toevoegen-select{margin-top:20px;}.mod-multi-choice{display:inline-block;vertical-align:top;border:var(--thinnest-solid-neutral-normal);border-radius:12px;overflow:hidden;}.mod-multi-choice span{padding:10px 15px;display:inline-block;cursor:pointer;user-select:none;transition:background .2s ease;}.mod-multi-choice span:hover{background:var(--bg-elevated-weakest);}.mod-multi-choice span.active{background:var(--bg-elevated-weak);}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:48em){#mod-grade-calculate,#mod-grades-graphs{padding:0 20px;box-sizing:border-box;}}.input-veld{border-width:2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover){background:var(--bg-neutral-none) !important;}#mod-grades-graphs > div{margin-bottom:50px;width:100%;position:relative;}#mod-grades-graphs > div > canvas{position:relative;width:100%;height:100%;}#mod-grades-graphs > h3{margin-top:40px;margin-bottom:10px;color:var(--text-strong);}.mod-info-notice{width:fit-content;margin-bottom:-15px;padding:10px 20px;border:2px solid var(--blue-0);color:var(--fg-on-primary-weak);line-height:15px;border-radius:16px;padding-left:50px;position:relative;}.mod-info-notice > svg{height:20px;position:absolute;top:50%;transform:translateY(-50%);left:18px;}#mod-grade-calculate{margin-top:40px;color:var(--text-strong);width:calc(100% + 15px);}#mod-grade-calculate input{width:calc(50% - 80px);margin-right:15px;display:inline-block;}#mod-grade-calculate #mod-grade-one-three,#mod-grade-calculate #mod-grade-two-three{width:115px;}#mod-grade-calculate input[type=submit]{background:var(--action-primary-normal);color:var(--text-inverted); transition: background 0.3s ease !important;cursor:pointer;}#mod-grade-calculate input[type=submit]:hover{background:var(--action-primary-strong);}.mod-grades-download{right:20px;position:absolute;margin-top: 5px;cursor:pointer;}.mod-grades-download svg{height: 25px;}sl-studiewijzer-week:has(.datum.vandaag){background:var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item{background:var(--bg-neutral-none) !important;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){.mod-huiswerk strong,.mod-huiswerk p{width:calc(100% - 65px) !important;}sl-studiewijzer-dag .mod-huiswerk{margin-top:-12px !important;}sl-studiewijzer-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:-12px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk,sl-studiewijzer-lijst-dag .mod-add-homework{margin-top:4px !important;}sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before{margin-top:0 !important;margin-bottom:4px !important;}sl-studiewijzer-lijst-dag .dag-header{background:transparent !important;}#mod-message > center > div{padding:20px !important;}.mod-multi-choice span{padding:10px !important;}.mod-huiswerk.mod-huiswerk-done div svg{opacity:1 !important;padding:2px !important;width:16px !important;height:16px !important;}.mod-huiswerk div{right:15px !important;width:20px !important;height:20px !important;}.laad-eerdere{background:var(--bg-neutral-none) !important;}.berichten-lijst{min-height:calc(var(--min-content-vh) - 64px - 32px) !important;margin-bottom:0 !important;}sl-cijfers > .container{padding-bottom:0 !important;}sl-cijfers .tabs{border-radius:0;}}@media (min-width:1120px) and (min-height:550px){#mod-actions{position:sticky;}}@media (max-width:1279px){sl-modal > div:has(sl-account-modal){max-width:2048px !important;height:95% !important;max-height:95% !important;}}@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}.mod-add-homework{opacity:0;transition:0.2s opacity ease;}}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#somtoday-recap{cursor:pointer;overflow:hidden;background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);color:#fff;background-size:200% 200%;padding:15px 20px;border-radius:6px;animation:backgroundanimation 7s ease infinite;position:relative;max-height:65px;max-width:100%;width:680px;margin:0 auto;margin-bottom:30px;}@keyframes backgroundanimation{0%{background-position:0 0;}50%{background-position:100% 100%;}100%{background-position:0 0;}}#somtoday-recap-arrows{position:absolute;right:50px;bottom:10px;}#somtoday-recap-arrows svg{display:inline-block;height:55px;}#recap-arrow-1{animation:arrowanimation 5s ease infinite;}#recap-arrow-2{animation:arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3{animation:arrowanimation 5s ease infinite 1s;}#somtoday-recap p{margin-bottom:0;}#somtoday-recap p,#somtoday-recap h3{z-index:1;position:relative;}@keyframes arrowanimation{0%{transform:none;}50%{transform:translateX(20px);}100%{transform:none;}}#somtoday-recap-wrapper{width:0;height:0;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);z-index:1000;border-radius:50%;animation:recapstart 0.5s forwards ease;}@keyframes recapstart{100%{border-radius:0;height:100%;width:100%;}}#somtoday-recap-wrapper .recap-page{width:100%;box-sizing:border-box;padding:30px;transition:opacity 0.5s ease !important;}.recap-page.recap-closing{opacity:0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3{scale:0;font-size:3.25em;color:#fff;animation:textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2{font-size:2em;animation:textscale 0.7s forwards ease 2s;margin-top:20px;}#somtoday-recap-wrapper h3{line-height:40px;margin-top:15px;font-size:2em;animation:textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a{user-select:none;margin-top:30px;color:#fff;border:3px solid #fff;padding:20px 40px;border-radius:6px;display:block;font-size:1.5em;width:fit-content;animation:textscale 0.7s forwards ease 2.5s;scale:0;cursor:pointer;transition:background 0.2s ease !important;}#somtoday-recap-wrapper a:hover{background:#fff;color:#1f86f6;}@keyframes textscale{0%{scale:0;}100%{scale:100%;}}#somtoday-recap-wrapper label:first-of-type{margin-top:20px;}#somtoday-recap-wrapper label{animation:textscale 0.7s forwards ease 2.5s;scale:0;display:block;}#somtoday-recap-wrapper label input{display:inline-block;width:30px;}#somtoday-recap-wrapper label p{max-width:calc(100% - 50px);margin-left:10px;display:inline-block;color:#fff;vertical-align:top;font-size:1.6em;margin-top:5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong{color:#ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right{color:#00cf00;}#somtoday-recap-wrapper label.right span.number{text-decoration:line-through;}#recap-progress{box-sizing:border-box;position:absolute;top:10px;left:20px;width:calc(100% - 20px);}#recap-progress div{width:0;animation:progress 0.6s forwards ease 0.3s;display:inline-block;background:#fff;margin-right:20px;height:10px;border-radius:5px;}@keyframes progress{0%{width:0;}100%{width:calc(12.5% - 20px)}}#recap-chart{width:100%;height:100%;}#recap-chart-wrapper{width:500px;max-width:90%;margin:0 10px;}#award-wrapper{background:#fff;padding:40px;margin-bottom:40px;width:fit-content;border-radius: 8px;animation:textscale 0.7s forwards ease 1s;scale:0;}#award-wrapper svg{height: 100px;}#recap-close{position:absolute;font-size:64px;top:30px;right:30px;cursor:pointer;color:#fff;z-index:1000;}.mod-item>svg{float:right;cursor:ns-resize;margin-top:3px;}.mod-item div svg{float:left;}.mod-item p{float:left;margin:0 10px;font-size:1rem;}#mod-grade-average-sort-list{margin-top:30px;}.mod-item,.placeholder{user-select:none;width:400px;background:var(--bg-elevated-none);border-radius:16px;padding:15px 20px;height:23px;margin-bottom:10px;max-width:calc(100vw - 100px);}@media (max-width:767px){#somtoday-recap-wrapper label p{text-align:left;margin-left:20px;}#somtoday-recap-arrows svg{opacity:0.2;}#somtoday-recap{border-radius:0;margin-bottom:0;}#somtoday-recap-wrapper .recap-page{font-size:0.6em;}}#recap-nextpage{user-select:none;}</style>');
-        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.circles{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; } .circles li{ position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px; } .circles li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; } .circles li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; } .circles li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; } .circles li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; } .circles li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; } .circles li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; } .circles li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; } .circles li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; } .circles li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; } .circles li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; } @keyframes animate { 0%{ transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100%{ transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week .week,sl-studiewijzer-dag { position: relative;}@keyframes homeworkchecked { 0% { margin-top: 32px; position: absolute; width: calc(100% - 32px); z-index: 15; } 100% { margin-top: calc(64px * var(--mod-hours-to-move) + 28px); position: absolute; width: calc(100% - 32px); z-index: 1; }}sl-studiewijzer-items.mod-added { margin-top: -4px;}.mod-huiswerk { margin-top: -4px; height: 58px; position: relative; background: var(--bg-elevated-weakest); border-left: 4px solid var(--fg-warning-normal); border-top: var(--thinnest-solid-neutral-normal); border-right: var(--thinnest-solid-neutral-normal); border-bottom: var(--thinnest-solid-neutral-normal); overflow: hidden;}.mod-huiswerk.mod-huiswerk-done:hover { border-top: var(--thinnest-solid-positive-normal); border-right: var(--thinnest-solid-positive-normal); border-bottom: var(--thinnest-solid-positive-normal);}.mod-huiswerk-animation { animation: homeworkchecked 0.3s ease;}.mod-huiswerk.mod-huiswerk-done { border-left: 4px solid var(--fg-on-positive-weak); background: var(--bg-positive-weak);}.mod-huiswerk.mod-huiswerk-done svg { fill: var(--fg-on-positive-weak); opacity: 0.6;}.mod-huiswerk.mod-huiswerk-done strong,.mod-huiswerk.mod-huiswerk-done p { text-decoration: line-through; color: var(--fg-on-positive-weak); opacity: .6;}.mod-huiswerk div { position: absolute; height: 17px; width: 17px; border: var(--thin-solid-neutral-strong); right: -25px; border-radius: var(--border-radius-normal); background: var(--bg-elevated-none); top: 17px; transition: right 0.2s ease;}.mod-huiswerk:hover div { right: 15px;}.mod-huiswerk:hover div:hover { border-color: var(--action-positive-normal);}.mod-huiswerk strong,.mod-huiswerk p { overflow: hidden; width: calc(100% - 20px); text-wrap: nowrap; text-overflow: ellipsis; font-weight: 600;}.mod-huiswerk strong { font-size: 14px; margin-top: -5px; display: block; margin-left: 10px; color: var(--text-strong);}.mod-huiswerk p { margin: 0 0 0 10px; font-size: 12px; color: var(--text-weak);}.mod-huiswerk:hover strong,.mod-huiswerk:hover p { width: calc(100% - 55px);}.mod-huiswerk,.mod-add-homework { width: 100%; border-radius: var(--border-radius-normal); box-sizing: border-box; padding: 16px 0 16px 38px; cursor: pointer;}.mod-huiswerk.mod-before { margin-top: 0; margin-bottom: -4px;}.mod-huiswerk:hover { border-top: var(--thinnest-solid-primary-normal); border-right: var(--thinnest-solid-primary-normal); border-bottom: var(--thinnest-solid-primary-normal);}.mod-add-homework { padding: 8px 0 8px 38px; background: var(--mod-semi-transparant, var(--bg-elevated-none)); border: 2px dashed var(--bg-elevated-weak); color: var(--text-weak);}.mod-add-homework:hover { opacity: 1;}.mod-huiswerk div svg { display: none;}.mod-huiswerk.mod-huiswerk-done div { background: var(--action-positive-normal); border-color: var(--action-positive-normal);}.mod-huiswerk.mod-huiswerk-done div svg { display: block; fill: var(--border-neutral-inverted); padding: 2px 3px;}.mod-huiswerk>svg,.mod-add-homework svg { height: 16px; position: absolute; margin-top: 3px; margin-left: -22px;}.mod-huiswerk svg { fill: var(--fg-warning-normal); overflow: visible;}.mod-add-homework svg { fill: var(--text-weak); height: 16px; position: absolute; margin-top: 3px; margin-left: -22px;}.mod-homework-icon { height: 1.1em; padding: 10px; border-radius: 50%; overflow: visible; cursor: pointer; transition: background .3s ease;}.mod-homework-icon.mod-active, .mod-homework-icon:hover { background: var(--bg-elevated-strong);}.mod-user-scale { animation: 0.6s usericonscale 0.2s ease;}@keyframes usericonscale { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); }}a:hover .mod-save-shake { animation: 0.6s saveshake 0.2s ease;}@keyframes saveshake { 0% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 50% { transform: rotate(0eg); } 75% { transform: rotate(-15deg); } 100% { transform: rotate(0deg); }}a:hover .mod-bug-scale { animation: 0.6s bugscale 0.2s ease;}@keyframes bugscale { 0% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1.05); } 70% { transform: scale(.9); } 100% { transform: scale(1); }}a:hover .mod-info-wobble { animation: 0.6s infowobble 0.2s ease;}@keyframes infowobble { from, to { transform: scale(1, 1); } 25% { transform: scale(0.8, 1.2); } 50% { transform: scale(1.2, 0.8); } 75% { transform: scale(0.9, 1.1); }}a:hover .mod-update-rotate { animation: 0.8s updaterotate 0.2s ease;}@keyframes updaterotate { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); }}a:hover .mod-reset-rotate { animation: 0.8s resetrotate 0.2s ease;}@keyframes resetrotate { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); }}.mod-gear-rotate { animation: 0.8s gearrotate 0.2s ease;}@keyframes gearrotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}.mod-range-preview { height: 40px; width: 40px; overflow: hidden; position: absolute; margin-left: 250px; border: var(--thinnest-solid-neutral-normal); border-radius: 6px; padding: 7px; box-sizing: border-box;}.mod-range-preview svg { height: 100% !important;}input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 15rem;}input[type="range"]:focus { outline: none;}input[type="range"]::-webkit-slider-runnable-track { background-color: var(--bg-primary-weak); border-radius: 0.5rem; height: 0.5rem;}input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -4px; border-radius: 50%; background-color: var(--bg-primary-strong); height: 1rem; width: 1rem;}input[type="range"]:focus::-webkit-slider-thumb { border: none; outline: 3px solid var(--border-accent-normal); outline-offset: 0.125rem;}input[type="range"]::-moz-range-track { background-color: var(--bg-primary-weak); border-radius: 0.5rem; height: 0.5rem;}input[type="range"]::-moz-range-thumb { border: none; border-radius: 50%; background-color: var(--bg-primary-strong); height: 1rem; width: 1rem;}input[type="range"]:focus::-moz-range-thumb { border: none; outline: 3px solid var(--border-accent-normal); outline-offset: 0.125rem;}.switch { display: inline-block; height: 25px; position: relative; vertical-align: top; width: 50px; margin: 12px 10px 25px 0;}.switch input { display: none !important;}.slider { background-color: var(--bg-primary-weak); bottom: -1px; cursor: pointer; left: 0; position: absolute; right: 0; top: 1px; transition: background .2s;}.slider:before { background-color: #fff; bottom: 4px; content: ""; height: 17px; left: 4px; position: absolute; transition: .2s; width: 17px;}input:checked+.slider { background-color: var(--bg-primary-strong);}input:checked+.slider:before { transform: translateX(26px);}.slider.round { border-radius: 34px; margin-bottom: 0 !important;}.slider.round:before { border-radius: 50%;}.mod-custom-select { position: relative; font-family: Arial, sans-serif; margin-top: 10px; width: 240px; display: inline-block; margin-right: 15px;}.mod-custom-select select { display: none;}.select-selected { transition: background 0.2s ease; border-radius: 6px; border: var(--thinnest-solid-neutral-normal) !important; background-color: var(--bg-elevated-weakest);}.select-selected:after { position: absolute; content: ""; top: 18px; right: 10px; width: 0; height: 0; border: 6px solid transparent; border-color: var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover { background: var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after { border-color: transparent transparent var(--text-moderate) transparent; top: 10px;}.select-items div,.select-selected { color: var(--text-moderate); letter-spacing: normal; padding: 8px 16px; border: 1px solid transparent; border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent; cursor: pointer; -webkit-user-select: none; user-select: none;}.select-items { max-height: 400px; position: absolute; background-color: var(--bg-elevated-none); color: var(--text-moderate); top: calc(100% + 10px); left: -2px; width: calc(100% + 2px); right: 0; z-index: 99; border-radius: 8px; overflow: hidden; overflow-y: auto; border-radius: 6px; box-shadow: 0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type { border: 2px solid transparent;}.select-hide { display: none;}.select-items div:hover,.same-as-selected { background-color: rgba(0, 0, 0, 0.1);}#mod-message textarea { height: 200px; padding: 12px 20px; outline-offset: unset;}#mod-message .mod-message-button { -webkit-user-select: none; user-select: none; text-decoration: none; font-size: 14px; padding: 12px 24px; border: 4px solid var(--bg-primary-normal); background: var(--bg-primary-normal); border-radius: 8px; margin-top: 10px; margin-right: 10px; display: inline-block; color: var(--text-inverted); outline: none; cursor: pointer; transition: background 0.2s ease, border 0.2s ease;}#mod-message .mod-message-button:hover { background: var(--bg-primary-strong);}#mod-message .mod-message-button:focus,#mod-message .mod-message-button:hover { border: 4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged { background: var(--bg-elevated-none) !important; color: red; border: 4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus,#mod-message .mod-message-button.mod-button-discouraged:hover { border: 4px solid darkred;}#mod-message a { text-decoration: underline;}#mod-message p,#mod-message h3 { font-size: 14px; margin-bottom: 10px; line-height: 17px;}#mod-message h2 { font-size: 18px; margin-bottom: 20px;}#mod-message>center { position: absolute; width: 100%;}#mod-message.mod-animation-playing>center { opacity: 0; transform: translateY(-300px); animation: 0.4s modmessageslidein ease 0.15s forwards;}@keyframes modmessageslidein { 0% { transform: translateY(-300px); opacity: 0; } 50% { opacity: 1; } 100% { transform: none; opacity: 1; }}#mod-message>center>div { background: var(--bg-elevated-none); box-shadow: 0 0 50px var(--bg-elevated-weak); width: 500px; max-width: calc(100% - 16px); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; text-align: left; padding: 20px 30px; box-sizing: border-box;}#mod-message { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000000; background: rgba(0, 0, 0, 0.2); box-sizing: border-box;}#mod-message.mod-animation-playing { animation: 0.2s modmessagebackground ease forwards;}#mod-message.mod-msg-closed { opacity: 0;}@keyframes modmessagebackground { 0% { background: rgba(0, 0, 0, 0); } 100% { background: rgba(0, 0, 0, 0.2); }}#mod-letterbeoordelingen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px 15px;}#mod-letterbeoordelingen label { display: block; margin: 5px 0; font-size: 0.9em; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden;}#mod-letterbeoordelingen input { height: 30px;}#mod-actions { background: var(--bg-elevated-none); margin-left: -30px; padding: 10px 30px; z-index: 100; width: 100%; margin-top: -10px; top: -5px;}.mod-setting-button { padding: 10px 12px; background: var(--bg-elevated-weak); border-radius: 8px; margin-right: 8px; display: inline-block; margin-bottom: 10px; transition: background 0.3s ease !important; cursor: pointer; user-select: none; color: var(--text-moderate) !important;}.mod-setting-button:hover { background: var(--bg-elevated-strong); color: var(--text-moderate);}.mod-setting-button svg { margin-right: 10px; height: 18px; margin-bottom: -3px;}#mod-background-wrapper { width: 100%;}#mod-background-wrapper label svg { width: 100%; height: 100%; padding: 50px 15px; box-sizing: border-box;}#mod-background-wrapper img:hover { filter: opacity(0.5);}#mod-background-wrapper label,#mod-background-wrapper img { cursor: pointer; height: 150px; width: 150px; background: var(--bg-elevated-none); border-radius: 8px; object-fit: cover; display: inline-block; margin-right: 15px; margin-bottom: 15px; vertical-align: top;}.dodgerblue { color: dodgerblue; cursor: pointer; user-select: none;}.mod-background-preview { width: 100%; height: 175px; object-fit: cover; border-radius: 12px; clip-path: inset(0 round 12px);}.mod-slider { display: inline-block; min-width: 50%;}.mod-slider input,.mod-slider p { display: inline-block; margin: 3px 15px 3px 0; vertical-align: middle; min-width: 45px;}.mod-slider input { height: 40px; background: var(--bg-elevated-none);}.mod-slider p:first-of-type { font-weight: 700; min-width: 115px;}.mod-background-type-content { padding: 20px; background: var(--bg-elevated-weakest); border: 1px solid rgba(0, 0, 0, 0.1); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;}#mod-background-type { display: flex; flex-wrap: wrap; border: 1px solid rgba(0, 0, 0, 0.1); border-bottom: none; padding-top: 3px; border-top-left-radius: 16px; border-top-right-radius: 16px;}#mod-background-type a { flex-grow: 1; text-align: center; padding: 10px 0; cursor: pointer; flex-wrap: wrap;}#mod-background-type a.active { border-bottom: 3px solid var(--fg-on-primary-weak); font-weight: 700;}.br { height: 10px; clear: both;}.layout-container.layout-selected,.layout-container:hover { border: 3px solid var(--fg-on-primary-weak);}.layout-container { display: inline-block; vertical-align: top; margin-left: 10px; margin-bottom: 50px !important; width: 180px; aspect-ratio: 18/13; background: var(--bg-elevated-none); border: 3px solid var(--bg-elevated-none); border-radius: 16px; position: relative; cursor: pointer; transition: border 0.2s ease !important; box-shadow: 2px 2px 20px var(--bg-elevated-strong);}.layout-container h3 { bottom: -40px; width: 100%; position: absolute; text-align: center; overflow: hidden; text-wrap: nowrap; text-overflow: ellipsis;}.layout-container div { -webkit-user-select: none; user-select: none; background: var(--bg-primary-weak); border-radius: 6px; position: absolute;}.example-box-wrapper { border: 3px solid var(--blue-0); width: 500px; padding: 10px 20px; border-radius: 12px; overflow: hidden; max-width: calc(100% - 50px); margin-top: 15px;}.example-box-wrapper>div { transform-origin: top left;}.theme { user-select: none; display: inline-block; cursor: pointer; width: calc(20% - 11px); margin-bottom: 10px; margin-right: 5px; overflow: hidden; background: var(--bg-elevated-none); border: 3px solid transparent; border-radius: 16px; transition: .2s border ease, .2s background ease !important; box-shadow: 2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set { border: 3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set { background: var(--blue-0); color: var(--grey-80);}.theme img { width: 100%; height: 175px; object-fit: cover; background: var(--bg-elevated-none); margin-bottom: -5px}.theme h3 { padding: 10px; padding-left: 30px; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap;}.theme h3 div { display: inline-block; height: 12px; width: 12px; border-radius: 50%; position: absolute; margin: 5px -20px;}#mod-setting-panel .category:first-of-type { margin-top: 20px;}#mod-setting-panel .category { cursor: pointer; user-select: none; padding: 10px; border-bottom: 6px solid var(--bg-primary-weak); border-radius: 6px; font-size: 20px; margin: 20px -10px; margin-top: 50px;}#mod-setting-panel .category:after { content: ""; transform: rotate(45deg); border: solid var(--bg-primary-normal); border-width: 0 3px 3px 0; display: inline-block; padding: 3px; margin-left: 15px; margin-top: 8px; position: absolute;}#mod-setting-panel .category.collapsed { margin-bottom: -40px;}#mod-setting-panel .category:last-of-type { margin-bottom: 20px;}#mod-setting-panel .category.collapsed:after { transform: rotate(225deg); margin-top: 11px;}#mod-setting-panel>div>p:first-of-type { margin-right: 15px;}.mod-file-label,.mod-button { -webkit-user-select: none; user-select: none; transition: 0.2s border ease !important; margin-bottom: 8px; display: block; width: fit-content; padding: 10px 18px; border: 2px solid var(--fg-on-primary-weak); border-radius: 12px; color: var(--fg-on-primary-weak) !important;}.mod-file-label.mod-drag-and-drop { border: 5px solid var(--fg-on-primary-weak); font-weight: 700;}.mod-button { display: inline-block; margin-right: 10px;}.mod-file-label:hover,.mod-button:hover { border: 2px solid var(--bg-primary-weak); cursor: pointer;}label.mod-file-label.mod-active svg path { fill: white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active { background: var(--fg-on-primary-weak); color: var(--text-inverted) !important;}.mod-file-label p { margin-left: 10px; display: inline;}input[type="file"].mod-file-input { display: none !important;}input[type="color"] { width: 0; height: 0; visibility: hidden; overflow: hidden; opacity: 0;}.mod-color { cursor: pointer; width: 38px; height: 38px; border-radius: 50%; display: inline-block;}.mod-color p { margin: 8px 50px; width: 150px;}.mod-color-textinput { width: 120px; margin-left: 125px; color: var(--fg-on-primary-weak); display: inline-block; padding: 5px; border: none !important; outline: none !important; background: transparent; box-shadow: none !important;}#mod-setting-panel>div>div>p { display: inline-block; max-width: calc(100% - 70px);}@media (max-width:1300px) { .theme { width: calc(33.33333% - 11px); }}@media (max-width:1000px) { .theme { width: calc(50% - 11px); } #mod-setting-panel { padding: 0 15px; }}@media (max-width:475px) { #mod-background-wrapper label, #mod-background-wrapper img { width: calc(50% - 10px); margin-right: 10px; }}:root.night { --bg-mask-normal: rgba(0, 0, 0, 0.9); --shadow-color: rgba(0, 0, 0, 0.8); --raised-weak-x: 0; --raised-weak-y: 1px; --raised-weak-blur: 2px; --raised-normal-x: 0; --raised-normal-y: 1px; --raised-normal-blur: 4px; --raised-strong-x: 0; --raised-strong-y: 2px; --raised-strong-blur: 10px; --raised-strongest-x: 0; --raised-strongest-y: 3px; --raised-strongest-blur: 16px; --border-neutral-inverted: #ffffff; --border-neutral-weak: #3a3a3a; --border-neutral-normal: #2a2a2a; --border-neutral-strong: #1e1e1e; --border-neutral-strongest: #121212; --border-primary-weak: #444444; --border-primary-normal: #2c2c2c; --border-primary-strong: var(--blue-40); --border-accent-normal: #f2b94c; --border-accent-strong: #e8a41f; --border-warning-normal: #d96c3f; --border-warning-strong: #c74f20; --border-negative-normal: #d94a3f; --border-negative-strong: #b32a1c; --border-positive-normal: #3ca86c; --border-positive-strong: #2b7f4f; --border-alternative-normal: #8156d1; --border-alternative-strong: #5c2fa3; --bg-neutral-none: #000000; --bg-neutral-weakest: #0f0f0f; --bg-neutral-weak: #151515; --bg-neutral-moderate: #1a1a1a; --bg-neutral-strong: #1f1f1f; --bg-neutral-strongest: #242424; --bg-neutral-max: #2a2a2a; --bg-elevated-none: #000000; --bg-elevated-weakest: #141414; --bg-elevated-weak: #191919; --bg-elevated-strong: #1f1f1f; --bg-primary-normal: #575757; --bg-primary-strong: #343434; --bg-primary-strongest: #0a0a0a; --bg-primary-weak: #222222; --bg-accent-weak: #3a3a3a; --bg-accent-normal: #f2b94c; --bg-accent-strong: #e8a41f; --bg-accent-max: #d78f00; --bg-warning-weak: #3a3a3a; --bg-warning-normal: #d96c3f; --bg-warning-strong: #c74f20; --bg-warning-max: #a2340c; --bg-negative-weak: #3a3a3a; --bg-negative-normal: #d94a3f; --bg-negative-strong: #b32a1c; --bg-negative-max: #8b1200; --bg-positive-weak: #3a3a3a; --bg-positive-normal: #3ca86c; --bg-positive-strong: #2b7f4f; --bg-positive-max: #1a5035; --bg-alternative-weak: #3a3a3a; --bg-alternative-normal: #8156d1; --bg-alternative-strong: #5c2fa3; --bg-alternative-max: #3a1860; --fg-on-neutral-none: #eaeaea; --fg-on-neutral-weakest: #d7d7d7; --fg-on-neutral-weak: #c4c4c4; --fg-on-neutral-moderate: #b1b1b1; --fg-on-neutral-strong: #9e9e9e; --fg-on-neutral-strongest: #7f7f7f; --fg-on-neutral-max: #6f6f6f; --fg-on-primary-normal: #f5f5f5; --fg-on-primary-weak: #c4c4c4; --fg-on-primary-strong: #ffffff; --fg-on-primary-strongest: #b0b0b0; --fg-on-accent-weak: #fff8e0; --fg-on-accent-normal: #ffffff; --fg-on-accent-strong: #ffffff; --fg-on-accent-max: #fdf5cc; --fg-on-warning-weak: #f7dcc0; --fg-on-warning-normal: #ffffff; --fg-on-warning-strong: #ffffff; --fg-on-warning-max: #f0d4b0; --fg-on-negative-weak: #f4c9c3; --fg-on-negative-normal: #ffffff; --fg-on-negative-strong: #ffffff; --fg-on-negative-max: #e0b0a8; --fg-on-positive-weak: #b0e6c4; --fg-on-positive-normal: #ffffff; --fg-on-positive-strong: #ffffff; --fg-on-positive-max: #d1f0d6; --fg-on-alternative-weak: #d1b8f7; --fg-on-alternative-normal: #ffffff; --fg-on-alternative-strong: #ffffff; --fg-on-alternative-max: #c8a0f0; --text-strong: #ffffff; --text-moderate: #b0b0b0; --text-weak: #888888; --text-weakest: #666666; --text-inverted: #0a0a0a; --disabled-bg: #1b1b1b; --disabled-fg: #555555; --disabled-border: #2a2a2a;}:root.night ::-webkit-scrollbar { width: 12px; height: 12px;}:root.night ::-webkit-scrollbar-track { background: #1a1a1a;}:root.night ::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 6px; border: 3px solid #1a1a1a;}:root.night ::-webkit-scrollbar-thumb:hover { background-color: #666666;}:root.night .afgevinkt { background-color: transparent !important;}:root.night .datum.vandaag,:root.night .active-today,:root.night span.active { background-color: var(--bg-accent-max) !important; color: var(--text-strong) !important;}@media screen and (max-width: 767px) { :root.night .datum.vandaag { background-color: unset !important; }}:root.night hmy-pill { --text-color: var(--fg-on-positive-weak); --background-color: transparent; --text-color-darker: var(--fg-on-positive-normal); --background-color-darker: var(--bg-positive-normal); --background-color-darker-hover: var(--bg-positive-strong); --border-color: var(--border-positive-strong); border: 1px solid;}:root.night .week:not(sl-rooster-week) { background: transparent !important;}:root.night .icon.svg { background-color: var(--bg-primary-weak) !important;}#mod-play-game { color: dodgerblue; text-align: center; cursor: pointer;}sl-error-image svg { transition: 1s transform ease, margin-top 0.3s ease !important;}.mod-game-playing sl-error-image svg { margin-top: 100px; transform: scale(40); --fg-negative-normal: transparent;}.mod-game-playing sl-error-image svg * { transition: fill 0.3s ease !important;}.mod-game-playing body { height: 100vh; overflow: hidden;}.mod-floor,.mod-wall,#mod-basefloor { background: #9b9b9c; position: absolute; height: 2%;}.mod-wall { width: 20px;}body.mod-game-playing { height: 100vh; overflow: hidden;}#mod-player,#mod-basefloor,#mod-flag-end,.mod-level,h1#mod-h1-header { opacity: 0; transition: opacity 0.3s ease;}.mod-game-playing #mod-player,.mod-game-playing #mod-basefloor,.mod-game-playing #mod-flag-end,.mod-game-playing .mod-active-level,.mod-game-playing h1#mod-h1-header { opacity: 1;}.mod-lava { background: #fc9312; position: absolute; height: 2%;}.mod-enemy { background: #fc1212; position: absolute; height: 50px; width: 50px; border-radius: 6px;}.mod-enemy p { color: #fff; font-weight: 700; text-align: center; font-size: 18px; margin-top: 12px;}.mod-trampoline { background: #1264fc; position: absolute; height: 2%;}.mod-game-playing #mod-player { position: absolute; bottom: 100px; height: 50px; left: 20px;}.mod-game-playing #mod-basefloor { position: absolute; left: 0; right: 0; bottom: 0; height: 100px}.mod-game-playing #mod-flag-end { position: absolute; width: 50px;}#mod-player-container { position: absolute; top: 0; left: 0; right: 0; bottom: 100px;}.mod-game-playing * { user-select: none !important; touch-action: none !important;}.mod-moving-platform-up,.mod-moving-platform-right { position: absolute;}.mod-moving-platform-up div { width: 100%; height: 30px;}.mod-moving-platform-right div { height: 30px; width: 30%;}.mod-game-playing h1,.mod-game-playing h3,#mod-playtime { text-shadow: 2px 2px 4px var(--border-neutral-weak); font-size: 48px; color: #9b9b9c; font-weight: 700; position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: 100%; box-sizing: border-box; padding: 0 10%;}#mod-playtime,#mod-close-button { position: absolute; top: 40px; left: 30px; padding: 0; width: fit-content; margin: 0; font-size: 24px;}#mod-close-button { left: unset; right: 30px; z-index: 1000; top: 15px; font-size: 32px; cursor: pointer;}.mod-game-playing h3 { font-size: 28px; padding-top: 100px;}#mod-play-again,#mod-close-game { position: absolute; width: 300px; max-width: 90%; background: #3f8541; color: #fff; font-weight: 700; padding: 20px; transform: translateX(50%); right: 50%; transition: background 0.3s ease !important; border-radius: 12px;}#mod-play-again:hover,#mod-close-game:hover { background: #145716; cursor: pointer;}@media (max-width:700px) { #mod-h3-header { transform: unset; }}.mod-level h1 { background: rgba(0, 0, 0, 0.1); height: fit-content; padding: 0;}#somtoday-recap { cursor: pointer; overflow: hidden; background: linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%); color: #fff; background-size: 200% 200%; padding: 15px 20px; border-radius: 6px; animation: backgroundanimation 7s ease infinite; position: relative; max-height: 65px; max-width: 100%; width: 680px; margin: 0 auto; margin-bottom: 30px;}@keyframes backgroundanimation { 0% { background-position: 0 0; } 50% { background-position: 100% 100%; } 100% { background-position: 0 0; }}#somtoday-recap-arrows { position: absolute; right: 50px; bottom: 10px;}#somtoday-recap-arrows svg { display: inline-block; height: 55px;}#recap-arrow-1 { animation: arrowanimation 5s ease infinite;}#recap-arrow-2 { animation: arrowanimation 5s ease infinite 0.5s;}#recap-arrow-3 { animation: arrowanimation 5s ease infinite 1s;}#somtoday-recap p { margin-bottom: 0;}#somtoday-recap p,#somtoday-recap h3 { z-index: 1; position: relative;}@keyframes arrowanimation { 0% { transform: none; } 50% { transform: translateX(20px); } 100% { transform: none; }}#somtoday-recap-wrapper { width: 0; height: 0; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%); z-index: 1000; border-radius: 50%; animation: recapstart 0.5s forwards ease;}@keyframes recapstart { 100% { border-radius: 0; height: 100%; width: 100%; }}#somtoday-recap-wrapper .recap-page { width: 100%; box-sizing: border-box; padding: 30px; transition: opacity 0.5s ease !important;}.recap-page.recap-closing { opacity: 0;}#somtoday-recap-wrapper h1,#somtoday-recap-wrapper h2,#somtoday-recap-wrapper h3 { scale: 0; font-size: 3.25em; color: #fff; animation: textscale 0.7s forwards ease 1s;}#somtoday-recap-wrapper h2 { font-size: 2em; animation: textscale 0.7s forwards ease 2s; margin-top: 20px;}#somtoday-recap-wrapper h3 { line-height: 40px; margin-top: 15px; font-size: 2em; animation: textscale 0.7s forwards ease 2.5s;}#somtoday-recap-wrapper a { user-select: none; margin-top: 30px; color: #fff; border: 3px solid #fff; padding: 20px 40px; border-radius: 6px; display: block; font-size: 1.5em; width: fit-content; animation: textscale 0.7s forwards ease 2.5s; scale: 0; cursor: pointer; transition: background 0.2s ease !important;}#somtoday-recap-wrapper a:hover { background: #fff; color: #1f86f6;}@keyframes textscale { 0% { scale: 0; } 100% { scale: 100%; }}#somtoday-recap-wrapper label:first-of-type { margin-top: 20px;}#somtoday-recap-wrapper label { animation: textscale 0.7s forwards ease 2.5s; scale: 0; display: block;}#somtoday-recap-wrapper label input { display: inline-block; width: 30px;}#somtoday-recap-wrapper label p { max-width: calc(100% - 50px); margin-left: 10px; display: inline-block; color: #fff; vertical-align: top; font-size: 1.6em; margin-top: 5px;}#somtoday-recap-wrapper .wrong p,#somtoday-recap-wrapper .wrong { color: #ff0000;}#somtoday-recap-wrapper .right p,#somtoday-recap-wrapper .right { color: #00cf00;}#somtoday-recap-wrapper label.right span.number { text-decoration: line-through;}#recap-progress { box-sizing: border-box; position: absolute; top: 10px; left: 20px; width: calc(100% - 20px);}#recap-progress div { width: 0; animation: progress 0.6s forwards ease 0.3s; display: inline-block; background: #fff; margin-right: 20px; height: 10px; border-radius: 5px;}@keyframes progress { 0% { width: 0; } 100% { width: calc(12.5% - 20px) }}#recap-chart { width: 100%; height: 100%;}#recap-chart-wrapper { width: 500px; max-width: 90%; margin: 0 10px;}#award-wrapper { background: #fff; padding: 40px; margin-bottom: 40px; width: fit-content; border-radius: 8px; animation: textscale 0.7s forwards ease 1s; scale: 0;}#award-wrapper svg { height: 100px;}#recap-close { position: absolute; font-size: 64px; top: 30px; right: 30px; cursor: pointer; color: #fff; z-index: 1000;}.mod-item>svg { float: right; cursor: ns-resize; margin-top: 3px;}.mod-item div svg { float: left;}.mod-item p { float: left; margin: 0 10px; font-size: 1rem;}#mod-grade-average-sort-list { margin-top: 30px;}.mod-item,.placeholder { user-select: none; width: 400px; background: var(--bg-elevated-none); border-radius: 16px; padding: 15px 20px; height: 23px; margin-bottom: 10px; max-width: calc(100vw - 100px);}@media (max-width:767px) { #somtoday-recap-wrapper label p { text-align: left; margin-left: 20px; } #somtoday-recap-arrows svg { opacity: 0.2; } #somtoday-recap { border-radius: 0; margin-bottom: 0; } #somtoday-recap-wrapper .recap-page { font-size: 0.6em; }}#recap-nextpage { user-select: none;}.circles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none;}.circles li { position: absolute; display: block; list-style: none; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); animation: animate 25s linear infinite; bottom: -150px;}.circles li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s;}.circles li:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s;}.circles li:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s;}.circles li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s;}.circles li:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s;}.circles li:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s;}.circles li:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-delay: 7s;}.circles li:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s;}.circles li:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s;}.circles li:nth-child(10) { left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s;}@keyframes animate { 0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }}:root { --ruimvoldoende-cijfer-color: #3f8541 !important;}:root.dark { --ruimvoldoende-cijfer-color: #90ea93 !important;}body { overflow-y: scroll !important; background: var(--bg-elevated-none);}html.dark .cijfer.neutraal { color: var(--fg-primary-normal) !important;}sl-scrollable-title { background: var(--bg-neutral-none); padding: 0 16px !important; margin: 0 !important; max-width: unset !important;}hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw>.titel { position: relative;}sl-bericht-nieuw .nieuw-bericht-form input,sl-bericht-nieuw .nieuw-bericht-form textarea,sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie { background: none;}sl-rooster-tijden>div:first-of-type span { padding-top: 10px;}.tijd { text-wrap: nowrap;}sl-modal>div:has(sl-account-modal) { max-width: 2048px !important; height: 92% !important; max-height: 92% !important;}.zoekresultaten-inner { max-height: 368px !important;}.week:not(sl-rooster-week) { background: var(--bg-neutral-none) !important; color: var(--text-strong) !important;}@media (min-width:1280px) { sl-tab-bar { background: none !important; }}.navigation,.dagen,.actiepanel,.dag-afkortingen { background: none !important;}.zoekresultaten { border: none !important;}sl-plaatsingen,.nieuw-bericht-form { background: var(--bg-neutral-none);}sl-cijfers .tabs { border-radius: 6px;}sl-account-modal .content,.tabs .filler { position: relative;}#nickname-wrapper>div,#username-wrapper>div { display: flex; margin-bottom: 10px; gap: 15px;}#nickname-wrapper>div input,#username-wrapper>div input { flex-grow: 1;}#nickname-wrapper>div>input:first-of-type,#username-wrapper>div>input:first-of-type { width: 42%;}#nickname-wrapper>div>input:nth-child(2) { width: 24%;}#mod-setting-panel { position: absolute; background: var(--bg-elevated-none); top: 2px; left: 0; width: 100%; height: fit-content; padding: 0 30px; box-sizing: border-box; z-index: 100;}@media (max-width:550px) { .mod-slider { width: 100%; } #mod-setting-panel h3, #mod-setting-panel div { clear: both; } .mod-range-preview { right: 15px; } input[type="range"] { width: calc(100% - 50px) !important; } .mod-slider p:last-of-type { height: 7px; transform: translateY(-72px); float: right; margin: 0 !important; } .mod-slider input[type="range"] { width: 100% !important; } #mod-grade-calculate input { width: calc(100% - 30px) !important; margin-bottom: 10px; } #nickname-wrapper input, #username-wrapper input { width: 100% !important; } #nickname-wrapper div, #username-wrapper div { flex-wrap: wrap; } .layout-container { width: calc(50% - 16px) !important; }}#grade-reveal-select { margin-bottom: 20px;}#studiewijzer-afspraak-toevoegen-select { margin-top: 20px;}.mod-multi-choice { display: inline-block; vertical-align: top; border: var(--thinnest-solid-neutral-normal); border-radius: 12px; overflow: hidden;}.mod-multi-choice span { padding: 10px 15px; display: inline-block; cursor: pointer; user-select: none; transition: background .2s ease;}.mod-multi-choice span:hover { background: var(--bg-elevated-weakest);}.mod-multi-choice span.active { background: var(--bg-elevated-weak);}@media (max-width:48em) { #mod-grade-calculate, #mod-grades-graphs { padding: 0 20px; box-sizing: border-box; }}.input-veld { border-width: 2px !important;}button.tertiary:not(:hover),sl-studiewijzer-filter-button:not(:hover) { background: var(--bg-neutral-none) !important;}#mod-grades-graphs>div { margin-bottom: 50px; width: 100%; position: relative;}#mod-grades-graphs>div>canvas { position: relative; width: 100%; height: 100%;}#mod-grades-graphs>h3 { margin-top: 40px; margin-bottom: 10px; color: var(--text-strong);}.mod-info-notice { width: fit-content; margin-bottom: -15px; padding: 10px 20px; border: 2px solid var(--blue-0); color: var(--fg-on-primary-weak); line-height: 15px; border-radius: 16px; padding-left: 50px; position: relative;}.mod-info-notice>svg { height: 20px; position: absolute; top: 50%; transform: translateY(-50%); left: 18px;}#mod-grade-calculate { margin-top: 40px; color: var(--text-strong); width: calc(100% + 15px);}#mod-grade-calculate input { width: calc(50% - 80px); margin-right: 15px; display: inline-block;}#mod-grade-calculate #mod-grade-one-three,#mod-grade-calculate #mod-grade-two-three { width: 115px;}#mod-grade-calculate input[type=submit] { background: var(--action-primary-normal); color: var(--text-inverted); transition: background 0.3s ease !important; cursor: pointer;}#mod-grade-calculate input[type=submit]:hover { background: var(--action-primary-strong);}.mod-grades-download { right: 20px; position: absolute; margin-top: 5px; cursor: pointer;}.mod-grades-download svg { height: 25px;}sl-studiewijzer-week:has(.datum.vandaag) { background: var(--mod-semi-transparant) !important;}sl-laatste-resultaat-item,sl-vakresultaat-item { background: var(--bg-neutral-none) !important;}sl-rooster-week-header .dag { align-content: start !important;}sl-rooster-week-header .dag p { height: fit-content;}sl-rooster-week-header .mod-add-homework { display: none !important;}@media (max-width:767px) { .mod-huiswerk strong, .mod-huiswerk p { width: calc(100% - 65px) !important; } sl-studiewijzer-dag .mod-huiswerk { margin-top: -12px !important; } sl-studiewijzer-dag .mod-huiswerk.mod-before { margin-top: 0 !important; margin-bottom: -12px !important; } sl-studiewijzer-lijst-dag .mod-huiswerk, sl-studiewijzer-lijst-dag .mod-add-homework { margin-top: 4px !important; } sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before { margin-top: 0 !important; margin-bottom: 4px !important; } sl-studiewijzer-lijst-dag .dag-header { background: transparent !important; } #mod-message>center>div { padding: 20px !important; } .mod-multi-choice span { padding: 10px !important; } .mod-huiswerk.mod-huiswerk-done div svg { opacity: 1 !important; padding: 2px !important; width: 16px !important; height: 16px !important; } .mod-huiswerk div { right: 15px !important; width: 20px !important; height: 20px !important; } .laad-eerdere { background: var(--bg-neutral-none) !important; } .berichten-lijst { min-height: calc(var(--min-content-vh) - 64px - 32px) !important; margin-bottom: 0 !important; } sl-cijfers>.container { padding-bottom: 0 !important; } sl-cijfers .tabs { border-radius: 0; }}@media (min-width:1120px) and (min-height:550px) { #mod-actions { position: sticky; }}@media (max-width:1279px) { sl-modal>div:has(sl-account-modal) { max-width: 2048px !important; height: 95% !important; max-height: 95% !important; }}@media (min-width:767px) { .mod-add-homework { opacity: 0; transition: 0.2s opacity ease; }}#grade-defender-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100000; background: rgba(0, 0, 0, 0.85); cursor: crosshair; display: none;}#grade-defender-canvas.active { display: block;}#grade-defender-ui { position: fixed; top: 20px; left: 20px; z-index: 100001; color: #fff; font-family: \'Kanit\', sans-serif; font-size: 24px; pointer-events: none; display: none;}#grade-defender-ui.active { display: block;}#grade-defender-close { position: fixed; top: 20px; right: 20px; z-index: 100001; color: #fff; font-size: 40px; cursor: pointer; line-height: 30px; display: none;}#grade-defender-close.active { display: block;}#grade-defender-gameover { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100002; color: #fff; text-align: center; display: none;}#grade-defender-gameover.active { display: block;}#grade-defender-gameover h1 { font-size: 60px; margin: 0; color: #ff4444; text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);}#grade-defender-restart { background: #fff; color: #000; padding: 15px 30px; border-radius: 30px; font-size: 20px; cursor: pointer; margin-top: 20px; display: inline-block; font-weight: bold;}#mod-background-live { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;}#mod-bg-live { padding: 20px; background: var(--bg-elevated-weakest); border: 1px solid rgba(0, 0, 0, 0.1); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;}#mod-new-year { padding: 20px; background: linear-gradient(to bottom, #39497b, #182859); color: #fff; position: relative; transition: height .3s ease, padding .3s ease; height: 142px; box-sizing: border-box;}#mod-new-year button { position: absolute; right: 20px; cursor: pointer; color: #fff; background: #fff2; border: none; font-size: 26px; height: 40px; width: 40px; border-radius: 50%; transition: background .2s ease;}#mod-new-year button:hover { background: #fff4;}#mod-new-year h3 { text-align: center; display: block;}#mod-new-year>div:last-of-type { display: flex; justify-content: center; gap: 10px; margin-top: 15px;}#mod-new-year>div:last-of-type>div { background: #fff2; display: block; width: 80px; padding: 6px 12px; border-radius: 8px; text-align: center; overflow: hidden;}#mod-new-year div p { margin: 0; font-size: 1.5em;}.mod-letter-slide { animation: mod-letter-slide .4s;}@keyframes mod-letter-slide { 0% { transform: translateY(-30px); } 100% { transform: translateY(0px); }}#mod-new-year div span { display: block; font-size: 0.7em; transform: translateY(-3px);}#mod-new-year-fireworks { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;}#mod-fireworks { position: fixed; top: 0px; left: 0px; width: 100dvw; height: 100dvh; z-index: 1000; pointer-events: none;}#mod-contributors { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; row-gap: 5px; margin-bottom: 25px;}#mod-contributors a { display: flex; gap: 10px; align-items: center; background: var(--bg-elevated-weak); border-radius: 100dvh; padding-right: 15px; transition: background .2s ease;}#mod-contributors a img { height: 2em; border-radius: 50%;}#mod-contributors a p { margin: 0;}#mod-contributors a:hover { background: var(--bg-elevated-strong); cursor: pointer;}</style>');
+               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + '</style>');
+        tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}}</style>');
                if (n(get('customfontname'))) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");*{font-family:"' + get('fontname') + '","Open Sans",sans-serif !important;' + ((get('fontname') == "Bebas Neue" || get("fontname") == "Oswald") ? "letter-spacing:1px;" : "") + '}</style>');
         }
         else {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@import url("' + fontUrl + '");@font-face{font-family:modCustomFont;src:url("' + get('customfont') + '");}*{font-family:modCustomFont,"Open Sans",sans-serif !important;}</style>');
         }
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-user-scale{animation:0.6s usericonscale 0.2s ease;}@keyframes usericonscale{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}a:hover .mod-save-shake{animation:0.6s saveshake 0.2s ease;}@keyframes saveshake{0%{transform:rotate(0deg);}25%{transform:rotate(15deg);}50%{transform:rotate(0eg);}75%{transform:rotate(-15deg);}100%{transform:rotate(0deg);}}a:hover .mod-bug-scale{animation:0.6s bugscale 0.2s ease;}@keyframes bugscale{0%{opacity:0;transform:scale(.3);}50%{opacity:1;transform:scale(1.05);}70%{transform:scale(.9);}100%{transform:scale(1);}}a:hover .mod-info-wobble{animation:0.6s infowobble 0.2s ease;}@keyframes infowobble{from,to{transform:scale(1,1);}25%{transform:scale(0.8,1.2);}50%{transform:scale(1.2,0.8);}75%{transform:scale(0.9,1.1);}}a:hover .mod-update-rotate{animation:0.8s updaterotate 0.2s ease;}@keyframes updaterotate{0%{transform:rotateY(0deg);}100%{transform:rotateY(360deg);}}a:hover .mod-reset-rotate{animation:0.8s resetrotate 0.2s ease;}@keyframes resetrotate{0%{transform:rotate(360deg);}100%{transform:rotate(0deg);}}.mod-gear-rotate{animation:0.8s gearrotate 0.2s ease;}@keyframes gearrotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-range-preview{height:40px;width:40px;overflow:hidden;position:absolute;margin-left:250px;border:var(--thinnest-solid-neutral-normal);border-radius:6px;padding:7px;box-sizing:border-box;}.mod-range-preview svg{height:100% !important;}input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:15rem;}input[type="range"]:focus{outline:none;}input[type="range"]::-webkit-slider-runnable-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-4px;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-webkit-slider-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}input[type="range"]::-moz-range-track{background-color:var(--bg-primary-weak);border-radius:0.5rem;height:0.5rem;}input[type="range"]::-moz-range-thumb{border:none;border-radius:50%;background-color:var(--bg-primary-strong);height:1rem;width:1rem;}input[type="range"]:focus::-moz-range-thumb{border:none;outline:3px solid var(--border-accent-normal);outline-offset:0.125rem;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.switch{display:inline-block;height:25px;position:relative;vertical-align:top;width:50px;margin:10px 0 30px 10px;}.switch input{display:none !important;}.slider{background-color:var(--bg-primary-weak);bottom:-1px;cursor:pointer;left:0;position:absolute;right:0;top:1px;transition:background .2s;}.slider:before{background-color:#fff;bottom:4px;content:"";height:17px;left:4px;position:absolute;transition:.2s;width:17px;}input:checked + .slider{background-color:var(--bg-primary-strong);}input:checked + .slider:before{transform:translateX(26px);}.slider.round{border-radius:34px;margin-bottom:0 !important;}.slider.round:before{border-radius:50%;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">.mod-custom-select{position:relative;font-family:Arial,sans-serif;margin-top:10px;width:240px;display:inline-block;margin-right:15px;}.mod-custom-select select{display:none;}.select-selected{transition:background 0.2s ease;border-radius:6px;border:var(--thinnest-solid-neutral-normal) !important;background-color:var(--bg-elevated-weakest);}.select-selected:after{position:absolute;content:"";top:18px;right:10px;width:0;height:0;border:6px solid transparent;border-color:var(--text-moderate) transparent transparent transparent;}.select-selected.select-arrow-active,.select-selected:hover{background:var(--bg-elevated-strong) !important;}.select-selected.select-arrow-active:after{border-color:transparent transparent var(--text-moderate) transparent;top:10px;}.select-items div,.select-selected{color:var(--text-moderate);letter-spacing:normal;padding:8px 16px;border:1px solid transparent;border-color:transparent transparent rgba(0,0,0,0.1) transparent;cursor:pointer;-webkit-user-select:none;user-select:none;}.select-items{max-height:400px;position:absolute;background-color:var(--bg-elevated-none);color:var(--text-moderate);top:calc(100% + 10px);left:-2px;width:calc(100% + 2px);right:0;z-index:99;border-radius:8px;overflow:hidden;overflow-y:auto;border-radius:6px;box-shadow:0 0 30px var(--bg-elevated-strong);}.select-items div:last-of-type{border:2px solid transparent;}.select-hide{display:none;}.select-items div:hover,.same-as-selected{background-color:rgba(0,0,0,0.1);}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-message textarea{height:300px;padding:12px 20px;outline-offset:unset;}#mod-message .mod-message-button{-webkit-user-select:none;user-select:none;text-decoration:none;font-size:14px;padding:12px 24px;border:4px solid var(--bg-primary-normal);background:var(--bg-primary-normal);border-radius:8px;margin-top:10px;margin-right:10px;display:inline-block;color:var(--text-inverted);outline:none;cursor:pointer;transition:background 0.2s ease,border 0.2s ease;}#mod-message .mod-message-button:hover{background:var(--bg-primary-strong);}#mod-message .mod-message-button:focus,#mod-message .mod-message-button:hover{border:4px solid var(--bg-primary-strong);}#mod-message .mod-message-button.mod-button-discouraged{background:var(--bg-elevated-none) !important; color:red; border:4px solid red;}#mod-message .mod-message-button.mod-button-discouraged:focus,#mod-message .mod-message-button.mod-button-discouraged:hover{border:4px solid darkred;}#mod-message a{text-decoration:underline;}#mod-message p,#mod-message h3{font-size:14px;margin-bottom:10px;line-height:17px;}#mod-message h2{font-size:18px;margin-bottom:20px;}#mod-message > center{position:absolute;width:100%;}#mod-message.mod-animation-playing > center{opacity:0;transform:translateY(-300px);animation:0.4s modmessageslidein ease 0.15s forwards;}@keyframes modmessageslidein{0%{transform:translateY(-300px);opacity:0;}50%{opacity:1;}100%{transform:none;opacity:1;}}#mod-message > center > div{background:var(--bg-elevated-none);box-shadow:0 0 50px var(--bg-elevated-weak);width:500px;max-width:calc(100% - 16px);border-bottom-left-radius:16px;border-bottom-right-radius:16px;text-align:left;padding:20px 30px;box-sizing:border-box;}#mod-message{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000000;background:rgba(0,0,0,0.2);box-sizing:border-box;}#mod-message.mod-animation-playing{animation:0.2s modmessagebackground ease forwards;}#mod-message.mod-msg-closed{opacity:0;}@keyframes modmessagebackground{0%{background:rgba(0,0,0,0);}100%{background:rgba(0,0,0,0.2);}}#mod-letterbeoordelingen{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:5px 15px;}#mod-letterbeoordelingen label{display:block;margin:5px 0;font-size:0.9em;text-wrap:nowrap;text-overflow:ellipsis;overflow:hidden;}#mod-letterbeoordelingen input{height:30px;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-actions{background:var(--bg-elevated-none);margin-left:-30px;padding:10px 30px;z-index:100;width:100%;margin-top:-10px;top:-5px;}.mod-setting-button{padding:10px 12px;background:var(--bg-elevated-weak);border-radius:8px;margin-right:8px;display:inline-block;margin-bottom:10px;transition:background 0.3s ease !important;cursor:pointer;user-select:none;color:var(--text-moderate) !important;}.mod-setting-button:hover{background:var(--bg-elevated-strong);color:var(--text-moderate);}.mod-setting-button svg{margin-right:10px;height:18px;margin-bottom:-3px;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-studiewijzer-week .week,sl-studiewijzer-dag{position:relative;}@keyframes homeworkchecked{0%{margin-top:32px;position:absolute;width:calc(100% - 32px);z-index:15;}100%{margin-top:calc(64px * var(--mod-hours-to-move) + 28px);position:absolute;width:calc(100% - 32px);z-index:1;}}sl-studiewijzer-items.mod-added{margin-top:-4px;}.mod-huiswerk{margin-top:-4px;height:58px;position:relative;background:var(--bg-elevated-weakest);border-left:4px solid var(--fg-warning-normal);border-top:var(--thinnest-solid-neutral-normal);border-right:var(--thinnest-solid-neutral-normal);border-bottom:var(--thinnest-solid-neutral-normal);overflow:hidden;}.mod-huiswerk.mod-huiswerk-done:hover{border-top:var(--thinnest-solid-positive-normal);border-right:var(--thinnest-solid-positive-normal);border-bottom:var(--thinnest-solid-positive-normal);}.mod-huiswerk-animation{animation:homeworkchecked 0.3s ease;}.mod-huiswerk.mod-huiswerk-done{border-left:4px solid var(--fg-on-positive-weak);background:var(--bg-positive-weak);}.mod-huiswerk.mod-huiswerk-done svg{fill:var(--fg-on-positive-weak);opacity:0.6;}.mod-huiswerk.mod-huiswerk-done strong,.mod-huiswerk.mod-huiswerk-done p{text-decoration:line-through;color:var(--fg-on-positive-weak);opacity:.6;}.mod-huiswerk div{position:absolute;height:17px;width:17px;border:var(--thin-solid-neutral-strong);right:-25px;border-radius:var(--border-radius-normal);background:var(--bg-elevated-none);top:17px;transition:right 0.2s ease;}.mod-huiswerk:hover div{right:15px;}.mod-huiswerk:hover div:hover{border-color:var(--action-positive-normal);}.mod-huiswerk strong,.mod-huiswerk p{overflow:hidden;width:calc(100% - 20px);text-wrap:nowrap;text-overflow:ellipsis;font-weight:600;}.mod-huiswerk strong{font-size:14px;margin-top:-5px;display:block;margin-left:10px;color:var(--text-strong);}.mod-huiswerk p{margin:0 0 0 10px;font-size:12px;color:var(--text-weak);}.mod-huiswerk:hover strong,.mod-huiswerk:hover p{width:calc(100% - 55px);}.mod-huiswerk,.mod-add-homework{width:100%;border-radius:var(--border-radius-normal);box-sizing:border-box;padding:16px 0 16px 38px;cursor:pointer;}.mod-huiswerk.mod-before{margin-top:0;margin-bottom:-4px;}.mod-huiswerk:hover{border-top:var(--thinnest-solid-primary-normal);border-right:var(--thinnest-solid-primary-normal);border-bottom:var(--thinnest-solid-primary-normal);}.mod-add-homework{padding:8px 0 8px 38px;background:var(--mod-semi-transparant, var(--bg-elevated-none));border:2px dashed var(--bg-elevated-weak);color:var(--text-weak);}.mod-add-homework:hover{opacity:1;}.mod-huiswerk div svg{display:none;}.mod-huiswerk.mod-huiswerk-done div{background:var(--action-positive-normal);border-color:var(--action-positive-normal);}.mod-huiswerk.mod-huiswerk-done div svg{display:block;fill:var(--border-neutral-inverted);padding:2px 3px;}.mod-huiswerk>svg,.mod-add-homework svg{height:16px;position:absolute;margin-top:3px;margin-left:-22px;}.mod-huiswerk svg{fill:var(--fg-warning-normal);}.mod-add-homework svg{fill:var(--text-weak);height:16px;position:absolute;margin-top:3px;margin-left:-22px;}</style>');
-               tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">#mod-background-wrapper{width:100%;}#mod-background-wrapper label svg{width:100%;height:100%;padding:50px 15px;box-sizing:border-box;}#mod-background-wrapper img:hover{filter:opacity(0.5);}#mod-background-wrapper label,#mod-background-wrapper img{cursor:pointer;height:150px;width:150px;background:var(--bg-elevated-none);border-radius:8px;object-fit:cover;display:inline-block;margin-right:15px;margin-bottom:15px;vertical-align:top;}.dodgerblue{color:dodgerblue;cursor:pointer;user-select:none;}.mod-background-preview{width:100%;height:175px;object-fit:cover;border-radius:12px;clip-path:inset(0 round 12px);}.mod-slider{display:inline-block;min-width:50%;}.mod-slider input,.mod-slider p{display:inline-block;margin:3px 15px 3px 0;vertical-align:middle;min-width:45px;}.mod-slider input{height:40px;background:var(--bg-elevated-none);}.mod-slider p:first-of-type{font-weight:700;min-width:115px;}.mod-background-type-content{padding:20px;background:var(--bg-elevated-weakest);border:1px solid rgba(0,0,0,0.1);border-bottom-left-radius:16px;border-bottom-right-radius:16px;}#mod-background-type{display:flex;flex-wrap:wrap;border:1px solid rgba(0,0,0,0.1);border-bottom:none;padding-top:3px;border-top-left-radius:16px;border-top-right-radius:16px;}#mod-background-type a{flex: 1 0 0;text-align:center;padding:10px 0;cursor:pointer;}#mod-background-type a.active{border-bottom:3px solid var(--fg-on-primary-weak);font-weight:700;}.br{height:10px;clear:both;}.layout-container.layout-selected,.layout-container:hover{border:3px solid var(--fg-on-primary-weak);}.layout-container{display:inline-block;vertical-align:top;margin-left:10px;margin-bottom:50px !important;width:180px;aspect-ratio:18/13;background:var(--bg-elevated-none);border:3px solid var(--bg-elevated-none);border-radius:16px;position:relative;cursor:pointer;transition:border 0.2s ease !important;box-shadow:2px 2px 20px var(--bg-elevated-strong);}.layout-container h3{bottom:-40px;width:100%;position:absolute;text-align:center;overflow:hidden;text-wrap:nowrap;text-overflow:ellipsis;}.layout-container div{-webkit-user-select:none;user-select:none;background:var(--bg-primary-weak);border-radius:6px;position:absolute;}.example-box-wrapper{border:3px solid var(--blue-0);width:500px;padding:10px 20px;border-radius:12px;overflow:hidden;max-width:calc(100% - 50px);margin-top:15px;}.example-box-wrapper > div{transform-origin:top left;}.theme{user-select:none;display:inline-block;cursor:pointer;width:calc(20% - 11px);margin-bottom:10px;margin-right:5px;overflow:hidden;background:var(--bg-elevated-none);border:3px solid transparent;border-radius:16px;transition:.2s border ease,.2s background ease !important;box-shadow:2px 2px 10px var(--bg-elevated-strong);}.theme:hover,.theme.theme-selected,.theme.theme-selected-set{border:3px solid var(--blue-0);}.theme.theme-selected,.theme.theme-selected-set{background:var(--blue-0);color:var(--grey-80);}.theme img{width:100%;height:175px;object-fit:cover;background:var(--bg-elevated-none);margin-bottom:-5px}.theme h3{padding:10px;padding-left:30px;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap;}.theme h3 div{display:inline-block;height:12px;width:12px;border-radius:50%;position:absolute;margin:5px -20px;}#mod-setting-panel .category:first-of-type{margin-top:20px;}#mod-setting-panel .category{cursor:pointer;user-select:none;padding:10px;border-bottom:6px solid var(--bg-primary-weak);border-radius:6px;font-size:20px;margin:20px -10px;margin-top:50px;}#mod-setting-panel .category:after{content:"";transform:rotate(45deg);border:solid var(--bg-primary-normal);border-width:0 3px 3px 0;display:inline-block;padding:3px;margin-left:15px;margin-top:8px;position:absolute;}#mod-setting-panel .category.collapsed{margin-bottom:-40px;}#mod-setting-panel .category:last-of-type{margin-bottom:20px;}#mod-setting-panel .category.collapsed:after{transform:rotate(225deg);margin-top:11px;}#mod-setting-panel > div > p:first-of-type{margin-right:15px;}.mod-file-label,.mod-button{-webkit-user-select:none;user-select:none;transition:0.2s border ease !important;margin-bottom:8px;display:block;width:fit-content;padding:10px 18px;border:2px solid var(--fg-on-primary-weak);border-radius:12px;color:var(--fg-on-primary-weak);}.mod-file-label.mod-drag-and-drop{border:5px solid var(--fg-on-primary-weak);font-weight:700;}.mod-button{display:inline-block;margin-right:10px;}.mod-file-label:hover,.mod-button:hover{border:2px solid var(--bg-primary-weak);cursor:pointer;}label.mod-file-label.mod-active svg path{fill:white !important;}div.mod-button.mod-active,label.mod-file-label.mod-active{background:var(--fg-on-primary-weak);color:var(--text-inverted);}.mod-file-label p{margin-left:10px;display:inline;}input[type="file"].mod-file-input{display:none !important;}input[type="color"]{width:0;height:0;visibility:hidden;overflow:hidden;opacity:0;}.mod-color{cursor:pointer;width:38px;height:38px;border-radius:50%;display:inline-block;}.mod-color p{margin:8px 50px;width:150px;}.mod-color-textinput{width:120px;margin-left:125px;color:var(--fg-on-primary-weak);display:inline-block;padding:5px;border:none !important;outline:none !important;background:transparent;box-shadow:none !important;}#mod-setting-panel > div > div > p{display:inline-block;}@media (max-width:1300px){.theme{width:calc(33.33333% - 11px);}@media (max-width:1000px){.theme{width:calc(50% - 11px);}#mod-setting-panel{padding:0 15px;}}@media (max-width:475px){#mod-background-wrapper label,#mod-background-wrapper img{width:calc(50% - 10px);margin-right:10px;}}</style>');
-               if (get('layout') != 4 && ((get("backgroundtype") == 'image' && !n(get("background"))) || (get("backgroundtype") == 'color') || (get("backgroundtype") == 'slideshow' && !n(get("background0"))))) {
+               if (get('layout') != 4 && ((get("backgroundtype") == 'image' && !n(get("background"))) || (get("backgroundtype") == 'color') || (get("backgroundtype") == 'slideshow' && !n(get("background0"))) || get("backgroundtype") == 'live')) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel{border-radius:6px;padding:10px;background-color:var(--bg-neutral-none);}.content:has(sl-registraties){background:var(--mod-transparent);}sl-studiewijzer-week{border-bottom:2px solid var(--mod-transparent) !important;}sl-studiewijzer-dag{border-right:2px solid var(--mod-transparent) !important;}' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '1' ? 'sl-rooster-week .uur{border-left:2px solid var(--mod-transparent) !important;border-bottom:2px solid var(--mod-transparent) !important;}' : '') + '.container:has(sl-vakresultaten){padding-bottom:0 !important;}sl-vakresultaten{background-color:var(--bg-neutral-none);padding:20px !important; padding-bottom:40px !important;}hmy-geen-data > span{margin-top:20px;}hmy-geen-data{background:var(--mod-ui-transparent);padding:30px 60px;border-radius:24px;}</style>');
         }
                if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
@@ -2203,7 +2361,7 @@ function onload() {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width:1280px){.menu-avatar{width:calc(100% - 35px) !important;overflow:hidden;justify-content:center;}}</style>');
             }
             else {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-rooster-weken,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(BOOL_INDEX.MENU_ALWAYS_SHOW) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){#mod-new-year{margin-top:calc(64px + var(--safe-area-inset-top));}:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(BOOL_INDEX.MENU_ALWAYS_SHOW) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
             }
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo-wrapper{width:120px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 120px) / 2);position:relative;}#mod-logo{width:65%;height:60px;margin:20px 0;position:relative;left:50%;transform:translateX(-50%);}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;overflow:hidden;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:40px;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){#mod-logo-wrapper{width:100px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - ' + ((platform == 'Android' || get('layout') != 3) ? '100px' : '115px') + ') / 2);position:relative;}sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? ('left:100px !important' + (platform == 'Android' ? '' : ';--safe-area-inset-right:15px')) : 'right:' + (platform == 'Android' ? '100px' : '115px')) + ' !important;}#mod-background{width:calc(100% - var(--safe-area-inset-left) - var(--safe-area-inset-right) - 2 * ' + get('blur') + ' + 15px);}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:' + (get('layout') != 3 ? 'var(--safe-area-inset-left)' : (platform == 'Android' ? 'var(--safe-area-inset-right)' : 'calc(var(--safe-area-inset-right) - 15px)')) + ' !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:40px;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
@@ -2216,6 +2374,9 @@ function onload() {
                if (get('bools').charAt(BOOL_INDEX.MENU_ALWAYS_SHOW) == '0') {
             if (get('layout') == 1 || get('layout') == 4) {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-cijfers .tabs{position:relative !important;}sl-rooster sl-scrollable-title{display:none !important;}sl-studiewijzer sl-dagen-header,sl-cijfers .tabs{top:var(--safe-area-inset-top) !important;}}sl-dagen-header{position:relative !important;}sl-rooster-weken{margin-top:64px;}' + (get('layout') == 4 ? 'body:has(sl-cijfers) sl-header:first-of-type,body:has(sl-berichten) sl-header:first-of-type{margin-top:-64px;}' : '') + 'body:has(sl-cijfers),body:has(sl-berichten){margin-top:64px;}sl-rooster sl-header,sl-cijfers sl-header,sl-berichten sl-header{position:absolute !important;width:100%;}</style>');
+            }
+            else if (get('layout') == 5) {
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster .headers-container,sl-studiewijzer-weken-header{top:0 !important;}</style>');
             }
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:767px){sl-berichten div.tabs{top:unset !important;}}' + ((get('layout') == 2 || get('layout') == 3) ? '@media (min-width:1279px){.headers-container{top:calc(var(--safe-area-inset-top)) !important;}}' : '') + 'sl-berichten div.berichten-lijst{height:fit-content !important;}.main,sl-berichten div.tabs{position:relative !important;}sl-rooster .headers-container,sl-rooster .header,sl-cijfers .headers-container,sl-cijfers .header,sl-berichten .headers-container,sl-berichten .header{position:relative !important;}</style>');
         }
@@ -2288,6 +2449,9 @@ function onload() {
                     set('nicknames', JSON.stringify(json));
                 }
             }
+            if (get('version') < 5.3) {
+                set('bools', get('bools').replaceAt(17, '1'));
+            }
         }
                set('version', version);
     }
@@ -2299,19 +2463,20 @@ function onload() {
     let uiBlurValue;
     let layoutValue;
     function updateCssVariables() {
-               if (!n(primaryColorValue) && primaryColorValue == get('primarycolor') && secondaryColorValue == get('secondarycolor') && darkModeValue == tn('html', 0).classList.contains('dark') && uiValue == get('ui') && uiBlurValue == get('uiblur') && layoutValue == get('layout')) {
+               if (!n(primaryColorValue) && primaryColorValue == get('primarycolor') && secondaryColorValue == get('secondarycolor') && darkModeValue == (tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night')) && uiValue == get('ui') && uiBlurValue == get('uiblur') && layoutValue == get('layout')) {
             return;
         }
         primaryColorValue = get('primarycolor');
         secondaryColorValue = get('secondarycolor');
-        darkModeValue = tn('html', 0).classList.contains('dark');
+        darkModeValue = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
+        darkmode = darkModeValue;
         uiValue = get('ui');
         uiBlurValue = get('uiblur');
         layoutValue = get('layout');
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
-        if (get('ui') != 0) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
+        if (get('ui') != 0 || get("backgroundtype") == 'live') {
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
                const purple100 = toBrightnessValue(get('secondarycolor'), 41);
         const purple80 = toBrightnessValue(get('secondarycolor'), 53);
@@ -2348,11 +2513,11 @@ function onload() {
         }
     }
 
-       function logo(id, classname, color, style) {
+       window.logo = function (id, classname, color, style) {
         return '<svg' + (n(id) ? '' : ' id="' + id + '"') + (n(classname) ? '' : ' class="' + classname + '"') + (n(style) ? '' : ' style="' + style + '"') + ' viewBox="0 0 190.5 207" width="190.5" height="207"><g transform="translate(-144.8 -76.5)"><g><path d="M261 107.8v.3c0 3.7 3 6.7 6.6 6.7H299a6.8 6.8 0 0 1 6.7 7V143.2c0 3.7 3 6.7 6.7 6.7h16.1a6.8 6.8 0 0 1 6.7 7V201.6c0 3.7-3 6.6-6.7 6.7h-16.1a6.8 6.8 0 0 0-6.7 7v23.1c0 3.7-3 6.7-6.7 6.7h-10.5a6.8 6.8 0 0 0-6.7 7l-.1 24.4v.3c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.7-7v-24.6c0-3.8-2.8-6.9-6.3-6.9s-6.4 3.1-6.4 7v24.8c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.6-7l.1-24.4v-.3c0-3.7-3-6.7-6.6-6.7h-10.5a6.8 6.8 0 0 1-6.7-7V215c0-3.6-3-6.6-6.7-6.7h-15.8a6.8 6.8 0 0 1-6.7-7V156.6c0-3.7 3-6.7 6.7-6.7h15.8a6.8 6.8 0 0 0 6.7-7v-21.4c0-3.6 3-6.6 6.7-6.7h31a6.8 6.8 0 0 0 6.7-7l.1-24.3v-.3c0-3.6 3-6.6 6.7-6.7h29a6.8 6.8 0 0 1 6.8 7z" fill="' + color + '" /><path d="M289.8 179.2c1.3 0 2.9.3 4.6.9 2.2.7 4 1.7 5 2.7v.2c.8.6 1.3 1.5 1.4 2.6 0 .9-.2 1.7-.6 2.3l-6.8 10.8a60.2 60.2 0 0 1-27.5 19.8c-8.5 3.2-17 4.7-24.7 4.5l-13.2-.1a1.6 1.6 0 0 1-1.7-1.5v-3.3a1.6 1.6 0 0 1 1.7-1.5h.1c7.9.3 16.3-1 24.7-4.2a56 56 0 0 0 34.3-31.4v-.3c.5-1 1.4-1.5 2.3-1.5z" fill="#000000" stroke="none" /><g class="glasses"><path d="M171.4 150.8v-9h137.2v9z" fill="#000000" stroke="none" /><path d="M175.7 155.5v-6h57.5v6z" fill="#000000" stroke="none" /><path d="M179.8 160v-9h48.9v9z" fill="#000000" stroke="none" /><path d="M184 164.5v-9h44.7v9z" fill="#000000" stroke="none" /><path d="M188.6 168.6v-7h31.7v7z" fill="#000000" stroke="none" /><path d="M245.9 155.5v-6h57.4v6z" fill="#000000" stroke="none" /><path d="M250 160v-9h48.8v9z" fill="#000000" stroke="none" /><path d="M254 164.5v-9h41v9z" fill="#000000" stroke="none" /><path d="M258.8 168.6v-7h31.6v7z" fill="#000000" stroke="none" /><path d="M184.5 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M188.8 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M197.6 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M202.1 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M254.8 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M259.1 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M268 159.2V155h4.4v4.3z" fill="#ffffff" stroke="none" /><path d="M272.4 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /></g></g></g></svg>';
-    }
+    };
 
-       window.getIcon = function (name, classname, color, start) {
+       function getIcon(name, classname, color, start) {
         let svg;
         let viewbox = '0 0 512 512';
         n(name) ? name = '' : null;
@@ -2421,8 +2586,8 @@ function onload() {
                 svg = 'M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z';
                 break;
             case 'map-location-dot':
-                viewbox = '0 0 576 512',
-                    svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
+                viewbox = '0 0 576 512';
+                svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
                 break;
             case 'sun':
                 svg = 'M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z';
@@ -2441,6 +2606,29 @@ function onload() {
                 viewbox = '0 0 448 512';
                 svg = 'M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z';
                 break;
+            case 'edit':
+                svg = 'M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z';
+                break;
+            case 'clock':
+                viewbox = '0 0 640 640';
+                svg = 'M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z';
+                break;
+                       case 'homework':
+                viewbox = '0 0 24 24';
+                svg = 'm7 2.804 3.623-2.39a2.5 2.5 0 0 1 2.754 0l9.5 6.269A2.5 2.5 0 0 1 24 8.769v12.735a2.5 2.5 0 0 1-2.5 2.5h-19a2.5 2.5 0 0 1-2.5-2.5V8.77a2.5 2.5 0 0 1 1.123-2.086L3 5.444V1.047a.8.8 0 0 1 .8-.8h2.4a.8.8 0 0 1 .8.8zm0 16.362h3v-4.364h4v4.364h3v-12h-3v4.364h-4V7.166H7z';
+                break;
+            case 'assignment':
+                viewbox = '0 0 24 24';
+                svg = 'M16 0H8v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V0H3.429C1.538 0 0 1.677 0 3.74v16.52C0 22.323 1.538 24 3.429 24H20.57c1.892 0 3.43-1.677 3.43-3.74V3.74C24 1.677 22.462 0 20.571 0H19v2a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zm-5.667 6.5a.5.5 0 0 1 .5-.5h2.334a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-2.334a.5.5 0 0 1-.5-.5zm1.95 12.396 4.59-4.425a.47.47 0 0 0 0-.642l-1.115-1.173a.417.417 0 0 0-.61 0l-1.481 1.4v-3.61c0-.25-.179-.446-.417-.446h-2.5c-.238 0-.417.195-.417.446v3.61l-1.48-1.4a.417.417 0 0 0-.61 0l-1.117 1.173a.47.47 0 0 0 0 .642l4.547 4.425a.417.417 0 0 0 .61 0';
+                break;
+            case 'test':
+                viewbox = '0 0 24 24';
+                svg = 'M3.429 0A3.43 3.43 0 0 0 0 3.429V20.57A3.43 3.43 0 0 0 3.429 24H20.57A3.43 3.43 0 0 0 24 20.571V3.43A3.43 3.43 0 0 0 20.571 0zM17 8.966h-3.465v9.038h-2.912V8.966H7V6h10z';
+                break;
+            case 'palm':
+                viewbox = '0 0 24 24';
+                svg = 'M11.479 3.403c-1.089-.546-2.587-1.083-4.04-1.08-1.103.001-2.161.31-3.038 1.044-.604.506-1.172 1.255-1.606 2.35l1.588-.28A1.16 1.16 0 0 1 5.71 6.864l-.083.324c-.155.597-.323 1.248-.389 1.958a5.6 5.6 0 0 0-.018.814A63 63 0 0 1 7.6 8.25q.57-.396 1.115-.767c1.021-.7 1.94-1.33 2.575-1.82a1.16 1.16 0 0 1 1.42 0c.636.49 1.554 1.12 2.575 1.82q.545.372 1.116.767c.807.558 1.64 1.146 2.38 1.711a5.6 5.6 0 0 0-.02-.814c-.064-.71-.233-1.36-.388-1.957l-.083-.325a1.162 1.162 0 0 1 1.327-1.427l1.587.279c-.435-1.093-1.005-1.843-1.61-2.35-.88-.735-1.937-1.043-3.03-1.043-1.458 0-2.956.535-4.043 1.08a1.16 1.16 0 0 1-1.042 0ZM12 1.08C10.781.53 9.143-.003 7.434 0Zm0 0C13.22.53 14.856 0 16.564 0c1.537 0 3.152.44 4.52 1.584s2.387 2.907 2.892 5.365a1.16 1.16 0 0 1-1.338 1.377l-1.69-.297c.053.29.098.594.127.905.1 1.087.02 2.375-.632 3.608a1.16 1.16 0 0 1-1.825.301c-.775-.733-2.106-1.693-3.539-2.684-.347-.24-.701-.483-1.05-.722-.396-.272-.787-.54-1.157-.796-.295 2.517-.48 6.26.085 9.459 1.13.087 2.102.347 3.071.88 1.177.648 2.28 1.664 3.643 3.042A1.161 1.161 0 0 1 18.846 24H5.155a1.161 1.161 0 0 1-.959-1.817c.66-.964 1.803-1.977 3.134-2.748.968-.56 2.096-1.028 3.287-1.244-.503-3.114-.384-6.563-.129-9.109l-.517.355c-.349.239-.703.481-1.05.722-1.432.99-2.764 1.951-3.539 2.684a1.16 1.16 0 0 1-1.825-.3c-.651-1.234-.731-2.522-.631-3.609.028-.311.073-.615.125-.905l-1.688.297A1.16 1.16 0 0 1 .023 6.95C.53 4.492 1.544 2.73 2.91 1.586S5.892.003 7.434 0m.68 21.677h7.774a7 7 0 0 0-.98-.661c-.795-.438-1.616-.627-2.91-.629-1.161-.001-2.401.42-3.504 1.058q-.195.113-.38.232';
+                break;
                        case 'logo':
                 viewbox = '0 0 49 49';
                 svg = 'M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z';
@@ -2449,7 +2637,7 @@ function onload() {
                 viewbox = '0 0 384 512';
                 svg = 'M64 390.3L153.5 256 64 121.7V390.3zM102.5 448H281.5L192 313.7 102.5 448zm128-192L320 390.3V121.7L230.5 256zM281.5 64H102.5L192 198.3 281.5 64zM0 48C0 21.5 21.5 0 48 0H336c26.5 0 48 21.5 48 48V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V48z';
         }
-        return '<svg ' + start + classname + 'height="1em" viewBox="' + viewbox + '"><path ' + (n(color) ? '' : 'fill="' + color + '" ') + 'd="' + svg + '"/></svg>';
+        return '<svg ' + start + classname + 'height="1em" viewBox="' + viewbox + '"><path fill-rule="evenodd" ' + (n(color) ? '' : 'fill="' + color + '" ') + 'd="' + svg + '"/></svg>';
     };
 
        function modMessage(title, description, link1, link2, red1, red2, noBackgroundClick) {
@@ -2516,7 +2704,7 @@ function onload() {
                if (!n(get('profilepic'))) {
             profilePictureChanged = true;
             tryRemove(id('mod-profile-picture'));
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-profile-picture">hmy-avatar>.container:not(:has(.initials)){background:url(\'' + get('profilepic') + '\') center / cover;}.foto{opacity:0 !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-profile-picture">hmy-avatar{border-radius:var(--border-radius);overflow:hidden;}hmy-avatar>.container:not(:has(.initials)){background:url(\'' + get('profilepic') + '\') center / cover;}.foto{opacity:0 !important;}</style>');
         }
                else if (profilePictureChanged) {
             profilePictureChanged = false;
@@ -2576,6 +2764,19 @@ function onload() {
                             element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(text));
                         }
                     }
+                    for (const element of tn('hmy-internal-tag')) {
+                        if (!element.classList.contains('mod-nickname') && !n(element.getElementsByTagName('span')[0])) {
+                            if (nickname[2] && element.innerText == nickname[2]) {
+                                setHTML(element.getElementsByTagName('span')[0], '');
+                                element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(nick));
+                            }
+                            else {
+                                const text = element.getElementsByTagName('span')[0].innerHTML.replace(regex, '${"$"}1' + nick + '${"$"}2');
+                                setHTML(element.getElementsByTagName('span')[0], '');
+                                element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(text));
+                            }
+                        }
+                    }
                 }
             }
             for (const element of cn('afzenders')) {
@@ -2591,6 +2792,9 @@ function onload() {
                 element.classList.add('mod-nickname');
             }
             for (const element of cn('docent')) {
+                element.classList.add('mod-nickname');
+            }
+            for (const element of tn('hmy-internal-tag')) {
                 element.classList.add('mod-nickname');
             }
         }
@@ -2635,13 +2839,6 @@ function onload() {
 
           let logoClicks = 0;
     function modLogo() {
-               if (!n(cn('mod-logo-hat-clicked', 0)) || !n(cn('mod-logo-decoration-clicked', 0))) {
-            return;
-        }
-
-        tryRemove(id('mod-logo-wrapper'));
-        tryRemove(id('mod-logo-hat'));
-        tryRemove(id('mod-logo-inserted'));
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
             if (n(id('mod-menu-resizer')) && !n(tn('sl-tab-bar', 0))) {
                 tn('sl-tab-bar', 0).insertAdjacentHTML('beforeend', '<div id="mod-menu-resizer"></div>');
@@ -2700,12 +2897,24 @@ function onload() {
                 document.addEventListener('mousemove', moveEventHandler);
                 document.addEventListener('touchmove', moveEventHandler);
             }
+        }
+        else {
+            tn('body', 0).style.cssText = '';
+        }
 
-            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? window.getIcon('logo', null, menuColor, ' id="mod-logo"') : logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
-            if (n(id('mod-logo')) && !n(tn('sl-header', 0)) && !n(tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0])) {
+               if (!n(cn('mod-logo-hat-clicked', 0)) || !n(cn('mod-logo-decoration-clicked', 0))) {
+            return;
+        }
+
+        tryRemove(id('mod-logo-wrapper'));
+        tryRemove(id('mod-logo-hat'));
+        tryRemove(id('mod-logo-inserted'));
+        if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
+            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? getIcon('logo', null, menuColor, ' id="mod-logo"') : window.logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
+            if (n(id('mod-logo')) && tn('sl-header', 0) && tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0]) {
                 tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0].insertAdjacentHTML('afterbegin', logoHTML);
             }
-            else if (n(id('mod-logo')) && !n(tn('sl-tab-bar', 0))) {
+            else if (n(id('mod-logo')) && tn('sl-tab-bar', 0)) {
                 tn('sl-tab-bar', 0).insertAdjacentHTML('afterbegin', logoHTML);
             }
             else {
@@ -2729,51 +2938,59 @@ function onload() {
                 }
             });
         }
-        else {
-            tn('body', 0).style.cssText = '';
-        }
-               if (n(id('mod-logo-hat')) && !tn('body', 0).classList.contains('mod-logo-hat-hidden')) {
+
+               const monthInt = month + 1;
+
+               if (get('bools').charAt(BOOL_INDEX.EVENTS) == '1' && n(id('mod-logo-hat')) && !tn('body', 0).classList.contains('mod-logo-hat-hidden')) {
             let insertElement = id('mod-logo');
             let isDefaultLikeLayout = false;
-            if ((get('layout') == 1 || get('layout') == 4) && !n(tn('sl-header', 0)) && ((parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == (month + 1)) || (month + 1 == 12 && dayInt > 10 && dayInt < 31) || (month + 1 == 12 && dayInt <= 5))) {
+
+            const birthday = parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == monthInt;
+            const christmas = monthInt == 12 && dayInt > 10 && dayInt < 31;
+            const sinterklaas = monthInt == 12 && dayInt <= 5;
+
+            if ((get('layout') == 1 || get('layout') == 4) && !n(tn('sl-header', 0)) && (birthday || christmas || sinterklaas)) {
                 tn('sl-header', 0).style.overflow = 'hidden';
-                tn('sl-header', 0).insertAdjacentHTML('beforeend', logo('mod-logo-inserted', null, 'var(--action-neutral-normal)', 'position:absolute;width:50px;height:54px;right:25px;bottom:-15px;z-index:-1;transition:bottom 0.4s ease 0.3s;'));
+                tn('sl-header', 0).insertAdjacentHTML('beforeend', window.logo('mod-logo-inserted', null, 'var(--action-neutral-normal)', 'position:absolute;width:50px;height:54px;right:25px;bottom:-15px;z-index:-1;transition:bottom 0.4s ease 0.3s;'));
                 insertElement = id('mod-logo-inserted');
                 isDefaultLikeLayout = true;
             }
-                       if (insertElement && parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == (month + 1)) {
-                insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" style="width:37px;translate:38px -12px;' + (isDefaultLikeLayout ? 'right:80px;left:unset;' : '') + '" viewBox="0 0 448 511.7"><path fill="#FFDB56" d="M415.7 428.6c-101.8 39.1-258 38.3-382.5.7L226 11.3l189.7 417.3z"/><path fill="#F6C134" d="M415.7 428.6a411 411 0 0 1-77 20.6l-155.5-345L226 11.4l189.7 417.2z"/><circle fill="#D83636" cx="224" cy="41.6" r="41.6"/><path fill="#F2433B" d="M224 0h.2a37 37 0 0 1-35.5 63.6 41.4 41.4 0 0 1-6.3-22C182.4 18.6 201 0 224 0zM106 271.4l38.5-83.3c46.8-17.9 89.7-37.5 134.8-59.6l2.5 5.5 22.5 51.6C244.7 223.9 177.7 251 106 271.4zm236.9-3 5.3 11.7a756.5 756.5 0 0 1-304 126l37-80.6A770.9 770.9 0 0 0 322 223.6l20.9 44.9zm22.7 50 2.2 5 23 50.9a776.6 776.6 0 0 1-72.1 48.6 485.5 485.5 0 0 1-68.8 35.3c-61.4 1.7-117.6-4-166.1-16.2 93-19.6 187.8-59.6 281.8-123.6z"/><path fill="#F2433B" d="M19.3 480.5a27.8 27.8 0 0 1 17-53A635.4 635.4 0 0 0 227.9 456c64 0 127.7-9.2 183.2-28.5a27.8 27.8 0 1 1 18.3 52.6C368 501.4 298 511.6 227.8 511.7a691.8 691.8 0 0 1-208.5-31.2z"/></svg>');
-            }
-                       else if (insertElement && month + 1 == 12 && dayInt > 10 && dayInt < 31) {
-                insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" viewBox="0 0 408.7 251.7"' + (isDefaultLikeLayout ? ' style="left:unset;right:35px;height:80px;width:70px;"' : '') + '><g><path d="m382.6 131.7-91.8 63-148.7-1.2-15-21 8.6-16.2c-7.2-4.8-16-9-25.7-12-12.7-4-25.1-5.4-35.5-4.6l-1.2-.5-6.6-20.4a138.5 138.5 0 0 0 74.2-68l2-3.8A99.1 99.1 0 0 1 243 1.1l3.4.4c71.8 14 125.8 59.4 132.8 114z" fill="#ed4241"/><path d="M274.2 8.8c57.6 19 98.9 59.4 104.9 106.8l3.5 16-91.8 63-148.7-1.1-14.4-20.1.4-2 124.7-23c36.4-6 64-36.4 64-73.2a74 74 0 0 0-41.3-65.8z" fill="#c52c37"/><path d="M408.7 164.7c-4 30.8-65.1 65.5-144.2 80.2-71.6 13.4-135.3 6.3-157.8-15.4l20.5-57.6c18.8 18.1 72 24 132 12.9 66-12.4 117.1-41.3 120.5-67z" fill="#c1cfe8"/><path d="M406 161.2c-17.6 38.3-85 69.2-166.9 73.2-20.4 1-40 .2-58.4-2l-3.8-.5a43.5 43.5 0 0 1-43.2-42.6c0-4 .6-7.8 1.7-11.5l.2.2c23.6 13.2 71 16.6 123.5 6.8 66.2-12.4 117.2-41.3 120.6-67l26.5 42.8z" fill="#d7e0ef"/><path d="M75.3 141.3a37.8 37.8 0 1 1-75.5.2 37.8 37.8 0 0 1 75.5-.2z" fill="#c1cfe8"/><path d="M67.6 119A37.5 37.5 0 0 0 0 141.6l.3 1.6a36.5 36.5 0 0 0 33.2 19.5c20 0 36.2-14.5 36.2-32.5 0-3.5-.7-6.9-1.8-10z" fill="#d7e0ef"/></g></svg>');
-            }
-                       else if (insertElement && month + 1 == 12 && dayInt <= 5) {
-                insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" viewBox="0 0 155.5 253.7" width="155.5" height="253.7" style="translate:30px -25px;width:40px;' + (isDefaultLikeLayout ? 'left:unset;right:73px;' : '') + '"><defs><linearGradient x1="162.4" y1="180" x2="317.9" y2="180" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#ae1d1a"/><stop offset="1" stop-color="#da2d29"/></linearGradient><linearGradient x1="162.6" y1="212.5" x2="317.7" y2="212.5" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient><linearGradient x1="169.4" y1="289.4" x2="310.8" y2="289.4" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient><linearGradient x1="226.3" y1="180" x2="253.7" y2="180" gradientUnits="userSpaceOnUse" id="d"><stop offset="0" stop-color="#f8a813"/><stop offset="1" stop-color="#fab20d"/></linearGradient><linearGradient x1="162.4" y1="132.3" x2="317.9" y2="132.3" gradientUnits="userSpaceOnUse" id="e"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient></defs><g><path d="M162.4 186.9c2.5-12.5 6.2-23.9 10.6-32.8l.9-1.8c22.5-45.5 47.3-82 66-99.2h.2c18.7 17.2 43.5 53.7 66 99.2l.9 1.8c4.4 9 8.1 20.3 10.6 32.8l.3-.2a551.6 551.6 0 0 1-12.5 118l.2.5a1293.6 1293.6 0 0 1-131.2 0l.5-.6c-4.3-18-8-41.9-10.3-68.1-1.6-18-2.3-34.9-2.2-49.8z" fill="url(#a)" transform="translate(-162.4 -53.1)"/><path d="M315.8 232.3c-16.6-5.8-44.4-9.6-75.8-9.6s-59.1 3.8-75.8 9.5c-.8-10.2-1.4-20-1.6-29.4h.2c16.5-6.1 44.9-10.1 77.2-10.1 32.5 0 61 4 77.5 10.2l.2-.2c-.3 9.2-.8 19-1.6 29.1z" fill="url(#b)" transform="translate(-162.4 -53.1)"/><path d="M169.4 276.6c16.9-2.8 42-4.6 70.2-4.6 28.6 0 54.2 1.8 71.2 4.8a379.9 379.9 0 0 1-5.4 27.8l.2.6a1293.6 1293.6 0 0 1-131.2 0l.5-.6c-2-8.2-3.8-17.6-5.4-28z" fill="url(#c)" transform="translate(-162.4 -53.1)"/><path d="M226.3 278.3V81.7h27.4v196.6z" fill="url(#d)" transform="translate(-162.4 -53.1)"/><path d="M317.2 204.3a118 118 0 0 0-10.2-28.8l-.9-1.6c-22.5-42.2-47.3-76.1-66-92h-.2c-18.7 15.9-43.5 49.8-66 92l-.9 1.6c-3.9 7.4-7.3 16.5-9.7 26.6l-.8.7c-.1-4.4-.2-8.6-.1-12.6v.1a129 129 0 0 1 10.6-31.9l.9-1.6c22.5-44.3 47.3-79.7 66-96.5h.2c18.7 16.8 43.5 52.2 66 96.5l.9 1.6a129 129 0 0 1 10.6 32l.3-.2-.1 12.7z" fill="url(#e)" transform="translate(-162.4 -53.1)"/></g></svg>');
-            }
-            if ((parseInt(get('birthday').charAt(0) + get('birthday').charAt(1)) == dayInt && parseInt(get('birthday').charAt(3) + get('birthday').charAt(4)) == (month + 1)) || (month + 1 == 12 && dayInt > 10) || (month + 1 == 12 && dayInt <= 5)) {
-                id('mod-logo-hat').addEventListener('click', function () {
-                    if (isDefaultLikeLayout) {
-                        id('mod-logo-inserted').style.bottom = '-55px';
-                        this.style.opacity = '0';
-                        this.style.animation = 'none';
-                    }
-                    this.classList.add('mod-logo-hat-clicked');
-                    setTimeout(function () {
-                        tn('body', 0).classList.add('mod-logo-hat-hidden');
-                        if (id('mod-logo-hat')) {
-                            id('mod-logo-hat').remove();
+            if (insertElement) {
+                               if (birthday) {
+                    insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" style="width:37px;translate:38px -12px;' + (isDefaultLikeLayout ? 'right:80px;left:unset;' : '') + '" viewBox="0 0 448 511.7"><path fill="#FFDB56" d="M415.7 428.6c-101.8 39.1-258 38.3-382.5.7L226 11.3l189.7 417.3z"/><path fill="#F6C134" d="M415.7 428.6a411 411 0 0 1-77 20.6l-155.5-345L226 11.4l189.7 417.2z"/><circle fill="#D83636" cx="224" cy="41.6" r="41.6"/><path fill="#F2433B" d="M224 0h.2a37 37 0 0 1-35.5 63.6 41.4 41.4 0 0 1-6.3-22C182.4 18.6 201 0 224 0zM106 271.4l38.5-83.3c46.8-17.9 89.7-37.5 134.8-59.6l2.5 5.5 22.5 51.6C244.7 223.9 177.7 251 106 271.4zm236.9-3 5.3 11.7a756.5 756.5 0 0 1-304 126l37-80.6A770.9 770.9 0 0 0 322 223.6l20.9 44.9zm22.7 50 2.2 5 23 50.9a776.6 776.6 0 0 1-72.1 48.6 485.5 485.5 0 0 1-68.8 35.3c-61.4 1.7-117.6-4-166.1-16.2 93-19.6 187.8-59.6 281.8-123.6z"/><path fill="#F2433B" d="M19.3 480.5a27.8 27.8 0 0 1 17-53A635.4 635.4 0 0 0 227.9 456c64 0 127.7-9.2 183.2-28.5a27.8 27.8 0 1 1 18.3 52.6C368 501.4 298 511.6 227.8 511.7a691.8 691.8 0 0 1-208.5-31.2z"/></svg>');
+                }
+                               else if (christmas) {
+                    insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" viewBox="0 0 408.7 251.7"' + (isDefaultLikeLayout ? ' style="left:unset;right:35px;height:80px;width:70px;"' : '') + '><g><path d="m382.6 131.7-91.8 63-148.7-1.2-15-21 8.6-16.2c-7.2-4.8-16-9-25.7-12-12.7-4-25.1-5.4-35.5-4.6l-1.2-.5-6.6-20.4a138.5 138.5 0 0 0 74.2-68l2-3.8A99.1 99.1 0 0 1 243 1.1l3.4.4c71.8 14 125.8 59.4 132.8 114z" fill="#ed4241"/><path d="M274.2 8.8c57.6 19 98.9 59.4 104.9 106.8l3.5 16-91.8 63-148.7-1.1-14.4-20.1.4-2 124.7-23c36.4-6 64-36.4 64-73.2a74 74 0 0 0-41.3-65.8z" fill="#c52c37"/><path d="M408.7 164.7c-4 30.8-65.1 65.5-144.2 80.2-71.6 13.4-135.3 6.3-157.8-15.4l20.5-57.6c18.8 18.1 72 24 132 12.9 66-12.4 117.1-41.3 120.5-67z" fill="#c1cfe8"/><path d="M406 161.2c-17.6 38.3-85 69.2-166.9 73.2-20.4 1-40 .2-58.4-2l-3.8-.5a43.5 43.5 0 0 1-43.2-42.6c0-4 .6-7.8 1.7-11.5l.2.2c23.6 13.2 71 16.6 123.5 6.8 66.2-12.4 117.2-41.3 120.6-67l26.5 42.8z" fill="#d7e0ef"/><path d="M75.3 141.3a37.8 37.8 0 1 1-75.5.2 37.8 37.8 0 0 1 75.5-.2z" fill="#c1cfe8"/><path d="M67.6 119A37.5 37.5 0 0 0 0 141.6l.3 1.6a36.5 36.5 0 0 0 33.2 19.5c20 0 36.2-14.5 36.2-32.5 0-3.5-.7-6.9-1.8-10z" fill="#d7e0ef"/></g></svg>');
+                }
+                               else if (sinterklaas) {
+                    insertElement.insertAdjacentHTML('beforebegin', '<svg id="mod-logo-hat" viewBox="0 0 155.5 253.7" width="155.5" height="253.7" style="translate:30px -25px;width:40px;' + (isDefaultLikeLayout ? 'left:unset;right:73px;' : '') + '"><defs><linearGradient x1="162.4" y1="180" x2="317.9" y2="180" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#ae1d1a"/><stop offset="1" stop-color="#da2d29"/></linearGradient><linearGradient x1="162.6" y1="212.5" x2="317.7" y2="212.5" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient><linearGradient x1="169.4" y1="289.4" x2="310.8" y2="289.4" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient><linearGradient x1="226.3" y1="180" x2="253.7" y2="180" gradientUnits="userSpaceOnUse" id="d"><stop offset="0" stop-color="#f8a813"/><stop offset="1" stop-color="#fab20d"/></linearGradient><linearGradient x1="162.4" y1="132.3" x2="317.9" y2="132.3" gradientUnits="userSpaceOnUse" id="e"><stop offset="0" stop-color="#f39221"/><stop offset="1" stop-color="#ffc800"/></linearGradient></defs><g><path d="M162.4 186.9c2.5-12.5 6.2-23.9 10.6-32.8l.9-1.8c22.5-45.5 47.3-82 66-99.2h.2c18.7 17.2 43.5 53.7 66 99.2l.9 1.8c4.4 9 8.1 20.3 10.6 32.8l.3-.2a551.6 551.6 0 0 1-12.5 118l.2.5a1293.6 1293.6 0 0 1-131.2 0l.5-.6c-4.3-18-8-41.9-10.3-68.1-1.6-18-2.3-34.9-2.2-49.8z" fill="url(#a)" transform="translate(-162.4 -53.1)"/><path d="M315.8 232.3c-16.6-5.8-44.4-9.6-75.8-9.6s-59.1 3.8-75.8 9.5c-.8-10.2-1.4-20-1.6-29.4h.2c16.5-6.1 44.9-10.1 77.2-10.1 32.5 0 61 4 77.5 10.2l.2-.2c-.3 9.2-.8 19-1.6 29.1z" fill="url(#b)" transform="translate(-162.4 -53.1)"/><path d="M169.4 276.6c16.9-2.8 42-4.6 70.2-4.6 28.6 0 54.2 1.8 71.2 4.8a379.9 379.9 0 0 1-5.4 27.8l.2.6a1293.6 1293.6 0 0 1-131.2 0l.5-.6c-2-8.2-3.8-17.6-5.4-28z" fill="url(#c)" transform="translate(-162.4 -53.1)"/><path d="M226.3 278.3V81.7h27.4v196.6z" fill="url(#d)" transform="translate(-162.4 -53.1)"/><path d="M317.2 204.3a118 118 0 0 0-10.2-28.8l-.9-1.6c-22.5-42.2-47.3-76.1-66-92h-.2c-18.7 15.9-43.5 49.8-66 92l-.9 1.6c-3.9 7.4-7.3 16.5-9.7 26.6l-.8.7c-.1-4.4-.2-8.6-.1-12.6v.1a129 129 0 0 1 10.6-31.9l.9-1.6c22.5-44.3 47.3-79.7 66-96.5h.2c18.7 16.8 43.5 52.2 66 96.5l.9 1.6a129 129 0 0 1 10.6 32l.3-.2-.1 12.7z" fill="url(#e)" transform="translate(-162.4 -53.1)"/></g></svg>');
+                }
+                               if (birthday || christmas || sinterklaas) {
+                    id('mod-logo-hat').addEventListener('click', function () {
+                        if (isDefaultLikeLayout) {
+                            id('mod-logo-inserted').style.bottom = '-55px';
+                            this.style.opacity = '0';
+                            this.style.animation = 'none';
                         }
-                    }, 1050);
-                });
+                        this.classList.add('mod-logo-hat-clicked');
+                        setTimeout(function () {
+                            tn('body', 0).classList.add('mod-logo-hat-hidden');
+                            if (id('mod-logo-hat')) {
+                                id('mod-logo-hat').remove();
+                            }
+                        }, 1050);
+                    });
+                }
             }
         }
-        if (n(id('mod-logo-decoration')) && !tn('body', 0).classList.contains('mod-logo-decoration-hidden')) {
+        if (get('bools').charAt(BOOL_INDEX.EVENTS) == '1' && n(id('mod-logo-decoration')) && !tn('body', 0).classList.contains('mod-logo-decoration-hidden')) {
             let insertElement = id('mod-logo');
             let position = 'beforebegin';
             if (get('layout') == 1 || get('layout') == 4) {
                 insertElement = tn('sl-header', 0);
                 position = 'beforeend';
             }
+
                        const C = Math.floor(year / 100);
             const N = year - 19 * Math.floor(year / 19);
             const K = Math.floor((C - 17) / 25);
@@ -2785,19 +3002,25 @@ function onload() {
             const L = I - J;
             const M = 3 + Math.floor((L + 40) / 44);
             const D = L + 28 - 31 * Math.floor(M / 4);
-            if (month + 1 == M && (dayInt == D || dayInt == D + 1)) {
+
+            const easter = monthInt == M && (dayInt == D || dayInt == D + 1);
+            const halloween = monthInt == 10 && dayInt > 25;
+            const bevrijdingsdag = monthInt == 5 && dayInt == 5;
+            const newyear = (monthInt == 12 && dayInt == 31) || (monthInt == 1 && dayInt == 1);
+
+                       if (easter) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:30px;z-index:-10;"' : '') + ' viewBox="0 0 313.1 232"><g><path d="M227.1 110.9a62.9 62.9 0 0 1-57.2 64.8 62.8 62.8 0 0 1-69.7-52.7l-.5-5C94 56.3 116.8 3.8 151.4.2c35-3.7 68.8 44.2 75.4 107l.1 1.2z" fill="#ff896c"/><path d="m205.7 38.5-1.4-1a34.8 34.8 0 0 0-46 3.4l-1.9 2a34.8 34.8 0 0 1-46 2.7l-2.5-1.8-4.2 14.3c1.7.9 3.2 1.9 4.7 3l2.6 1.7a34.8 34.8 0 0 0 46-2.7l1.9-2a34.8 34.8 0 0 1 45.9-3.3l2.6 1.7c2.7 2.1 5.7 3.8 9 5zM98.6 96.3a34 34 0 0 1 15.3 6.5l2.6 1.7a34.8 34.8 0 0 0 46-2.6l1.9-2a34.8 34.8 0 0 1 41.8-6l8-11.5-1.8-1.4-2.6-1.7a34.8 34.8 0 0 0-46 3.4l-1.9 2a34.8 34.8 0 0 1-46 2.7l-2.5-1.8a34 34 0 0 0-13.5-6.2zM196.1 118.1a35.3 35.3 0 0 0-31.5 9.8l-1.9 2a34.5 34.5 0 0 1-34.8 8.4l6.7 18.6 3.5.2c9.8.2 18.8-3.7 25.1-10l2-2a34.8 34.8 0 0 1 24.4-10.3z" fill="#ff5757"/><path d="M133.4 149.4a62.9 62.9 0 0 1-37.5 77.9 62.8 62.8 0 0 1-81.4-31.9l-1.9-4.6C-9.6 132.9-1.8 76.2 30.5 63.3c32.7-13 78.2 24 101.6 82.6l.4 1.1z" fill="#5de7ff"/><path d="M309.6 180.3a62.9 62.9 0 0 1-72.5 47 62.8 62.8 0 0 1-53-69.5l.9-5c11-60.9 47.2-105.3 81.4-99.5 34.8 5.9 54.4 61.1 43.9 123.4l-.2 1.2z" fill="#ffe16b"/><path d="m109 104.2-16.3 20.4-31.9 1L42.1 150l-31 1-6.7 12.4L1.8 147 8 135.6l29-1L54.5 112l29.8-1 15.2-19zM129.1 139.7l-15 18.8-36.5 1.2-21.4 27.9-35.5 1.2-4.9 8.8-5.5-13.9 6.9-12.6 33.1-1.1 20-26 34.1-1.2 16.6-20.7z" fill="#5ca7ff"/><path d="M261.6 141.3c.8 5.6-3 10.8-8.4 11.6-5.5.8-10.6-3-11.4-8.7-.9-5.6 2.9-10.8 8.4-11.6 5.4-.8 10.5 3 11.4 8.7zM304.8 150c.9 5.6-2.9 10.8-8.4 11.6-5.4.8-10.5-3-11.4-8.7-.8-5.6 3-10.8 8.4-11.6 5.5-.8 10.6 3 11.4 8.7zM218.7 132c.9 5.6-2.9 10.8-8.4 11.6-5.4.8-10.5-3-11.4-8.7-.8-5.5 3-10.7 8.4-11.6 5.5-.8 10.6 3.1 11.4 8.7zM246 95c.6 5.6-3.3 10.7-8.8 11.3-5.5.7-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.3c5.5-.7 10.5 3.4 11.1 9zM288.2 103.6c.7 5.7-3.3 10.7-8.7 11.4-5.5.6-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.4c5.5-.6 10.4 3.4 11.1 9zM233 184c.6 5.6-3.3 10.7-8.8 11.3-5.5.7-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.3c5.5-.7 10.5 3.4 11.1 9zM275.2 192.6c.7 5.7-3.3 10.7-8.7 11.4-5.5.6-10.5-3.4-11.2-9a10.1 10.1 0 0 1 8.8-11.4c5.5-.6 10.4 3.4 11.1 9z" fill="#ffba3a"/></g></svg>');
             }
-                       else if (month + 1 == 10 && dayInt > 25) {
+                       else if (halloween) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:30px;z-index:-10;"' : '') + ' viewBox="0 0 186.2 160.9"><g><path d="M121 149c0 7-15 12-34 12s-35-5-35-12 16-12 35-12 34 5 34 12zM154 41c0 7-28 13-61 13-34 0-61-6-61-13s27-13 61-13c33 0 61 6 61 13z" fill="#ca6512"/><path d="M125 154c6-9 8-30 6-54-2-21-7-38-13-48l-1-1a9 9 0 0 1 2-8h1c4-3 9-5 14-5 20 0 36 27 36 60s-16 60-36 60l-9-2z" fill="#ca6512"/><path d="m99 154-30 1-13-1a72 72 0 0 1-22-55c0-35 20-64 45-64 24 0 44 26 45 60l2 27v2c0 12-5 23-12 31z" fill="#ca6512"/><path d="M49 40c-13 8-23 30-23 56 0 24 9 46 22 55l-3 2-8-2-9-4c-13-6-23-29-23-56l1-17 1-2c3-18 16-32 32-36h8l4 2z" fill="#ca6512"/><path d="m106 30 4 2v3l-6 10h-3c-3-4-12-7-21-7l-6 1-1-2 9-7c3-2 4-5 4-9s-2-7-5-9h-1c-2 0-3-1-3-3V8l6-6a6 6 0 0 1 9 1z" fill="#34785d"/><path d="M116 121v2c0 21-13 38-30 38l-7-1-6-3c-17-4-30-28-30-57 0-32 16-57 36-57 19 0 35 24 36 54z" fill="#eb7615"/><path d="M114 154c6-9 8-30 6-54-2-21-7-38-13-48l-1-1a9 9 0 0 1 2-7v-1c5-3 10-5 15-5 20 0 36 27 36 60s-16 60-36 60l-9-2z" fill="#eb7615"/><path d="m140 40 4-2h8c16 4 29 18 32 36l1 2 1 17c0 27-10 50-22 56l-9 4-9 2-3-2c13-9 22-30 22-55 0-26-10-48-23-56z" fill="#eb7615"/><path d="M60 42c-14 8-23 30-23 56 0 25 9 46 21 55l-2 2-9-2-9-4c-13-6-23-29-23-56l2-17v-2c4-18 16-32 33-36h7l4 2z" fill="#eb7615"/><path d="m28 148-8-3-10-11-6-10a119 119 0 0 1-3-48v-2c3-17 14-31 27-35h7C19 46 8 68 8 94c0 22 8 41 19 50zM70 35l-9-2-16 1c2-3 8-5 15-5 5 0 9 1 12 3zM141 36h-6l-4-3h-6l-9 1c3-2 8-3 14-3 5 0 10 1 13 3z" fill="#eb7615"/><path d="m70 69-24 1 14-22z"/><path d="m118 48 14 22-24-1z"/><path d="M95 95H82l7-12z"/><path d="M66 67H55l7-10zM66 122l1-12 11 1-2 12zM102 123l-1-12 10-1 2 12z" fill="#fff"/><path d="M112 110c17-4 31-11 36-19l2 2v2c0 22-26 40-58 40-29 0-53-15-57-34v-1c7 4 19 8 33 10l1 11 8-10 13 1 8-1h3l6 10z"/><path d="m121 57 7 10h-11z" fill="#fff"/></g></svg>');
             }
-                       else if (month + 1 == 5 && dayInt == 5) {
+                       else if (bevrijdingsdag) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:30px;z-index:-10;"' : '') + ' viewBox="0 0 200.9 251.5" style="width:35px;rotate:15deg;"><defs><linearGradient x1="149.5" y1="63.4" x2="335.6" y2="63.4" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="#ff6300"/></linearGradient><linearGradient x1="149.5" y1="138.4" x2="335.6" y2="138.4" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#0a00ff"/><stop offset="1" stop-color="#00a2ff"/></linearGradient><linearGradient x1="149.5" y1="100.9" x2="335.6" y2="100.9" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#f0f0f0"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><g><path d="M335.6 85.3A71.2 71.2 0 0 1 292 98.9a68 68 0 0 1-47.6-17.2l-3.4-2.7a71.2 71.2 0 0 0-43.7-13.6 68 68 0 0 0-47.7 17.2V45a68 68 0 0 1 47.7-17.2c17.5 0 33.2 5.3 43.7 13.6l3.4 2.7a68 68 0 0 0 47.6 17.2c17.5 0 33.2-5.3 43.7-13.6z" fill="url(#a)" transform="translate(-134.8 -15.4)"/><path d="M335.6 160.3a71.2 71.2 0 0 1-43.7 13.6 68 68 0 0 1-47.6-17.2l-3.4-2.7a71.2 71.2 0 0 0-43.7-13.6 68 68 0 0 0-47.7 17.2V120a68 68 0 0 1 47.7-17.2c17.5 0 33.2 5.3 43.7 13.6l3.4 2.7a68 68 0 0 0 47.6 17.2c17.5 0 33.2-5.3 43.7-13.6z" fill="url(#b)" transform="translate(-134.8 -15.4)"/><path d="M335.6 122.8a71.2 71.2 0 0 1-43.7 13.6 68 68 0 0 1-47.6-17.2l-3.4-2.7a71.2 71.2 0 0 0-43.7-13.6 68 68 0 0 0-47.7 17.2V82.6a68 68 0 0 1 47.7-17.2c17.5 0 33.2 5.3 43.7 13.6l3.4 2.7A68 68 0 0 0 291.9 99c17.5 0 33.2-5.3 43.7-13.6z" fill="url(#c)" transform="translate(-134.8 -15.4)"/><path d="M4.5 245.5v-230h11v230z" fill="#ffad66"/><path d="M21.5 10.8a10.8 10.8 0 1 1-21.5 0 10.8 10.8 0 0 1 21.5 0zM15.5 246a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" fill="#ffad66"/></g></svg>');
             }
-                       else if ((month + 1 == 12 && dayInt == 31) || (month + 1 == 1 && dayInt == 1)) {
+                       else if (newyear) {
                 insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:21px;z-index:-10;"' : '') + ' viewBox="0 0 158 151"><defs><linearGradient x1="161.4" y1="148.1" x2="225.1" y2="148.1" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="241.6" y1="129.4" x2="292.1" y2="129.4" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="270.3" y1="182.9" x2="319.6" y2="182.9" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m196 129 21-10-6 22 14 18-22 1-12 18-8-19-22-6 18-15-1-20z" fill="url(#a)" transform="translate(-161 -105)"/><path d="m266 114 15-9-2 17 13 13-17 3-7 16-9-15-17-2 11-13-3-16z" fill="url(#b)" transform="translate(-161 -105)"/><path d="m302 171 18-3-10 15 7 17-16-4-14 11-1-16-16-9 17-8 3-16z" fill="url(#c)" transform="translate(-161 -105)"/><path d="M52 70c9 9 17 23 20 39 3 15 2 29-2 39M82 109c-2-6-3-13-3-21 0-18 6-34 15-43M81 147c2-26 17-48 37-55" fill="none" stroke="#e19600" stroke-width="6"/></g></svg>');
             }
-            if (!n(tn('sl-header', 0)) && ((month + 1 == M && (dayInt == D || dayInt == D + 1)) || (month + 1 == 10 && dayInt > 25) || (month + 1 == 5 && dayInt == 5) || (month + 1 == 12 && dayInt == 31) || (month + 1 == 1 && dayInt == 1))) {
+                       if (!n(tn('sl-header', 0)) && (easter || halloween || bevrijdingsdag || newyear)) {
                 tn('sl-header', 0).style.overflow = 'hidden';
                 id('mod-logo-decoration').addEventListener('click', function () {
                     this.classList.add('mod-logo-decoration-clicked');
@@ -3487,6 +3710,10 @@ function onload() {
             'RO': ['Ruim onvoldoende', 3],
             'S': ['Slecht', 2],
             'ZS': ['Zeer slecht', 1],
+            'A': ['Af', 10],
+            'B': ['Bijna', 5.5],
+            'N': ['Niet af', 1],
+            'L': ['Lopend', 1],
         };
         let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
         if (letter != null && !n(letterbeoordelingen) && letterbeoordelingen[letter] == '-') {
@@ -3550,6 +3777,9 @@ function onload() {
                         let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
                         const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
                         if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
+                                                       if (element.getElementsByClassName('cijfer')[0].classList.contains('neutraal')) {
+                                continue;
+                            }
                                                        showLetterbeoordelingenMessage(letter);
                         }
                         else if (isNaN(letterbeoordelingen[letter])) {
@@ -3627,78 +3857,20 @@ function onload() {
         }
         else if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0))) && n(tn('sl-vakresultaten', 0)) && get('bools').charAt(BOOL_INDEX.GRADE_DOWNLOAD_BTN) == "1") {
             if (n(id('mod-grades-download-computer')) && !n(tn('hmy-switch-group', 0))) {
-                tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+                tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                 id('mod-grades-download-computer').addEventListener('click', downloadGrades);
             }
             if (n(id('mod-grades-download-mobile')) && !n(cn('tabs ng-star-inserted', 0))) {
                 if (document.documentElement.clientWidth > 767) {
-                    cn('tabs ng-star-inserted', 0).getElementsByClassName('filler')[0].insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+                    cn('tabs ng-star-inserted', 0).getElementsByClassName('filler')[0].insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
                 }
                 else {
-                    tn('sl-scrollable-title', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+                    tn('sl-scrollable-title', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
                 }
             }
         }
-    }
-
-       function insertGradeAssistant() {
-               if (!n(tn('sl-vakresultaten', 0)) && !n(id('mod-grade-assistant-btn'))) {
-            return;
-        }
-        if (n(tn('sl-vakresultaten', 0))) {
-            tryRemove(id('mod-grade-assistant-btn'));
-            return;
-        }
-        if (id('mod-grade-assistant-btn')) return;
-
-        tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-grade-assistant-btn" title="Cijfer Assistent">' + window.getIcon('brain') + '</div>');
-        tn('body', 0).insertAdjacentHTML('beforeend', `
-            <div id="mod-assistant-modal">
-                <div id="mod-assistant-close">&times;</div>
-                <h2>Cijfer Assistent</h2>
-                <div class="mod-assistant-bubble" id="mod-assistant-text">
-                    Hallo! Ik ben je persoonlijke cijfer-assistent. Ik kan je helpen met het berekenen van wat je moet halen.
-                </div>
-                <div id="mod-assistant-inputs">
-                    <input type="number" id="mod-assistant-target" placeholder="Welk gemiddelde wil je staan? (bijv. 5.5)">
-                    <input type="number" id="mod-assistant-weight" placeholder="Weging van de volgende toets (bijv. 1)">
-                    <button id="mod-assistant-calculate">Berekenen</button>
-                </div>
-            </div>
-        `);
-
-        id('mod-grade-assistant-btn').addEventListener('click', function () {
-            id('mod-assistant-modal').classList.add('active');
-            let avgData = calculateAverage();
-            let currentAvg = avgData.weight > 0 ? (avgData.total / avgData.weight).toFixed(2) : 'onbekend';
-            id('mod-assistant-text').innerHTML = `Je staat nu een <b>${"$"}{currentAvg.replace('.', ',')}</b>. Wat is je doel?`;
-        });
-
-        id('mod-assistant-close').addEventListener('click', function () {
-            id('mod-assistant-modal').classList.remove('active');
-        });
-
-        id('mod-assistant-calculate').addEventListener('click', function () {
-            let target = parseFloat(id('mod-assistant-target').value);
-            let weight = parseFloat(id('mod-assistant-weight').value);
-            if (isNaN(target) || isNaN(weight)) {
-                id('mod-assistant-text').innerHTML = "Vul alsjeblieft geldige getallen in.";
-                return;
-            }
-
-            let avgData = calculateAverage();
-            let required = ((target * (avgData.weight + weight)) - avgData.total) / weight;
-            required = Math.ceil(required * 10) / 10;
-            if (required > 10) {
-                id('mod-assistant-text').innerHTML = `Oei, dat wordt lastig. Je zou een <b>${"$"}{required.toFixed(1).replace('.', ',')}</b> moeten halen. Misschien is een ${"$"}{((avgData.total + 10 * weight) / (avgData.weight + weight)).toFixed(1).replace('.', ',')} haalbaarder?`;
-            } else if (required < 1) {
-                id('mod-assistant-text').innerHTML = `Makkie! Zelfs met een 1.0 sta je nog boven de ${"$"}{target}. Je hebt minimaal een <b>${"$"}{required.toFixed(1).replace('.', ',')}</b> nodig.`;
-            } else {
-                id('mod-assistant-text').innerHTML = `Om een ${"$"}{target} te staan, moet je minimaal een <b>${"$"}{required.toFixed(1).replace('.', ',')}</b> halen. Succes!`;
-            }
-        });
     }
 
        function gradeDefenderGame() {
@@ -3858,33 +4030,23 @@ function onload() {
 
        function subjectGradesPage() {
         if (!n(tn('sl-vakresultaten', 0))) {
-            execute([insertCalculationTool, insertGradeAssistant]);
+            execute([insertCalculationTool]);
             const examPage = !n(tn('sl-examenresultaten', 0));
-                       if (n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1') {
+                       const firstCondition = n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1';
+            const secondCondition = !n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'));
+            if (firstCondition || secondCondition) {
+                if (secondCondition) {
+                    tryRemove(id('mod-grades-graphs'));
+                }
                 if (!subjectGradesPageContainsNumberGrades()) {
                     return;
                 }
+
                 tn('sl-vakresultaten', 0).insertAdjacentHTML(
                     'beforeend',
+                    (get('bools').charAt(BOOL_INDEX.GRADE_ANALYSIS) == '1' ? '<h3 style="margin-top: 40px;">Cijferanalyse</h3>' +
+                        '<div id="mod-grade-suggestions" style="padding: 15px; margin: 15px 0; background: var(--bg-neutral-none); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' : '') +
                     '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
-                    '<h3>Cijferanalyse</h3>' +
-                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
-                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
-                    '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
-                    '</div>'
-                );
-                setTimeout(function () { execute([gradeGraphs]); }, 500);
-            }
-            else if (!n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'))) {
-                tryRemove(id('mod-grades-graphs'));
-                if (!subjectGradesPageContainsNumberGrades()) {
-                    return;
-                }
-                tn('sl-vakresultaten', 0).insertAdjacentHTML(
-                    'beforeend',
-                    '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
-                    '<h3>Cijferanalyse</h3>' +
-                    '<div id="mod-grade-suggestions" style="padding: 15px; margin-bottom: 20px; background: var(--bg-elevated-low); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' +
                     '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
                     '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
                     '</div>'
@@ -3935,7 +4097,7 @@ function onload() {
             }
             music.loop = true;
             const recapYear = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '${"$"}1') : year;
-            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
+            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
                        id('somtoday-recap').addEventListener('click', async function () {
                 music.currentTime = 0;
                 music.play();
@@ -4235,7 +4397,7 @@ function onload() {
                 }
                 usedSubjects.push(randomSubject.name);
                 subjects.push(randomSubject);
-                html += '<div class="mod-item"><div>' + randomSubject.icon + '</div><p>' + randomSubject.name + '</p>' + window.getIcon('grip-vertical', null, 'var(--text-weak)') + '</div>';
+                html += '<div class="mod-item"><div>' + randomSubject.icon + '</div><p>' + randomSubject.name + '</p>' + getIcon('grip-vertical', null, 'var(--text-weak)') + '</div>';
             }
             cn('recap-page', 0).innerHTML = '<h1>Wat zijn je beste vakken?</h1><h2>Sorteer je vakken op basis van je gemiddelde</h2><div id="mod-grade-average-sort-list">' + html + '</div><a id="recap-nextpage">Volgende</a>';
 
@@ -4660,7 +4822,7 @@ function onload() {
                 description = "het nu alweer bijna zomervakantie is";
                 icon = 'sun';
             }
-            cn('recap-page', 0).innerHTML = '<div id="award-wrapper">' + window.getIcon(icon, null, '#1f86f6') + '</div><h1>AWARD!</h1><h2>Je hebt het dit jaar weer geweldig gedaan.</h2><h3>Omdat ' + description + ' krijg je de ' + award + '-award.</h3><a id="recap-nextpage">Volgende</a>';
+            cn('recap-page', 0).innerHTML = '<div id="award-wrapper">' + getIcon(icon, null, '#1f86f6') + '</div><h1>AWARD!</h1><h2>Je hebt het dit jaar weer geweldig gedaan.</h2><h3>Omdat ' + description + ' krijg je de ' + award + '-award.</h3><a id="recap-nextpage">Volgende</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             setTimeout(function () {
                 try {
@@ -5263,15 +5425,15 @@ function onload() {
             else {
                 execute([insertModSettingLink]);
             }
-            let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><div id="nickname-wrapper">';
+            let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><p>Vul de docentnaam precies in als op de berichtenpagina ("Dhr. E.X. Ample"). Vul bij de afkorting de docentafkorting in die in het rooster staat als je op een les klikt (optioneel). Vul tenslotte in welke nickname je deze docent wil geven.</p><div id="nickname-wrapper">';
             let nicknameArray = parseJSON(get('nicknames'));
             if (nicknameArray == null) {
                 set('nicknames', '[]');
                 nicknameArray = [];
             }
             for (const nickname of nicknameArray) {
-                if (nickname.length == 2) {
-                    nicknames += '<div><input type="text" value="' + nickname[0].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"><input type="text" value="' + nickname[1].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"></div>';
+                if (nickname.length == 2 || nickname.length == 3) {
+                    nicknames += '<div><input type="text" placeholder="Docentnaam" value="' + nickname[0].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"><input type="text" placeholder="Afkorting" value="' + (nickname[2] ? nickname[2].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') : '') + '"><input type="text" placeholder="Nickname" value="' + nickname[1].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"></div>';
                 }
             }
             let backgroundHTML = '';
@@ -5280,8 +5442,8 @@ function onload() {
                 backgroundHTML += '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) + '">';
                 numberOfBackgrounds++;
             }
-            nicknames += '<div><input type="text" placeholder="Docentnaam"/><input type="text" placeholder="Nickname"/></div></div><div class="br"></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'/><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'/></div>\';">Reset</div>';
-            const updatechecker = (!isExtension) ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + window.getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
+            nicknames += '<div><input type="text" placeholder="Docentnaam"><input type="text" placeholder="Afkorting"><input type="text" placeholder="Nickname"></div></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'><input type=\\\'text\\\' placeholder=\\\'Afkorting\\\'><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'><input type=\\\'text\\\' placeholder=\\\'Afkorting\\\'><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'></div>\';">Reset</div>';
+            const updatechecker = (!isExtension) ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
             const updateinfo = (!isExtension) ? '' : 'Je browser controleert automatisch op updates.';
 
             let settingsContent = getSettingsFile(get('settings_type'));
@@ -5291,11 +5453,11 @@ function onload() {
             }
 
             const replacements = {
-                '{{icon_floppy_disk}}': window.getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
-                '{{icon_rotate_left}}': window.getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
-                '{{icon_circle_info}}': window.getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
-                '{{icon_circle_exclamation}}': window.getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
-                '{{icon_upload}}': window.getIcon('upload', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_floppy_disk}}': getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
+                '{{icon_rotate_left}}': getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
+                '{{icon_circle_info}}': getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
+                '{{icon_circle_exclamation}}': getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
+                '{{icon_upload}}': getIcon('upload', null, 'var(--fg-on-primary-weak)'),
                 '{{updatechecker}}': updatechecker,
                 '{{addSetting_primarycolor}}': addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2'),
                 '{{addSetting_secondarycolor}}': addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2'),
@@ -5334,8 +5496,10 @@ function onload() {
                 '{{layout_5}}': '<div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div>',
                 '{{menu_settings}}': addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false),
                 '{{nicknames}}': nicknames,
-                '{{username_wrapper}}': '<h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div>',
+                '{{username_wrapper}}': '<h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div id="username-wrapper"><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div></div>',
                 '{{font_settings}}': `
+                    <h3>Lettertype</h3>` +
+                    (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + `
                     <div class="mod-custom-select notranslate">
                         <select id="mod-font-select" title="Selecteer een lettertype">
                             <option selected disabled hidden>
@@ -5345,7 +5509,7 @@ function onload() {
                         </select>
                     </div>
                     <label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">
-                        ${"$"}{window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                        ${"$"}{getIcon('upload', null, 'var(--fg-on-primary-weak)')}
                         <p>Of upload lettertype</p>
                     </label>
                     <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt">
@@ -5356,12 +5520,26 @@ function onload() {
                         </div>
                     </div>
                     <div class="br"></div><div class="br"></div><div class="br"></div>`,
-                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.', 'profilepic', 'file', null, 'image/*', '120'),
+                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
                 '{{grade_reveal_setting}}': '<div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>',
                 '{{letterbeoordelingen_setting}}': '<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>',
-                '{{extra_settings}}': (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) + addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) + (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) + addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) + addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') + addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) + (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) + addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) + addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) + addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) + addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) + addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
-                '{{browser_settings}}': addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300'),
-                '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
+                '{{extra_settings}}': addSetting('Analyse op cijferpagina', 'Laat een korte analyse zien op de cijfer-pagina van een vak.', 'bools18', 'checkbox', true) +
+                    (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) +
+                    addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) +
+                    (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) +
+                    addSetting('Feestdagen', 'Laat bij feestdagen soms iets zien, zoals een kerstmuts op het Somtoday-logo.', 'bools17', 'checkbox', true) +
+                    addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) +
+                    addSetting('Grafieken op cijferpagina', 'Laat een cijfer- en gemiddeldegrafiek zien op de cijfer-pagina van een vak.', 'bools07', 'checkbox', true) +
+                    ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? addSetting('Logo van mod in menu', 'Laat in plaats van het logo van Somtoday het logo van Somtoday Mod zien.', 'bools08', 'checkbox', true) : '') +
+                    addSetting('Raster bij rooster', 'Laat een raster zien achter je rooster.', 'bools15', 'checkbox', true) +
+                    (platform == 'Android' ? '' : addSetting('Redirect naar ELO', 'Redirect je automatisch van https://som.today naar https://inloggen.somtoday.nl.', 'bools09', 'checkbox', true)) +
+                    addSetting('Rekentool op cijferpagina', 'Voeg een rekentool toe op de cijferpagina om snel te berekenen welk cijfer je moet halen.', 'bools10', 'checkbox', true) +
+                    addSetting('Scrollbar', 'Laat de scrollbar van een pagina zien.', 'bools11', 'checkbox', true) +
+                    addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) +
+                    addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) +
+                    addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
+                '{{browser_settings}}': (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>'),
+                '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
                 '{{autologin_pass}}': addSetting('Wachtwoord', 'Voer je wachtwoord in.', 'loginpass', 'password', '', ''),
@@ -5377,7 +5555,7 @@ function onload() {
                 settingsContent = settingsContent.replaceAll(key, replacements[key]);
             }
 
-            const settingcontent = tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', settingsContent);
+            tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', settingsContent);
             if (platform != 'Android') {
                 id('export-settings').addEventListener('click', exportSettings);
                 id('import-settings').addEventListener('click', function () {
@@ -5422,8 +5600,11 @@ function onload() {
             addTheme('Bergen en ruimte', '1624504', '6489a0', '6489a0', 50, true);
             addTheme('Stad', '2246476', '18202d', '18202d', 25, true);
             addTheme('Weg', '1820563', 'de3c22', 'de3c22', 65, true);
+            const isbackgroundvideo = get('isbackgroundvideo') && get('isbackgroundvideo') != 'false';
             id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
             id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
+            id('mod-background-preview-image').style.display = !isbackgroundvideo ? 'block' : 'none';
+            id('mod-background-preview-video').style.display = isbackgroundvideo ? 'block' : 'none';
             id('addbackground').addEventListener('input', function () {
                 const files = this.files;
                 for (var i = 0; i < files.length; i++) {
@@ -5684,12 +5865,17 @@ function onload() {
         }
     }
 
+    const settingFileCache = {};
     function getSettingsFile(type) {
                if (n(type)) {
             type = 'familiar';
         }
 
                              if (isExtension) {
+                                  if (settingFileCache[type]) {
+                return settingFileCache[type];
+            }
+
             let url = chrome.runtime.getURL('settings_content/' + type + '.html');
 
             let xhr = new XMLHttpRequest();
@@ -5697,6 +5883,7 @@ function onload() {
             xhr.send(null);
 
             if (xhr.status === 200) {
+                settingFileCache[type] = xhr.responseText;
                 return xhr.responseText;
             } else {
                 return '';
@@ -5766,7 +5953,9 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         <div id="mod-bg-slideshow" style="display:{{display_bg_slideshow}}" class="mod-background-type-content">
             <h3>Achtergrondafbeeldingen</h3>
             <p>Stel afbeeldingen in voor op de achtergrond, waar elke keer één random afbeelding uit geselecteerd zal worden.</p>
-            <div id="mod-background-wrapper">{{backgroundHTML}}<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512"><path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path></svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div>
+            <div id="mod-background-wrapper">{{backgroundHTML}}<label tabindex="0" for="addbackground"><svg height="1em" viewBox="0 0 512 512">
+                        <path fill="var(--fg-on-primary-weak)" d="M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"></path>
+                    </svg></label><input class="mod-file-input" type="file" accept="image/*" multiple id="addbackground"></div>
         </div>
 
         <div id="mod-bg-color" style="display:{{display_bg_color}}" class="mod-background-type-content">
@@ -5775,7 +5964,6 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
 
         <div id="mod-bg-live" style="display:{{display_bg_live}}" class="mod-background-type-content">
             <p>Een live, bewegende achtergrond die willekeurige kleuren genereert.</p>
-            <div class="br"></div>
             <div class="br"></div>
             <div tabindex="0" class="mod-button" id="mod-live-randomize">Kies een willekeurig effect</div>
         </div>
@@ -5824,8 +6012,8 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         {{font_settings}}
         <div class="br"></div>
         <div class="br"></div>
-        <div class="br"></div>
         {{profilepic_setting}}
+        <div class="br"></div>
         <div class="br"></div>
         <div class="br"></div>
         {{grade_reveal_setting}}
@@ -5843,13 +6031,11 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
     <div id="category-games">
         <p>Speel minispellen om de stress van school even te vergeten.</p>
         <div tabindex="0" class="mod-button" id="mod-play-defender">Speel Grade Defender</div>
+        <a href="/error#mod-play" class="mod-button" target="_blank">Speel Somtoday Platformer</a>
         <div class="br"></div>
     </div>
 
-    <h3 class="category" data-category="browser" tabindex="0">Browser</h3>
-    <div id="category-browser">
-        {{browser_settings}}
-    </div>
+    {{browser_settings}}
 
     <h3 class="category" data-category="autologin" tabindex="0">Autologin</h3>
     <div id="category-autologin">
@@ -5868,7 +6054,8 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
     <p>{{somtoday_version}}</p>
     <p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">{{platform}}</span>! {{updateinfo}}</p>
     {{export_import_buttons}}
-    <p style="margin-top:-15px;"><b>Gemaakt door</b></p><div id="mod-contributors">{{contributors_list}}</div>
+    <p style="margin-top:-15px;"><b>Gemaakt door</b></p>
+    <div id="mod-contributors">{{contributors_list}}</div>
 </div>`;
 
 
@@ -5920,7 +6107,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         for (const element of id('nickname-wrapper').children) {
             if (!n(element.getElementsByTagName('input')[1])) {
                                if (!n(element.getElementsByTagName('input')[0].value)) {
-                    nicknames.push([element.getElementsByTagName('input')[0].value, element.getElementsByTagName('input')[1].value]);
+                    nicknames.push([element.getElementsByTagName('input')[0].value, element.getElementsByTagName('input')[2].value, element.getElementsByTagName('input')[1].value]);
                 }
             }
         }
@@ -6104,7 +6291,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         set('primarycolor', '#0067c2');
         set('secondarycolor', '#e69b22');
         set('nicknames', '[]');
-        set('bools', '110001110111101110000000000000');
+        set('bools', '110001110111101111100000000000');
         set('title', '');
         set('icon', '');
         set('background', '');
@@ -6152,7 +6339,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
             execute([reset]);
             tn('head', 0).insertAdjacentHTML('afterbegin', '<style>#mod-welcome{background:#0005;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;transition:opacity 0.3s ease;}#mod-welcome > div{width:355px;transform:translate(-50%, -50%);top:50%;position:absolute;left:50%;background: var(--bg-elevated-none);border-radius:16px;overflow:hidden;overflow-y:scroll;max-width:calc(100% - 30px);max-height:calc(100% - 30px);}#mod-welcome > div > div:first-child{background:#09f;height:130px;display:flex;justify-content:center;align-items:center}#mod-welcome svg{width:70px;height:35%;transition:transform .3s ease;cursor:pointer;}#mod-welcome > div > div:last-child{padding:15px 20px;}#mod-welcome h2{font-weight:400;}#mod-welcome input[type=checkbox]{width:20px;display:inline-block;height:20px;}#mod-welcome label{user-select:none;vertical-align:top;display:inline-block;padding-left:10px;margin-bottom:25px;font-size:14px;max-width:calc(100% - 35px);}div:hover > svg .glasses{animation:1s glasses linear forwards;}@keyframes glasses{0%{transform:translateY(-60px);opacity:0;}50%{transform:translateY(-30px);opacity:1;}100%{transform:translateY(0px);opacity:1;}}@media (min-width: 370px) and (min-height:700px){#mod-welcome > div{overflow-y:hidden;}#mod-welcome > div > div:first-child{height:200px;}#mod-welcome > div > div:last-child{padding:30px;}}</style>');
             const welcomecontent = platform == 'Android' ? '<h2>Welkom!</h2><p>Je hebt net de Somtoday Mod Android APK geïnstalleerd. Met deze app kun je alles wat je ook in de normale Somtoday app kan, plus nog veel meer doordat Somtoday Mod erbij zit.</p><p>Voordat je doorgaat, deze app is niet geaffilieerd met Somtoday. Gebruik is op eigen risico. Zorg ervoor dat je regelmatig op updates checkt om de app up to date te houden.</p>' : '<h2>Somtoday Mod is ge&iuml;nstalleerd!</h2><p>Stel achtergronden in, krijg inzicht in je cijfers en meer met Somtoday Mod!</p><p>' + (hasSettingsHash ? 'Laten we meteen beginnen!' : 'Meteen naar de instellingen gaan?') + '</p>';
-            id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="mod-welcome"><div><div>' + logo('mod-welcome-logo', null, '#fff') + '</div><div>' + welcomecontent + '<br><input type="checkbox" id="errordata"><label for="errordata">Verstuur error-data om bugs te fixen</label>' + (hasSettingsHash ? '' : '<div tabindex="0" class="mod-button" id="mod-welcome-open-settings">Instellingen</div>') + '<div tabindex="0" class="mod-button" id="mod-welcome-close">Sluiten</div></div></div></div>');
+            id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="mod-welcome"><div><div>' + window.logo('mod-welcome-logo', null, '#fff') + '</div><div>' + welcomecontent + '<br><input type="checkbox" id="errordata"><label for="errordata">Verstuur error-data om bugs te fixen</label>' + (hasSettingsHash ? '' : '<div tabindex="0" class="mod-button" id="mod-welcome-open-settings">Instellingen</div>') + '<div tabindex="0" class="mod-button" id="mod-welcome-close">Sluiten</div></div></div></div>');
             function closeWelcomeDialog() {
                 set('firstused', year + '-' + (month + 1) + '-' + dayInt);
                 id('mod-welcome').style.opacity = '0';
@@ -6196,15 +6383,16 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         if (get(key) == null && !key.startsWith('bools')) {
             set(key, value);
         }
-        let code = '<div><h3>' + name + '</h3>' + (n(description) ? '' : '<p>' + description + '</p>');
+        let code = '<div><h3>' + name + '</h3>' + ((n(description) || type == 'checkbox') ? '' : '<p>' + description + '</p>');
         if (type == 'checkbox') {
             if (key.startsWith('bools')) {
-                code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get('bools').charAt(parseInt(key.charAt(5) + key.charAt(6))) == '1' ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label></div>';
+                code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get('bools').charAt(parseInt(key.charAt(5) + key.charAt(6))) == '1' ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
             } else {
-                code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get(key) ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label></div>';
+                code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get(key) ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
             }
+            code += (n(description) ? '' : '<p>' + description + '</p>') + '</div>';
         } else if (type == 'range') {
-            code += '<div class="mod-range-preview">' + window.getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p></div>';
+            code += '<div class="mod-range-preview">' + getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p></div>';
         } else if (type == 'text' || type == 'password') {
             code += '<input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="' + type + '" placeholder="' + param1 + '" value="' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"/></div>';
         } else if (type == 'number') {
@@ -6212,7 +6400,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         } else if (type == 'color') {
             code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})${"$"}/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})${"$"}/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color"/></div>';
         } else if (type == 'file') {
-            code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + window.getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
+            code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
         }
         return code;
     }
@@ -6298,7 +6486,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
             modbtn.getElementsByTagName('span')[0].innerHTML = 'Mod-instellingen';
             modbtn.getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
             modbtn.getElementsByTagName('i')[0].style.paddingBottom = '2px';
-            modbtn.getElementsByTagName('i')[0].innerHTML = window.getIcon('gear', null, '#ea9418', 'style="width:16px;height:16px;"');
+            modbtn.getElementsByTagName('i')[0].innerHTML = getIcon('gear', null, '#ea9418', 'style="width:16px;height:16px;"');
             tn('sl-account-modal', 0).getElementsByTagName('nav')[0].appendChild(modbtn);
             for (const element of tn('sl-account-modal-tab')) {
                 if (element.id != 'mod-setting-button') {
@@ -6332,9 +6520,9 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         if (busy || isRecapping) {
             return;
         }
-        darkmode = tn('html', 0).classList.contains('dark');
+        darkmode = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
         busy = true;
-        execute([gradeReveal, userName, teacherNicknames, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify, topMenu, easterEggs, editGrades, customHomework]);
+        execute([gradeReveal, userName, teacherNicknames, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify, newYearCountdown, topMenu, easterEggs, editGrades, browserSettings, initTheme]);
         if (updateStyle) {
             execute([updateCssVariables]);
         }
@@ -6426,7 +6614,7 @@ return `<div id="mod-setting-panel" class="mod-setting-panel">
         xhr.send();
     }
 
-       execute([updateCheck, checkNewUser, setBackground, updateCssVariables, style, addMutationObserver, browserSettings, congratulations, openModSettingsDirectly, profilePicture, consoleMessage]);
+       execute([updateCheck, checkNewUser, setBackground, updateCssVariables, style, addMutationObserver, browserSettings, congratulations, openModSettingsDirectly, profilePicture, initTheme, consoleMessage]);
 
        setTimeout(function () {
         tryRemove(id('transitions-disabled'));

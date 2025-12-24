@@ -24,7 +24,11 @@
       ],
       "css": [
         "css/night.css",
-        "css/styles.css"
+        "css/styles.css",
+        "css/somtoday-recap.css",
+        "css/mod-settings.css",
+        "css/custom-homework.css",
+        "css/platformer.css"
       ],
       "matches": [
         "*://*.somtoday.nl/*",
@@ -64,7 +68,8 @@
         "sounds/correct.mp3",
         "version_info.json",
         "settings_content/familiar.html",
-        "settings_content/modern.html",
+        "fonts/Kanit-SemiBold.ttf",
+        "fonts/Kanit-ExtraLight.ttf",
         "images/dark-mode.svg"
       ],
       "matches": [

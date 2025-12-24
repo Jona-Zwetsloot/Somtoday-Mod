@@ -65,15 +65,53 @@ function addNightTheme() {
     if (id('mod-night-theme')) {
         return;
     }
+
+    if (cn('toggle-systeemvoorkeur', 0)) {
+        // Update system preferences state (might be unset or outdated otherwise)
+        set('autotheme', cn('toggle-systeemvoorkeur', 0).ariaChecked == 'true' ? 'true' : 'false');
+
+        cn('toggle-systeemvoorkeur', 0).addEventListener('click', function () {
+            // We need to disable the night theme if follow system preference is enabled
+            if (this.ariaChecked == 'true') {
+                set('autotheme', 'true');
+                // Enable dark, since this is the current preference
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    if (cn('container dark', 0) && cn('container dark', 0).ariaChecked == 'false') {
+                        cn('container dark', 0).click();
+                        this.click();
+                    }
+                }
+                // Enable light, since this is the current preference
+                else {
+                    if (cn('container light', 0) && cn('container light', 0).ariaChecked == 'false') {
+                        cn('container light', 0).click();
+                        this.click();
+                    }
+                }
+            }
+            // Follow system preferences is disabled
+            else {
+                set('autotheme', 'false');
+            }
+
+            // Update checkbox state to make it match the now visually active theme
+            updateTheme();
+        });
+    }
+
+    // Insert night mode option
     const blokDiv = document.querySelector('div.blok');
     const darkDiv = blokDiv.querySelector('div[data-gtm="instellingen-weergave-theme-dark-mode"]');
-    const darkImage = blokDiv.querySelector('input[value="dark"]')?.parentElement.querySelector('img');
-    const nightDiv = darkImage.parentElement.cloneNode(true);
+    const darkImage = darkDiv.getElementsByTagName('img')[0];
+    const nightDiv = darkDiv.cloneNode(true);
     nightDiv.id = 'mod-night-theme';
     nightDiv.getElementsByTagName('label')[0].title = 'Toegevoegd door Somtoday Mod';
-    nightDiv.getElementsByTagName('label')[0].innerHTML = 'Night ' + window.getIcon('logo', null, 'var(--text-moderate)');
+    nightDiv.getElementsByTagName('label')[0].innerHTML = 'Night ' + window.logo(null, null, '#0099ff', 'height:1em;width:fit-content;margin-left:5px;transform:translateY(2px);');
     nightDiv.getElementsByTagName('input')[0].value = 'night';
+    nightDiv.getElementsByTagName('input')[0].checked = get('theme') == 'night';
     nightDiv.setAttribute('aria-label', 'Weergave nacht');
+    // The dark-mode image uses #111111 as bg color, which is already pretty dark, and does not match the real bg color used
+    // This means that instead of giving night-mode a new image, we modify the image used for dark-mode to use #20262D as bg color
     if (darkImage) {
         if (isExtension) {
             darkImage.src = chrome.runtime.getURL('images/dark-mode.svg');
@@ -83,6 +121,9 @@ function addNightTheme() {
         }
     }
     darkDiv.insertAdjacentElement('afterend', nightDiv);
+
+    // Since we've added the night div now, we need to properly set the selected item
+    // We do so based on the html classList, which is up-to-date (handled by initTheme() in main_functions.js)
     const allRadios = blokDiv.querySelectorAll('input[type="radio"][name="thema"]');
     const html = document.documentElement;
     const currentTheme = ['light', 'dark', 'night'].find(t => html.classList.contains(t));
@@ -92,6 +133,8 @@ function addNightTheme() {
             activeRadio.checked = true;
         }
     }
+
+    // Whenever the user clicks a theme, we need to update the state
     function updateTheme() {
         const html = document.documentElement;
         allRadios.forEach(r => {
@@ -99,9 +142,15 @@ function addNightTheme() {
         });
         html.classList.remove('light', 'dark', 'night');
         const checkedRadio = Array.from(allRadios).find(r => r.checked);
-        if (checkedRadio) {
+        if (checkedRadio && (checkedRadio.value == 'light' || checkedRadio.value == 'dark' || checkedRadio.value == 'night')) {
+            // Save theme value, and update html classList to also display theme
             html.classList.add(checkedRadio.value);
             set('theme', checkedRadio.value);
+
+            // If night is selected, we're not following system preferences anymore
+            if (checkedRadio.value == 'night' && cn('toggle-systeemvoorkeur', 0) && cn('toggle-systeemvoorkeur', 0).ariaChecked == 'true') {
+                cn('toggle-systeemvoorkeur', 0).click();
+            }
         }
     }
     updateTheme();

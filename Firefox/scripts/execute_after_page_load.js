@@ -19,7 +19,7 @@ async function autoLogin() {
     if (!n(id('organisatieSearchField'))) {
         id('organisatieSearchField').value = get('loginschool');
         // Always use this school
-        if (!n(cn('form--checkbox checkbox-label', 0))) {
+        if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
             cn('form--checkbox checkbox-label', 0).click();
         }
     }
@@ -57,7 +57,7 @@ async function autoLogin() {
         id('passwordField').value = get('loginpass');
     }
     // Remember username
-    if (!n(cn('form--checkbox checkbox-label', 0))) {
+    if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
         cn('form--checkbox checkbox-label', 0).click();
     }
 

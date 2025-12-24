@@ -48,6 +48,7 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
+    implementation("com.google.android.material:material:1.13.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

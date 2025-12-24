@@ -34,20 +34,20 @@
     --border-alternative-normal: #8156d1;
     --border-alternative-strong: #5c2fa3;
 
-    --bg-neutral-none: #0a0a0a;
+    --bg-neutral-none: #000000;
     --bg-neutral-weakest: #0f0f0f;
     --bg-neutral-weak: #151515;
     --bg-neutral-moderate: #1a1a1a;
     --bg-neutral-strong: #1f1f1f;
     --bg-neutral-strongest: #242424;
     --bg-neutral-max: #2a2a2a;
-    --bg-elevated-none: #0f0f0f;
+    --bg-elevated-none: #000000;
     --bg-elevated-weakest: #141414;
     --bg-elevated-weak: #191919;
     --bg-elevated-strong: #1f1f1f;
 
     --bg-primary-normal: #575757;
-    --bg-primary-strong: #121212;
+    --bg-primary-strong: #343434;
     --bg-primary-strongest: #0a0a0a;
     --bg-primary-weak: #222222;
     --bg-accent-weak: #3a3a3a;
@@ -143,6 +143,7 @@
 :root.night .active-today,
 :root.night span.active {
     background-color: var(--bg-accent-max) !important;
+    color: var(--text-strong) !important;
 }
 
 @media screen and (max-width: 767px) {
@@ -165,19 +166,6 @@
     background: transparent !important;
 }
 
-
-:root.night .item {
-    color: var(--bg-primary-normal) !important;
-}
-
 :root.night .icon.svg {
     background-color: var(--bg-primary-weak) !important;
-}
-
-:root.night .slider {
-    border: 2px solid var(--border-neutral-normal) !important;
-}
-
-:root.night input:checked+.slider {
-    background-color: var(--border-primary-strong) !important;
 }
