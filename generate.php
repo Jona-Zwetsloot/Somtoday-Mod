@@ -57,10 +57,9 @@ $res .= "\n\n\n" . $shorthand_functions;
 
 $colors = file_get_contents("{$_GET['source']}/scripts/colors.js", true);
 $image = file_get_contents("{$_GET['source']}/images/dark-mode.svg", true);
-$image = preg_replace("/\s{2,}/", ' ', preg_replace("/\n+/", '', $image));
-$image = preg_replace("/\"/", "%22", preg_replace("/'/", "%27", rawurlencode($image)));
-$image = "data:image/svg+xml,$image";
-$res .= "\n\n\n" . str_replace("// [GENERATION] SET_DARK_IMAGE", "darkImage.src = '$image';", $colors);
+$image = preg_replace('/\R/u', '', $image);
+$image = str_replace("'", "\\'", $image);
+$res .= "\n\n\n" . str_replace("// [GENERATION] SET_DARK_IMAGE", "darkImage.outerHTML = '$image';", $colors);
 
 $minigame = file_get_contents("{$_GET['source']}/scripts/minigame.js", true);
 $res .= "\n\n\n" . $minigame;
@@ -411,6 +410,7 @@ const version = {$version_info['version']};
 const platform = 'Android';
 const minified = false;
 const version_name = '{$version_info['version']}-release';
+const contributors = " . json_encode($version_info['contributors']) . ";
 
 $res_android
 })()\"\"\")

@@ -261,6 +261,7 @@ input:checked+.slider:before {
     width: 240px;
     display: inline-block;
     margin-right: 15px;
+    margin-bottom: 8px;
 }
 
 .mod-custom-select select {
@@ -605,9 +606,8 @@ input:checked+.slider:before {
 #mod-background-type a {
     flex-grow: 1;
     text-align: center;
-    padding: 10px 0;
+    padding: 10px;
     cursor: pointer;
-    flex-wrap: wrap;
 }
 
 #mod-background-type a.active {
@@ -854,6 +854,93 @@ input[type="color"] {
 #mod-setting-panel>div>div>p {
     display: inline-block;
     max-width: calc(100% - 70px);
+}
+
+#nickname-wrapper>div,
+#username-wrapper>div {
+    display: flex;
+    margin-bottom: 10px;
+    gap: 15px;
+    row-gap: 2px;
+}
+
+#nickname-wrapper>div input,
+#username-wrapper>div input {
+    flex-grow: 1;
+}
+
+#nickname-wrapper>div>input:first-of-type,
+#username-wrapper>div>input:first-of-type {
+    width: 42%;
+}
+
+#nickname-wrapper>div>input:nth-child(2) {
+    width: 24%;
+}
+
+#mod-setting-panel {
+    position: absolute;
+    background: var(--bg-elevated-none);
+    top: 2px;
+    left: 0;
+    width: 100%;
+    height: fit-content;
+    padding: 0 30px;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+@media (max-width:550px) {
+    .mod-slider {
+        width: 100%;
+    }
+
+    #mod-setting-panel h3,
+    #mod-setting-panel div {
+        clear: both;
+    }
+
+    .mod-range-preview {
+        right: 15px;
+    }
+
+    input[type="range"] {
+        width: calc(100% - 50px) !important;
+    }
+
+    .mod-slider p:last-of-type {
+        height: 7px;
+        transform: translateY(-72px);
+        float: right;
+        margin: 0 !important;
+    }
+
+    .mod-slider input[type="range"] {
+        width: 100% !important;
+    }
+
+    #mod-grade-calculate input {
+        width: calc(100% - 30px) !important;
+        margin-bottom: 10px;
+    }
+
+    #nickname-wrapper input,
+    #username-wrapper input {
+        width: 100% !important;
+    }
+
+    #nickname-wrapper div,
+    #username-wrapper div {
+        flex-wrap: wrap;
+    }
+
+    .layout-container {
+        width: calc(50% - 20px) !important;
+    }
+}
+
+#grade-reveal-select {
+    margin-bottom: 20px;
 }
 
 @media (max-width:1300px) {
