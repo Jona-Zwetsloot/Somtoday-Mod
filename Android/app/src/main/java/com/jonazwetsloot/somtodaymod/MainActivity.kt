@@ -1134,13 +1134,13 @@ async function autoLogin() {
 
        await new Promise(resolve => setTimeout(resolve, 100));
 
-       if (!n(cn('button--stpanel primary-button', 0))) {
+       if (cn('button--stpanel primary-button', 0)) {
         cn('button--stpanel primary-button', 0).click();
     }
 
        const usernameField = await waitForElement('#usernameField');
 
-    if (!n(cn('feedbackPanelERROR', 0))) {
+    if (cn('feedbackPanelERROR', 0)) {
         set('logincredentialsincorrect', '1');
         return;
     } else if (!usernameField) {
@@ -1149,13 +1149,14 @@ async function autoLogin() {
 
        id('usernameField').value = get('loginname');
 
-    if (!n(id('passwordField'))) {
+    if (id('password-field')) {
                if (n(get('loginpass'))) {
+            console.log('pass is null');
             return;
         }
-        id('passwordField').value = get('loginpass');
+        id('password-field').value = get('loginpass');
     }
-       if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
+       if (cn('form--checkbox checkbox-label', 0) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
         cn('form--checkbox checkbox-label', 0).click();
     }
 
@@ -1167,7 +1168,7 @@ async function autoLogin() {
        cn('button--stpanel primary-button', 0).click();
 
              setTimeout(() => {
-        if (!n(cn('feedbackPanelERROR', 0))) {
+        if (cn('feedbackPanelERROR', 0)) {
             set('logincredentialsincorrect', '1');
         }
     }, 1000);
@@ -1177,7 +1178,7 @@ async function waitForPageLoad() {
     while ((storageMethod == 'extension' || storageMethod == 'indexedDB') && data == null) {
         await new Promise(resolve => setTimeout(resolve, 25));
     }
-    
+
        if (hasSettingsHash) {
         set('opensettingsIntention', '1');
     }

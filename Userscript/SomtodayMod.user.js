@@ -984,14 +984,14 @@ async function autoLogin() {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Proceed to next step
-    if (!n(cn('button--stpanel primary-button', 0))) {
+    if (cn('button--stpanel primary-button', 0)) {
         cn('button--stpanel primary-button', 0).click();
     }
 
     // Wait until username input field is loaded
     const usernameField = await waitForElement('#usernameField');
 
-    if (!n(cn('feedbackPanelERROR', 0))) {
+    if (cn('feedbackPanelERROR', 0)) {
         set('logincredentialsincorrect', '1');
         return;
     } else if (!usernameField) {
@@ -1001,15 +1001,16 @@ async function autoLogin() {
     // Fill in the username (and password if set)
     id('usernameField').value = get('loginname');
 
-    if (!n(id('passwordField'))) {
+    if (id('password-field')) {
         // If password is not set but password field is present, DO NOT click the login button!
         if (n(get('loginpass'))) {
+            console.log('pass is null');
             return;
         }
-        id('passwordField').value = get('loginpass');
+        id('password-field').value = get('loginpass');
     }
     // Remember username
-    if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
+    if (cn('form--checkbox checkbox-label', 0) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
         cn('form--checkbox checkbox-label', 0).click();
     }
 
@@ -1027,7 +1028,7 @@ async function autoLogin() {
     // We can't really wait for this easily without blocking, so we'll check once after a delay or let the page reload handle it.
     // The original code looped to check.
     setTimeout(() => {
-        if (!n(cn('feedbackPanelERROR', 0))) {
+        if (cn('feedbackPanelERROR', 0)) {
             set('logincredentialsincorrect', '1');
         }
     }, 1000);
@@ -1037,7 +1038,7 @@ async function waitForPageLoad() {
     while ((storageMethod == 'extension' || storageMethod == 'indexedDB') && data == null) {
         await new Promise(resolve => setTimeout(resolve, 25));
     }
-    
+
     // Remember to open settings if settings hash is present
     if (hasSettingsHash) {
         set('opensettingsIntention', '1');
