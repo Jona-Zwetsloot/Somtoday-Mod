@@ -81,7 +81,7 @@ function onload() {
     }
 
     function initTheme() {
-        const theme = get('theme');
+        const  = get('');
         if ((theme == 'light' || theme == 'dark' || theme == 'night') && get('autotheme') !== 'true') {
             const html = document.documentElement;
             html.classList.remove('light', 'dark', 'night');
@@ -6366,6 +6366,12 @@ function onload() {
             addTheme('Bergen en ruimte', '1624504', '6489a0', '6489a0', 50, true);
             addTheme('Stad', '2246476', '18202d', '18202d', 25, true);
             addTheme('Weg', '1820563', 'de3c22', 'de3c22', 65, true);
+            addTheme('Biljard', '6253916', '27f56c', '13bd4c', 65, true);
+            addTheme('Kirby', '28920045', 'fd4ff4', 'fd4ff4', 50, true);
+            addTheme('Weg 2.0', '34535324', 'EE8317', 'EE8317', 50, true);
+            addTheme('Ski`s', '257961', 'F71111', 'F71111', 50, true);
+            addTheme('Schaken', '277124', 'E8E8E8', '514642', 50, true);
+            addTheme('Kerstmis', '34539169', '11F711', 'F71111', 50, true);
             const isbackgroundvideo = get('isbackgroundvideo') && get('isbackgroundvideo') != 'false';
             id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
             id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
