@@ -1,3 +1,4 @@
+@layer mod-night {
 :root.night {
     --bg-mask-normal: rgba(0, 0, 0, 0.9);
     --shadow-color: rgba(0, 0, 0, 0.8);
@@ -187,6 +188,9 @@
     --border-color: var(--border-warning-strong) !important;
 }
 
+:root.night .icon.svg {
+    background-color: var(--bg-primary-weak) !important;
+}
 :root.night .week:not(sl-rooster-week) {
     background: transparent !important;
 }

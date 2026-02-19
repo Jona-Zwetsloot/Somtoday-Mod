@@ -2566,6 +2566,20 @@ function onload() {
         if (get('bools').charAt(BOOL_INDEX.MENU_PAGE_NAME) == '0') {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-header .item span{display:none !important;}@media (max-width:1279px){sl-tab-bar:first-of-type .item span{display:none !important;}' + ((get('layout') == 2 || get('layout') == 3 || get('layout') == 5) ? 'sl-tab-bar:first-of-type sl-tab-item i{padding-top:0!important}}sl-header .item i{padding-top:36px !important;}' : '}') + '</style>');
         }
+        // Custom CSS - inject at the end so it overrides mod and Somtoday CSS
+        if (!n(get('customcss')) && get('customcss').trim() !== '') {
+            // Sanitize CSS to prevent breaking out of style tag and potential code injection
+            let sanitizedCSS = get('customcss')
+                .replace(/<\/style>/gi, '')  // Remove </style> to prevent breaking out
+                .replace(/<script[\s\S]*?<\/script>/gi, '')  // Remove any script tags
+                .replace(/javascript:/gi, '')  // Remove javascript: URLs
+                .replace(/expression\(/gi, '')  // Remove CSS expressions (IE)
+                .replace(/behavior:/gi, '')  // Remove behavior property (IE)
+                .replace(/@import/gi, '');  // Remove @import to prevent loading external CSS
+            // Insert custom CSS without a layer so it has higher priority than mod's layered CSS
+            // Unlayered CSS always wins over layered CSS regardless of specificity or source order
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style mod-custom-css">' + sanitizedCSS + '</style>');
+        }
     }
 
     // Change some setting values to ensure the script will work after updating
@@ -6302,6 +6316,7 @@ function onload() {
                     addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) +
                     addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) +
                     addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
+                '{{customcss_setting}}': addSetting('Aangepaste CSS', 'Voer hier handmatige CSS in die de mod en Somtoday CSS overschrijft. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld:\nbody {\n    background: red;\n}\n*/', '15'),
                 '{{browser_settings}}': (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>'),
                 '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
@@ -6758,7 +6773,7 @@ function onload() {
         for (const element of cn('mod-custom-setting')) {
             if (element.type == 'checkbox' && element.id.indexOf('bools') != -1) {
                 set('bools', get('bools').replaceAt(parseInt(element.id.charAt(5) + element.id.charAt(6)), element.checked ? '1' : '0'));
-            } else if (element.type == 'checkbox' || element.type == 'range' || element.type == 'text' || element.type == 'password' || element.type == 'number' || element.type == 'color') {
+            } else if (element.type == 'checkbox' || element.type == 'range' || element.type == 'text' || element.type == 'password' || element.type == 'number' || element.type == 'color' || element.tagName.toLowerCase() == 'textarea') {
                 set(element.id, element.value);
             } else if (element.type == 'file') {
                 if (element.files.length != 0) {
@@ -7037,6 +7052,8 @@ function onload() {
             code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color"/></div>';
         } else if (type == 'file') {
             code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
+        } else if (type == 'textarea') {
+            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--bg-primary-weak);border-radius:6px;background:var(--bg-neutral-none);color:var(--fg-on-primary-weak);resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>';
         }
         return code;
     }
