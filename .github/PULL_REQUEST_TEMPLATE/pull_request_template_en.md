@@ -23,4 +23,4 @@ Describe how you tested the changes and on which browser/version.
 - [ ] I tested my changes locally
 - [ ] My changes work on all affected platforms listed above
 - [ ] I have not introduced any breaking changes
-- [ ] I have read the [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [ ] I have read the [CONTRIBUTING.md](/CONTRIBUTING.md)
