@@ -3,6 +3,24 @@ sl-studiewijzer-dag {
     position: relative;
 }
 
+/* Make studiewijzer items transparent based on user settings */
+sl-studiewijzer-item {
+    background: var(--mod-semi-transparant, var(--bg-elevated-weakest)) !important;
+}
+
+sl-studiewijzer-item:hover {
+    background: var(--mod-ui-transparent, var(--bg-elevated-weak)) !important;
+}
+
+/* Make description blocks transparent */
+.blok.omschrijving {
+    background: var(--mod-semi-transparant, var(--bg-elevated-weakest)) !important;
+}
+
+.blok.omschrijving:hover {
+    background: var(--mod-ui-transparent, var(--bg-elevated-weak)) !important;
+}
+
 @keyframes homeworkchecked {
     0% {
         margin-top: 32px;

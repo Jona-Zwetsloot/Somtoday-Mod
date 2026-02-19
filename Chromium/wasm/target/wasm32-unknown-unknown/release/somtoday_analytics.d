@@ -1,0 +1,1 @@
+/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/somtoday_analytics.wasm: /home/sultan/Somtoday-Mod/Chromium/wasm/src/grades.rs /home/sultan/Somtoday-Mod/Chromium/wasm/src/lib.rs /home/sultan/Somtoday-Mod/Chromium/wasm/src/predictions.rs /home/sultan/Somtoday-Mod/Chromium/wasm/src/statistics.rs
