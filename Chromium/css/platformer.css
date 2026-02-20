@@ -36,6 +36,7 @@ body.mod-game-playing,
     height: 100%;
     touch-action: none;
     user-select: none;
+    image-rendering: pixelated;
 }
 
 #mod-hud {

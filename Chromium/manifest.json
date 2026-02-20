@@ -22,7 +22,10 @@
         "scripts/wasm_analytics.js",
         "scripts/analytics_ui.js",
         "scripts/main_functions.js",
-        "scripts/execute_after_page_load.js"
+        "scripts/execute_after_page_load.js",
+        "scripts/legacy_platformer.js",
+        "scripts/platformer.js",
+        "scripts/grade_defender.js"
       ],
       "css": [
         "css/night.css",
@@ -30,7 +33,9 @@
         "css/somtoday-recap.css",
         "css/mod-settings.css",
         "css/custom-homework.css",
-        "css/platformer.css"
+        "css/platformer.css",
+        "css/legacy-platformer.css",
+        "css/minigames.css"
       ],
       "matches": [
         "*://*.somtoday.nl/*",

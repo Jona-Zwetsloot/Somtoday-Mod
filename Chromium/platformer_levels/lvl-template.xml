@@ -21,7 +21,7 @@
 -->
 <level
     title       = "Level 1 - Introductie"
-    song        = "sounds/carefree.mp3"
+    song        = "sounds/lvl0.mp3"
     worldWidth  = "5000"
     worldHeight = "1600"
     spawnX      = "60"
@@ -104,6 +104,17 @@
     width, height = platform dimensions.
   -->
   <movingPlatformRight y="400" startX="2700" endX="3200" width="140" height="20"/>
+
+  <!-- COINS - lets you earn coins in the level
+    x, y = bottom-left corner.
+    r   = radius in pixels.
+  -->
+  <coin x="200" y="100" r="14" />
+
+  <!-- CHECKPOINTS - lets you set a checkpoint in the level
+    x, y = bottom-left corner
+  -->
+  <checkpoint x="200" y="100" />
 
   <!--
     END-SCREEN BUTTONS (optional – override default text)

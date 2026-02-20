@@ -1,23 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level
 	title       = "Level 1 - Onder de grond"
-	song        = "sounds/carefree.mp3"
-	worldWidth  = "1200"
+	song        = "lvl0"
+	worldWidth  = "10000"
 	worldHeight = "1600"
 	spawnX      = "90"
-	spawnY      = "540"
-	flagX       = "1100"
+	spawnY      = "650"
+	flagX       = "2000"
 	flagY       = "0">
-	<floor x="0"    y="0"   width="1200" height="20"/>
+	<description>Zoek de uitgang naar boven</description>
+
+	<!-- FIRST PART OF LEVEL -->
+
+	<!-- Floor -->
+	<floor x="0" y="0" width="300" height="60" texture="platformer_textures/lvl-0/bricks-start.png"/>
+  	<lava x="300" y="0" width="200" height="40"/>
+	<text x="400" y="160">Raak niet de <b><o>lava</o></b> aan</text>
+	<floor x="500" y="0" width="600" height="60" texture="platformer_textures/lvl-0/bricks-second.png"/>
+
+	<wall x="50" y="-350" width="700" height="500" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="300" y="0" width="200" height="40" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="260" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
+	<wall x="500" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
 
 	<!-- BLOCK -->
-	<wall x="0"  y="600"  width="600"  height="800" texture="platformer_textures/dirt.png"/>
+	<wall x="0"  y="600"  width="60"  height="800" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<floor x="170"  y="600"  width="430"  height="130" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="170"  y="730"  width="430"  height="200" ghost="true"/>
+	<floor x="170"  y="930"  width="430"  height="470" texture="platformer_textures/lvl-0/dirt.png"/>
 
 	<!-- PIPE -->
-	<wall x="60"  y="400"  width="20"  height="200" texture="platformer_textures/pipe-wall.png"/>
-	<wall x="40"  y="380"  width="40"  height="20" texture="platformer_textures/pipe-wall.png"/>
-	<wall x="150"  y="400"  width="20"  height="200" texture="platformer_textures/pipe-wall.png"/>
-	<wall x="150"  y="380"  width="40"  height="20" texture="platformer_textures/pipe-wall.png"/>
-	<wall x="80"  y="380"  width="70"  height="220" ghost="true" texture="platformer_textures/pipe-inside.png"/>
+	<wall x="80"  y="380"  width="70"  height="1020" ghost="true" texture="platformer_textures/lvl-0/pipe-inside.png" textureMode="stretch"/>
+
+	<wall x="60"  y="400"  width="20"  height="1000" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+	<wall x="40"  y="380"  width="40"  height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+
+	<wall x="150"  y="400"  width="20"  height="1000" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+	<wall x="150"  y="380"  width="40"  height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+
+	<!-- FLOOR -->
+	<floor x="1106" y="0" width="394" height="60"/>
+
+	<!-- LAVA -->
+  	<lava x="1500" y="0" width="1200" height="40"/>
+
+	<wall x="1300" y="-350" width="2000" height="500" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="1500" y="0" width="1200" height="40" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="1460" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
+	
+
+	<!-- FIRST OBSTACLE -->
+	<floor x="700"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+	<floor x="749"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+	<floor x="749"  y="109"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<floor x="847"  y="60"  width="49"  height="147"/>
+	<floor x="896"  y="158"  width="49"  height="49"/>
+
+	<coin x="749" y="340" />
+
+	<floor x="1106"  y="60"  width="49"  height="147"/>
+
+	<wall x="847" y="0" width="49" height="109" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
+	<wall x="847" y="109" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading-right.png" textureMode="stretch"/>
+
+	<wall x="1106" y="0" width="49" height="109" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
+	<wall x="1106" y="109" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading-left.png" textureMode="stretch"/>
+
+  	<lava x="896" y="0" width="210" height="109"/>
+	<wall x="896" y="0" width="210" height="109" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="760" y="-20" width="400" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+
+	<!-- LADDER UP -->
+	<wall x="1300" y="60" width="20" height="500" ghost="true"/>
+	<wall x="1400" y="60" width="20" height="500" ghost="true"/>
+
+	<floor x="1300" y="120" width="120" height="20" oneWay="true" />
+	<floor x="1300" y="220" width="120" height="20" oneWay="true" />
+	<floor x="1300" y="320" width="120" height="20" oneWay="true" />
+	<floor x="1300" y="420" width="120" height="20" oneWay="true" />
+	<floor x="1300" y="520" width="120" height="20" oneWay="true" />
+
+	<coin x="1360" y="630" />
+
+	<!-- FLOATING PLATFORMS -->
+	<floor x="1150" y="530" width="150" height="30"/>
+
+	<text x="950" y="700">Spring wanneer je een <b><y>orb</y></b> aanraakt</text>
+  	<orb x="950" y="600" strength="2.5"/>
+	<floor x="600" y="700" width="150" height="30"/>
+
+	<!-- PORTAL TO NEXT PART OF LEVEL -->
+	<portal x="500"  y="730"  width="1"  height="200" portal-id="1" to-portal-id="2"/>
+
+	<!-- SECOND PART OF LEVEL -->
+
+	<!-- PORTAL TO FIRST PART OF LEVEL -->
+	<portal x="7000"  y="60"  width="1"  height="200" portal-id="2" to-portal-id="1"/>
+
+	<!-- FLOOR -->
+	<floor x="6700" y="0" width="600" height="60"/>
+
+	<!-- CHECKPOINT -->
+  	<checkpoint x="6800" y="60" />
 
 </level>
