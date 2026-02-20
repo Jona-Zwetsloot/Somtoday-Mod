@@ -3,405 +3,654 @@
 function errorPage() {
     if (!n(tn('hmy-button', 0))) {
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
-        id('mod-play-game').addEventListener('click', function () {
+        id('mod-play-game').addEventListener('click', async function () {
             tn('body', 0).classList.add('mod-game-playing');
-            const svg = tn('sl-error-image', 0).getElementsByTagName('svg')[0];
-            tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-game"><p id="mod-playtime"></p><p id="mod-close-button">&times;</p><div id="mod-basefloor"></div><div id="mod-player-container"><svg id="mod-flag-end" viewBox="0 0 147.6 250.5"><defs><linearGradient x1="154.8" y1="129.9" x2="287" y2="129.9" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="#ca0000"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-width="0" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m155 76 132 54-132 54z" data-paper-data="{&quot;index&quot;:null}" fill="url(#a)" transform="translate(-139 -56)"/><path d="M5 244V14h11v230z" fill="#ffad66"/><path d="M22 10a11 11 0 1 1-22 2 11 11 0 0 1 22-2zm-6 235a5 5 0 1 1-11 0 5 5 0 0 1 11 0z" fill="#ffad66"/></g></svg><svg id="mod-player" viewBox="0 0 49 49"><rect id="mod-player-rect" x="0" y="39" width="49" height="10" fill="transparent"></rect><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="var(--bg-primary-normal)" /></svg>' +
-                '<div id="mod-level-0" class="mod-level" data-title="Je hebt de geheime kamer gevonden!" data-description="Druk op <i>pijl omlaag</i> of <i>S</i> om laag te blijven" data-right="5" data-bottom="2"><svg style="position:absolute;top:0;right:5%;transform:rotate(195deg);width:200px;" viewBox="0 0 333 303"><g><path d="M101 64V0h232v64H131l-30 28z" fill="#fff"></path><path d="M46 291v-71h27v71z" fill="#4750ff"></path><path d="M86 290c0 6-9 11-20 11s-20-5-20-11c0-7 9-12 20-12s20 5 20 12z" fill="#4750ff"></path><path d="M17 292v-70h27v70z" fill="#636cff"></path><path d="M57 291c0 7-9 12-20 12s-20-5-20-12c0-6 9-11 20-11s20 5 20 11z" fill="#636cff"></path><path d="M92 194c0 28-20 50-44 50-25 0-45-22-45-50s20-50 45-50c24 0 44 22 44 50z" fill="#55b1ff"></path><path d="M56 81c0 10-9 18-19 18-11 0-20-8-20-18s9-18 20-18c10 0 19 8 19 18z" fill="#c17100"></path><path d="M93 118c0 24-20 43-45 43-24 0-44-19-44-43s20-43 44-43c25 0 45 19 45 43z" fill="#ff9898"></path><path d="M79 107c0 5-4 9-9 9-4 0-8-4-8-9s4-9 8-9c5 0 9 4 9 9z" fill="#fff"></path><path d="M76 107c0 2-2 4-4 4-1 0-3-2-3-4s2-3 3-3c2 0 4 1 4 3z"></path><path d="M39 88c0 10-9 18-20 18-10 0-19-8-19-18 0-9 9-17 19-17 11 0 20 8 20 17z" fill="#d47b00"></path><path d="M82 102 64 91l2-3 17 12z"></path><path d="m59 188 51-66 16 12-51 66z" fill="#55b1ff"></path><path d="M135 129c-5 6-14 8-21 3-6-5-7-14-2-21 5-6 14-7 21-3 6 5 7 14 2 21z" fill="#ffa9a9"></path><path d="m71 137 8-7 11 3-1 3z"></path><text transform="translate(136 26) scale(.43897)" font-size="40" font-family="sans-serif"><tspan x="0" dy="0">Kom hier,</tspan><tspan x="0" dy="46">jij schobbejak!</tspan></text></g></svg><div class="mod-trampoline" style="width:100%;bottom:0;" data-strength="1.45"></div><div class="mod-lava" style="width:100%;bottom:98%;"></div></div>' +
-                '<div id="mod-level-1" class="mod-level mod-active-level" data-title="Somtoday Platformer" data-description="Een van je docenten achtervolgt je omdat je je huiswerk niet hebt gemaakt. Ren gauw weg!" data-right="5" data-bottom="0"></div>' +
-                '<div id="mod-level-2" class="mod-level" data-title="Spring naar de top" data-right="5" data-bottom="34"><div class="mod-floor" style="width:20%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:21%;left:50%;"></div><div class="mod-floor" style="width:20%;bottom:32%;left:80%;"></div></div>' +
-                '<div id="mod-level-3" class="mod-level" data-title="Val niet in de lava" data-right="5" data-bottom="0"><div class="mod-lava" style="width:23%;bottom:0;left:40%;"></div><div class="mod-floor" style="width:15%;bottom:10%;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:20%;left:0%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:20%;"></div></div>' +
-                '<div id="mod-level-4" class="mod-level" data-title="Trampolines!" data-right="5" data-bottom="69"><div class="mod-trampoline" style="width:15%;bottom:0;left:20%;"></div><div class="mod-floor" style="width:15%;bottom:30%;left:35%;"></div><div class="mod-trampoline" style="width:15%;bottom:30%;left:50%;"></div><div class="mod-floor" style="width:15%;bottom:56%;left:65%;"></div><div class="mod-floor" style="width:20%;bottom:67%;left:80%;"></div></div>' +
-                '<div id="mod-level-5" class="mod-level" data-title="Wat een groot lava-blok!" data-right="5" data-bottom="77"><div class="mod-trampoline" style="width:12.5%;bottom:0;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:29%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:46%;left:0;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:12.5%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:45%;"></div><div class="mod-floor" style="width:12.5%;bottom:64%;left:75%;"></div><div class="mod-floor" style="width:12.5%;bottom:75%;left:87.5%;"></div><div class="mod-lava" style="width:50%;bottom:0;left:25%;height:64%;"></div></div>' +
-                '<div id="mod-level-6" class="mod-level" data-title="Pas op voor onvoldoendes" data-right="5" data-bottom="0"><div class="mod-trampoline" style="width:15%;bottom:0;left: 10%;"></div><div class="mod-enemy" data-x="50" style="bottom:0;left:50%;"></div><div class="mod-enemy" data-x="75" style="bottom:0;left:75%;"></div></div>' +
-                '<div id="mod-level-7" class="mod-level" data-title="Wow! Je bent al bij level 7!" data-right="5" data-bottom="0"><div class="mod-enemy" data-x="50" data-min="14" style="bottom:0;left:50%;"></div><div class="mod-wall" style="bottom:0;left:12.5%;height:13%;"></div><div class="mod-wall" style="bottom:13%;left:75%;height:100%;"></div><div class="mod-floor" style="width:20%;bottom:13%;left:12.5%;"></div><div class="mod-floor" style="width:35%;bottom:13%;left:40%;"></div></div>' +
-                '<div id="mod-level-8" class="mod-level" data-title="Soms moet je gewoon snel zijn" data-left="5" data-bottom="85"><div class="mod-lava" style="width:10%;bottom:72%;left:30%;"></div><div class="mod-lava" style="width:10%;bottom:72%;left:60%;"></div><div class="mod-enemy" style="bottom:38%;left:40%;" data-x="40" data-max="40" data-min="15"></div><div class="mod-trampoline" style="width:15%;bottom:38%;left:85%;"></div><div class="mod-floor" style="width:70%;bottom:70%;left:15%;"></div><div class="mod-floor" style="width:80%;bottom:18%;left:0;"></div><div class="mod-enemy" style="bottom:20%;left:55%;" data-x="55" data-max="55"></div><div class="mod-floor" style="width:30%;bottom:36%;left:70%;"></div><div class="mod-floor" style="width:30%;bottom:36%;left:15%;"></div><div class="mod-floor" style="width:28%;bottom:49%;left:44%;"></div><div class="mod-floor" style="width:17%;bottom:83%;left:0;"></div><div class="mod-wall" style="bottom:36%;left:44%;height:13%;"></div><div class="mod-wall" style="bottom:70%;left:15%;height:13%;"></div><div class="mod-wall" style="bottom:36%;left:70%;height:13%;"></div></div>' +
-                '<div id="mod-level-9" class="mod-level" data-title="Stap op de bewegende platforms" data-right="5" data-bottom="60"><div class="mod-lava" style="width:60%;bottom:0;left:40%;"></div><div class="mod-moving-platform-up" data-bottom="0" data-direction="up" style="left:20%;bottom:0;top:42%;right:65%;"><div class="mod-floor mod-platform"></div></div><div class="mod-moving-platform-right" data-right="0" data-direction="left" style="left:35%;top:40%;right:20%;"><div class="mod-floor"></div></div><div class="mod-floor" style="width:15%;bottom:58%;left:85%;"></div></div>' +
-                '<div id="mod-level-10" class="mod-level" data-title="" data-right="40" data-bottom="80"><h1 class="mod-floor" style="width:50%;left:25%;">Laatste level!</h1><div class="mod-floor" style="width:20%;bottom:15%;left:20%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:0;"></div><div class="mod-floor" style="width:20%;bottom:15%;left:60%;"></div><div class="mod-floor" style="width:20%;bottom:34%;left:80%;"></div><div class="mod-floor" style="width:20%;bottom:78%;left:50%;"></div><div class="mod-trampoline" style="width:10%;bottom:54%;left:30%;"></div></div>' +
-                '<div id="mod-level-11" class="mod-level" data-title="Gefeliciteerd" data-description="Je bent succesvol ontsnapt aan de docent!" data-right="-5" data-bottom="-5"><a id="mod-play-again" style="bottom:20%;">Nog een keer spelen</a><a id="mod-close-game" style="bottom:10%;">Spel sluiten</a></div>' +
-                '<h1 id="mod-h1-header"></h1><h3 id="mod-h3-header"></h3></div></div>');
 
-            let detectOverlap = (function () {
-                function getPositions(elem) {
-                    const pos = elem.getBoundingClientRect();
-                    return [[pos.left, pos.right], [pos.top, pos.bottom]];
-                }
+            tn('body', 0).insertAdjacentHTML('beforeend', `
+<div id="mod-game">
+  <canvas id="mod-canvas"></canvas>
+  <div id="mod-hud">
+    <span id="mod-playtime"></span>
+    <span id="mod-level-title"></span>
+    <span id="mod-close-button">&times;</span>
+  </div>
+  <div id="mod-mobile-controls">
+    <button id="mod-btn-left">&#9664;</button>
+    <button id="mod-btn-jump">&#9650;</button>
+    <button id="mod-btn-right">&#9654;</button>
+  </div>
+</div>`);
 
-                function comparePositions(p1, p2) {
-                    let r1, r2;
-                    if (p1[0] < p2[0]) {
-                        r1 = p1;
-                        r2 = p2;
-                    } else {
-                        r1 = p2;
-                        r2 = p1;
-                    }
-                    return r1[1] > r2[0] || r1[0] === r2[0];
-                }
+            const canvas = id('mod-canvas');
+            const ctx    = canvas.getContext('2d');
 
-                return function (a, b) {
-                    const pos1 = getPositions(a),
-                        pos2 = getPositions(b);
-                    return comparePositions(pos1[0], pos2[0]) && comparePositions(pos1[1], pos2[1]);
+            function resizeCanvas() {
+                canvas.width  = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            function isMobile() {
+                return ('ontouchstart' in window) || window.innerWidth < 700;
+            }
+            function updateMobileVis() {
+                id('mod-mobile-controls').style.display = isMobile() ? 'flex' : 'none';
+            }
+            updateMobileVis();
+            window.addEventListener('resize', updateMobileVis);
+
+            let currentAudio = null;
+            function playLevelMusic(src) {
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                if (!src) return;
+                try {
+                    currentAudio = new Audio(chrome.runtime.getURL(src));
+                    currentAudio.loop   = true;
+                    currentAudio.volume = 0.5;
+                    currentAudio.play().catch(() => {});
+                } catch(e) {}
+            }
+            function stopMusic() {
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+            }
+
+            const textureCache = {};
+            async function loadTexture(src) {
+                if (!src) return null;
+                if (textureCache[src]) return textureCache[src];
+                return new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const pat = ctx.createPattern(img, 'repeat');
+                        textureCache[src] = pat;
+                        resolve(pat);
+                    };
+                    img.onerror = () => resolve(null);
+                    img.src = chrome.runtime.getURL(src);
+                });
+            }
+
+            function parseLvl(doc, idx) {
+                const el     = doc.querySelector('level');
+                const descEl = el.querySelector('description');
+                const lvl = {
+                    index:       idx,
+                    title:       el.getAttribute('title')      || `Level ${idx + 1}`,
+                    description: descEl ? descEl.textContent   : '',
+                    song:        el.getAttribute('song')       || null,
+                    worldWidth:  parseFloat(el.getAttribute('worldWidth'))  || 3000,
+                    worldHeight: parseFloat(el.getAttribute('worldHeight')) || 1400,
+                    spawnX:      parseFloat(el.getAttribute('spawnX'))      || 60,
+                    spawnY:      parseFloat(el.getAttribute('spawnY'))      || 120,
+                    flagX:       parseFloat(el.getAttribute('flagX'))       || 2900,
+                    flagY:       parseFloat(el.getAttribute('flagY'))       || 120,
+                    floors:      [], walls:   [], lavas:    [],
+                    trampolines: [], enemies: [], orbs:     [],
+                    mpUp:        [], mpRight: [],
+                    playAgainText: 'Opnieuw spelen',
+                    closeGameText: 'Sluiten',
                 };
-            })();
-
-            const player = id('mod-player');
-            const playerRect = id('mod-player-rect');
-            let positionX = 2;
-            let positionY = 0;
-            let velocityX = 0;
-            let velocityY = 0;
-            let onGround = true;
-            let floorElements;
-            let wallElements;
-            let lavaElements;
-            let trampolineElements;
-            let enemyElements;
-            let movingPlatformsUp;
-            let movingPlatformsRight;
-            var pressedKeys = {};
-            let windowWidth = document.documentElement.clientWidth;
-            let windowHeight = document.documentElement.clientHeight - 100;
-            let level = 1;
-            let activeLevel;
-            for (const element of cn('mod-enemy')) {
-                element.dataset.start = element.dataset.x;
-                const numOne = Math.floor(Math.random() * (5) + 1);
-                let numTwo = Math.floor(Math.random() * (10));
-                if (numOne == 5 && numTwo >= 5) {
-                    numTwo = 4;
+                for (const c of el.children) {
+                    const tag     = c.tagName;
+                    if (tag === 'description') continue;
+                    const x       = parseFloat(c.getAttribute('x'))       || 0;
+                    const y       = parseFloat(c.getAttribute('y'))       || 0;
+                    const w       = parseFloat(c.getAttribute('width'))    || 100;
+                    const h       = parseFloat(c.getAttribute('height'))   || 20;
+                    const ghost   = c.getAttribute('ghost')   === 'true';
+                    const texture = c.getAttribute('texture') || null;
+                    if (tag === 'floor')      lvl.floors.push({ x, y, w, h, ghost, texture, pat: null });
+                    else if (tag === 'wall')  lvl.walls.push({ x, y, w, h, ghost, texture, pat: null });
+                    else if (tag === 'lava')  lvl.lavas.push({ x, y, w, h, ghost, texture, pat: null });
+                    else if (tag === 'trampoline') lvl.trampolines.push({ x, y, w, h, ghost, texture, pat: null, strength: parseFloat(c.getAttribute('strength')) || 2.5 });
+                    else if (tag === 'enemy') {
+                        const mn = c.getAttribute('min') !== null ? parseFloat(c.getAttribute('min')) : null;
+                        const mx = c.getAttribute('max') !== null ? parseFloat(c.getAttribute('max')) : null;
+                        const n1 = Math.floor(Math.random() * 5) + 1;
+                        let   n2 = Math.floor(Math.random() * 10);
+                        if (n1 === 5 && n2 >= 5) n2 = 4;
+                        lvl.enemies.push({ x, y, w: 50, h: 50, startX: x, min: mn, max: mx, label: `${n1},${n2}`, ghost, texture, pat: null });
+                    }
+                    else if (tag === 'orb') lvl.orbs.push({ x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, pat: null });
+                    else if (tag === 'movingPlatformUp') {
+                        const sy = parseFloat(c.getAttribute('startY')) || y;
+                        const ey = parseFloat(c.getAttribute('endY'))   || y + 300;
+                        lvl.mpUp.push({ x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, texture, pat: null });
+                    }
+                    else if (tag === 'movingPlatformRight') {
+                        const sx = parseFloat(c.getAttribute('startX')) || x;
+                        const ex = parseFloat(c.getAttribute('endX'))   || x + 300;
+                        lvl.mpRight.push({ y, w, h, startX: sx, endX: ex, cx: sx, dir: 1, ghost, texture, pat: null });
+                    }
+                    else if (tag === 'playAgainButton') lvl.playAgainText = c.textContent || lvl.playAgainText;
+                    else if (tag === 'closeGameButton') lvl.closeGameText = c.textContent || lvl.closeGameText;
                 }
-                element.innerHTML = '<p>' + numOne.toString() + ',' + numTwo.toString() + '</p>';
+                return lvl;
             }
 
-            let time = 0;
-            let timer;
-            setTimeInterval();
-            function setTimeInterval() {
-                setTime();
-                timer = setInterval(function () {
-                    time++;
-                    setTime();
-                }, 1000);
+            async function loadLevelTextures(lvl) {
+                const all = [...lvl.floors, ...lvl.walls, ...lvl.lavas, ...lvl.trampolines,
+                             ...lvl.enemies, ...lvl.orbs, ...lvl.mpUp, ...lvl.mpRight];
+                await Promise.all(all.map(async obj => {
+                    if (obj.texture) obj.pat = await loadTexture(obj.texture);
+                }));
             }
 
-            function setTime() {
-                if (!n(id('mod-playtime'))) {
-                    if (n(get('gamerecord'))) {
-                        id('mod-playtime').innerHTML = 'Tijd: ' + time + 's';
-                    }
-                    else {
-                        id('mod-playtime').innerHTML = 'Tijd: ' + time + 's, ' + 'record: ' + get('gamerecord') + 's';
-                    }
-                }
+            const levels = [];
+            const parser = new DOMParser();
+            for (let i = 0; ; i++) {
+                try {
+                    const resp = await fetch(chrome.runtime.getURL(`platformer_levels/lvl-${i}.xml`));
+                    if (!resp.ok) break;
+                    const xml = parser.parseFromString(await resp.text(), 'text/xml');
+                    if (xml.querySelector('parsererror')) break;
+                    const lvl = parseLvl(xml, i);
+                    await loadLevelTextures(lvl);
+                    levels.push(lvl);
+                } catch(e) { break; }
             }
 
-            function openLevel(number) {
-                level = number;
-                activeLevel = id('mod-level-' + level.toString());
-                if (number == 11) {
-                    if (!n(timer)) {
-                        clearInterval(timer);
-                    }
-                    if (n(get('gamerecord')) || time < get('gamerecord')) {
-                        set('gamerecord', time);
-                    }
-                }
-                if (n(activeLevel)) {
-                    tn('body', 0).classList.remove('mod-game-playing');
-                    // Reset error page SVG if it exists
-                    if (!n(tn('sl-error-image', 0)) && !n(tn('sl-error-image', 0).getElementsByTagName('svg')[0])) {
-                        const errorSvg = tn('sl-error-image', 0).getElementsByTagName('svg')[0];
-                        errorSvg.style.marginTop = '';
-                        errorSvg.style.transform = '';
-                    }
-                    if (!n(updateGame)) {
-                        clearInterval(updateGame);
-                    }
-                    if (!n(timer)) {
-                        clearInterval(timer);
-                    }
-                    setTimeout(function () {
-                        if (!n(id('mod-game'))) {
-                            id('mod-game').remove();
-                        }
-                    }, 320);
-                    return;
-                }
-                floorElements = activeLevel.getElementsByClassName('mod-floor');
-                wallElements = activeLevel.getElementsByClassName('mod-wall');
-                lavaElements = activeLevel.getElementsByClassName('mod-lava');
-                trampolineElements = activeLevel.getElementsByClassName('mod-trampoline');
-                enemyElements = activeLevel.getElementsByClassName('mod-enemy');
-                movingPlatformsUp = activeLevel.getElementsByClassName('mod-moving-platform-up');
-                movingPlatformsRight = activeLevel.getElementsByClassName('mod-moving-platform-right');
-                id('mod-h1-header').innerHTML = activeLevel.dataset.title;
-                if (!n(activeLevel.dataset.description)) {
-                    id('mod-h3-header').innerHTML = activeLevel.dataset.description;
-                }
-                else {
-                    id('mod-h3-header').innerHTML = '';
-                }
-                cn('mod-active-level', 0).classList.remove('mod-active-level');
-                activeLevel.classList.add('mod-active-level');
-                if (n(activeLevel.dataset.left)) {
-                    id('mod-flag-end').style.left = '';
-                    id('mod-flag-end').style.right = activeLevel.dataset.right + '%';
-                }
-                else {
-                    id('mod-flag-end').style.right = '';
-                    id('mod-flag-end').style.left = activeLevel.dataset.left + '%';
-                }
-                id('mod-flag-end').style.bottom = activeLevel.dataset.bottom + '%';
-                positionX = 2;
-                positionY = 0;
-                velocityX = 0;
-                velocityY = 0;
-                onGround = true;
+            const PW = 49, PH = 49;
+            const GRAV      = 1800;
+            const JUMP_V    = 620;
+            const SPEED     = 300;
+            const MAX_FALL  = -1400;
+            const FLAG_W    = 14, FLAG_H = 80;
+
+            let lvl        = null;
+            let lvlIdx     = 0;
+            let px, py, vx = 0, vy = 0;
+            let onGround   = false;
+            let phase      = 'playing';
+            let camX = 0, camY = 0;
+            let elapsed    = 0;
+            let timing     = false;
+            let jumpQ      = false;
+            let jumpAnim   = 0, landAnim = 0;
+            let gameAlive  = true;
+            const KEY = {};
+
+            let mLeft = false, mRight = false, mJump = false;
+
+            document.addEventListener('keydown', e => {
+                if (['ArrowDown','ArrowUp','Space'].includes(e.code)) e.preventDefault();
+                KEY[e.code] = true;
+                if (['ArrowUp','KeyW','Space'].includes(e.code)) jumpQ = true;
+            });
+            document.addEventListener('keyup', e => { KEY[e.code] = false; });
+
+            function mBtn(btnId, onD, onU) {
+                const b = id(btnId); if (!b) return;
+                ['touchstart','mousedown'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onD(); }));
+                ['touchend','mouseup','touchcancel','mouseleave'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onU(); }));
+            }
+            mBtn('mod-btn-left',  () => mLeft  = true,                    () => mLeft  = false);
+            mBtn('mod-btn-right', () => mRight = true,                    () => mRight = false);
+            mBtn('mod-btn-jump',  () => { mJump = true; jumpQ = true; },  () => mJump  = false);
+
+            id('mod-close-button').addEventListener('click', endGame);
+
+            function hit(ax, ay, aw, ah, bx, by, bw, bh) {
+                return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
             }
 
-            openLevel(1);
+            function loadLvl(idx) {
+                if (idx >= levels.length) { winGame(); return; }
+                lvlIdx = idx;
+                lvl    = levels[idx];
+                for (const mp of lvl.mpUp)    { mp.cy = mp.startY; mp.dir = 1; }
+                for (const mp of lvl.mpRight) { mp.cx = mp.startX; mp.dir = 1; }
+                for (const orb of lvl.orbs)   { orb.actTimer = 0; }
+                for (const en  of lvl.enemies){ en.x = en.startX; }
+                px = lvl.spawnX; py = lvl.spawnY;
+                vx = 0; vy = 0; onGround = false;
+                phase = 'playing';
+                jumpAnim = 0; landAnim = 0;
+                camX = Math.max(0, px - canvas.width / 2);
+                camY = Math.max(0, lvl.worldHeight - py - canvas.height / 2);
+                id('mod-level-title').textContent = lvl.title;
+                playLevelMusic(lvl.song);
+            }
 
-            id('mod-close-game').addEventListener('click', function () { openLevel(12); });
-            id('mod-close-button').addEventListener('click', function () { openLevel(12); });
-            id('mod-play-again').addEventListener('click', function () { time = 0; setTimeInterval(); openLevel(1); });
+            function winGame() {
+                phase = 'win';
+                timing = false;
+                stopMusic();
+                const prev = get('gamerecord');
+                if (n(prev) || elapsed < parseFloat(prev)) set('gamerecord', elapsed.toFixed(1));
+            }
 
-            document.addEventListener('keyup', function (e) { pressedKeys[e.keyCode] = false; });
-            document.addEventListener('keydown', function (e) { if (e.keyCode == 40) { e.preventDefault(); } pressedKeys[e.keyCode] = true; });
+            function endGame() {
+                gameAlive = false;
+                stopMusic();
+                window.removeEventListener('resize', resizeCanvas);
+                window.removeEventListener('resize', updateMobileVis);
+                tn('body', 0).classList.remove('mod-game-playing');
+                setTimeout(() => { const g = id('mod-game'); if (g) g.remove(); }, 320);
+            }
 
-            let touchX;
-            let touchY;
-            let isTouching = false;
-            document.addEventListener('touchstart', function (e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
-            document.addEventListener('touchmove', function (e) { isTouching = true; const touch = e.touches[0] || e.changedTouches[0]; touchX = touch.pageX; touchY = touch.pageY; });
-            document.addEventListener('touchend', function (e) { isTouching = false; });
-            document.addEventListener('touchcancel', function (e) { isTouching = false; });
+            function updateCam() {
+                const tx = px + PW / 2 - canvas.width  * 0.4;
+                const ty = lvl.worldHeight - py - PH / 2 - canvas.height / 2;
+                camX += (tx - camX) * 0.1;
+                camY += (ty - camY) * 0.1;
+                camX = Math.max(0, Math.min(camX, lvl.worldWidth  - canvas.width));
+                camY = Math.max(0, Math.min(camY, lvl.worldHeight - canvas.height));
+            }
 
+            function wx(x) { return x - camX; }
+            function wy(y, h) { return lvl.worldHeight - y - h - camY; }
 
-            document.addEventListener('mousedown', function (e) { isTouching = true; touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mousemove', function (e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseover', function (e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseenter', function (e) { touchX = e.clientX; touchY = e.clientY; });
-            document.addEventListener('mouseup', function (e) { isTouching = false; });
-            document.addEventListener('mouseleave', function (e) { isTouching = false; });
+            function update(dt) {
+                if (phase !== 'playing') return;
 
-            document.addEventListener('resize', function () { windowWidth = document.documentElement.clientWidth; windowHeight = document.documentElement.clientHeight; });
+                const goLeft  = mLeft  || KEY['ArrowLeft']  || KEY['KeyA'];
+                const goRight = mRight || KEY['ArrowRight'] || KEY['KeyD'];
 
-            // Handle movement
-            const updateGame = setInterval(function () {
-                const boundingRect = player.getBoundingClientRect();
-                // Up
-                if ((isTouching && touchY < boundingRect.top - 100) || pressedKeys[38] || pressedKeys[87]) {
-                    if (onGround) {
-                        for (const element of movingPlatformsUp) {
-                            if (element.dataset.direction == 'up' && detectOverlap(playerRect, element.children[0])) {
-                                velocityY += 0.7;
-                                positionY += 0.7;
-                            }
-                        }
-                        velocityY += 1.7;
-                        onGround = false;
-                        positionY += 0.3;
-                        player.style.bottom = positionY + '%';
-                    }
-                }
-                // Down
-                if ((isTouching && touchY > boundingRect.top + 100) || pressedKeys[40] || pressedKeys[83]) {
-                    velocityY -= 0.2;
-                }
-                // Right
-                if ((isTouching && touchX > boundingRect.left + 100) || pressedKeys[39] || pressedKeys[68]) {
-                    velocityX += 0.055;
-                }
-                // Left
-                if ((isTouching && touchX < boundingRect.left - 100) || pressedKeys[37] || pressedKeys[65]) {
-                    velocityX -= 0.055;
-                }
-                if (velocityX > 1) {
-                    velocityX = 1;
-                }
-                if (velocityX < -1) {
-                    velocityX = -1;
-                }
-                for (const element of movingPlatformsUp) {
-                    if (element.dataset.direction == 'up') {
-                        const newValue = parseFloat(element.dataset.bottom) + 0.5;
-                        element.dataset.bottom = newValue;
-                        element.children[0].style.bottom = newValue.toString() + '%';
-                        if (newValue >= 100) {
-                            element.dataset.direction = 'down';
-                        }
-                        if (detectOverlap(playerRect, element.children[0])) {
-                            positionY += element.clientHeight / 100 * 0.5 / windowHeight;
-                            onGround = true;
-                        }
-                    }
-                    else {
-                        const newValue = parseFloat(element.dataset.bottom) - 0.5;
-                        element.dataset.bottom = newValue;
-                        element.children[0].style.bottom = newValue.toString() + '%';
-                        if (newValue <= 0) {
-                            element.dataset.direction = 'up';
-                        }
-                        if (detectOverlap(playerRect, element.children[0])) {
-                            positionY -= element.clientHeight / 100 * 0.5 / windowHeight;
-                            onGround = true;
-                        }
-                    }
-                }
-                for (const element of movingPlatformsRight) {
-                    if (element.dataset.direction == 'left') {
-                        const newValue = parseFloat(element.dataset.right) + 0.4;
-                        element.dataset.right = newValue;
-                        element.children[0].style.right = newValue.toString() + '%';
-                        if (newValue >= 100) {
-                            element.dataset.direction = 'right';
-                        }
-                        if (detectOverlap(playerRect, element.children[0])) {
-                            positionX -= element.clientWidth / 100 * 0.4 / windowWidth * 100;
-                            onGround = true;
-                        }
-                    }
-                    else {
-                        const newValue = parseFloat(element.dataset.right) - 0.4;
-                        element.dataset.right = newValue;
-                        element.children[0].style.right = newValue.toString() + '%';
-                        if (newValue <= 0) {
-                            element.dataset.direction = 'left';
-                        }
-                        if (detectOverlap(playerRect, element.children[0])) {
-                            positionX += element.clientWidth / 100 * 0.4 / windowWidth * 100;
-                            onGround = true;
-                        }
-                    }
-                }
-                if (positionY <= 0) {
-                    velocityY = 0;
-                    onGround = true;
-                }
-                else {
-                    onGround = false;
-                    for (const element of floorElements) {
-                        if (detectOverlap(playerRect, element)) {
-                            if (velocityY <= 0) {
-                                velocityY = 0;
-                                onGround = true;
-                                player.style.bottom = (positionY + 0.3) + '%';
-                                if (detectOverlap(playerRect, element)) {
-                                    positionY += 0.3;
-                                }
-                            }
-                            else {
-                                velocityY = -0.5;
-                            }
-                            break;
-                        }
-                        else if (detectOverlap(player, element)) {
-                            velocityY = -0.5;
-                            break;
-                        }
-                    }
-                }
-                for (const element of wallElements) {
-                    if (detectOverlap(playerRect, element)) {
-                        if (velocityX > 0) {
-                            velocityX = -0.5;
-                        }
-                        else if (velocityX < 0) {
-                            velocityX = 0.5;
-                        }
-                    }
-                }
-                for (const element of trampolineElements) {
-                    if (detectOverlap(player, element)) {
-                        if (n(element.dataset.strength)) {
-                            velocityY = 2.5;
-                        }
-                        else {
-                            velocityY = 2.5 * parseFloat(element.dataset.strength);
-                        }
-                        onGround = false;
-                    }
-                }
-                if (positionX + velocityX < 0) {
-                    positionX = 0;
-                    const newLevel = level - 1;
-                    if (newLevel >= 0) {
-                        setTimeout(function () {
-                            if (level != newLevel && positionX + velocityX < 0) {
-                                openLevel(newLevel);
-                            }
-                        }, 2000);
-                    }
-                }
-                else if (windowWidth / 100 * (positionX + velocityX) > windowWidth - 50) {
-                    positionX = 100 / windowWidth * (windowWidth - 50);
-                }
-                else {
-                    positionX += velocityX;
-                }
-                if (positionY + velocityY < 0) {
-                    positionY = 0;
-                }
-                else {
-                    positionY += velocityY;
-                }
-                velocityX = velocityX * 0.9;
+                if (goRight && !goLeft)       vx =  SPEED;
+                else if (goLeft && !goRight)  vx = -SPEED;
+                else                          vx =  0;
+
                 if (!onGround) {
-                    velocityY -= 0.07;
+                    vy -= GRAV * dt;
+                    if (vy < MAX_FALL) vy = MAX_FALL;
                 }
-                player.style.left = positionX + '%';
-                player.style.bottom = positionY + '%';
-                if (detectOverlap(player, id('mod-flag-end'))) {
-                    openLevel(level + 1);
-                }
-                // Reset position when touching lava
-                for (const element of lavaElements) {
-                    if (detectOverlap(player, element)) {
-                        positionX = 2;
-                        positionY = 0;
-                        velocityX = 0;
-                        velocityY = 0;
-                        onGround = true;
-                    }
-                }
-                // Enemy movement
-                for (const element of enemyElements) {
-                    if (detectOverlap(player, element)) {
-                        positionX = 2;
-                        positionY = 0;
-                        velocityX = 0;
-                        velocityY = 0;
-                        onGround = true;
-                        for (const element of enemyElements) {
-                            element.dataset.x = element.dataset.start;
-                            element.style.left = (parseFloat(element.dataset.x)).toString() + '%';
+
+                const jumpHeld = mJump || KEY['ArrowUp'] || KEY['KeyW'] || KEY['Space'];
+                const wantJump = jumpQ || (jumpHeld && onGround);
+
+                if (wantJump) {
+                    let orbHit = false;
+                    for (const orb of lvl.orbs) {
+                        if (orb.ghost) continue;
+                        if (orb.actTimer <= 0 && hit(px, py, PW, PH, orb.x - orb.r, orb.y - orb.r, orb.r * 2, orb.r * 2)) {
+                            vy = orb.strength * 370;
+                            onGround = false;
+                            orb.actTimer = 0.18;
+                            jumpAnim = 0.3;
+                            orbHit = true;
+                            break;
                         }
                     }
-                    else {
-                        const currentPositionX = parseFloat(element.dataset.x);
-                        let newValue;
-                        if (currentPositionX > positionX) {
-                            newValue = currentPositionX - 0.18;
-                        }
-                        else {
-                            newValue = currentPositionX + 0.18;
-                        }
-                        if (!n(element.dataset.min) && newValue < parseFloat(element.dataset.min)) {
-                            newValue = parseFloat(element.dataset.min);
-                        }
-                        if (!n(element.dataset.max) && newValue > parseFloat(element.dataset.max)) {
-                            newValue = parseFloat(element.dataset.max);
-                        }
-                        element.dataset.x = newValue;
-                        element.style.left = newValue.toString() + '%';
+                    if (!orbHit && onGround) {
+                        vy = JUMP_V;
+                        onGround = false;
+                        jumpAnim = 0.3;
+                    }
+                    jumpQ = false;
+                }
+
+                for (const tr of lvl.trampolines) {
+                    if (tr.ghost) continue;
+                    if (hit(px, py, PW, PH, tr.x, tr.y, tr.w, tr.h)) {
+                        vy = tr.strength * 380;
+                        onGround = false;
+                        jumpAnim = 0.3;
                     }
                 }
-            }, 10);
+
+                for (const mp of lvl.mpUp) {
+                    const spd = 200 * dt;
+                    mp.cy += mp.dir * spd;
+                    if (mp.cy >= mp.endY)   { mp.cy = mp.endY;   mp.dir = -1; }
+                    if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir =  1; }
+                }
+                for (const mp of lvl.mpRight) {
+                    const spd = 160 * dt;
+                    mp.cx += mp.dir * spd;
+                    if (mp.cx >= mp.endX)   { mp.cx = mp.endX;   mp.dir = -1; }
+                    if (mp.cx <= mp.startX) { mp.cx = mp.startX; mp.dir =  1; }
+                }
+
+                for (const en of lvl.enemies) {
+                    const spd = 100 * dt;
+                    en.x += en.x > px ? -spd : spd;
+                    if (en.min !== null && en.x < en.min) en.x = en.min;
+                    if (en.max !== null && en.x > en.max) en.x = en.max;
+                }
+
+                for (const orb of lvl.orbs) { if (orb.actTimer > 0) orb.actTimer -= dt; }
+
+                px += vx * dt;
+                px = Math.max(0, Math.min(px, lvl.worldWidth - PW));
+
+                for (const wl of lvl.walls) {
+                    if (wl.ghost) continue;
+                    if (hit(px, py, PW, PH, wl.x, wl.y, wl.w, wl.h)) {
+                        px = vx >= 0 ? wl.x - PW : wl.x + wl.w;
+                        vx = 0;
+                    }
+                }
+
+                py += vy * dt;
+
+                if (py < 0) { py = 0; if (vy < -200 && !onGround) landAnim = 0.22; vy = 0; onGround = true; }
+
+                const solids = [
+                    ...lvl.floors.filter(f => !f.ghost),
+                    ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h })),
+                    ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h })),
+                ];
+                onGround = (py === 0);
+                for (const fl of solids) {
+                    if (!hit(px, py, PW, PH, fl.x, fl.y, fl.w, fl.h)) continue;
+                    const playerBottom = py;
+                    const playerTop    = py + PH;
+                    const flTop        = fl.y + fl.h;
+                    const flBottom     = fl.y;
+                    const overlapY     = Math.min(playerTop - flBottom, flTop - playerBottom);
+                    const overlapX     = Math.min((px + PW) - fl.x, (fl.x + fl.w) - px);
+                    if (overlapY < overlapX) {
+                        if (vy <= 0 && playerBottom < flTop && playerTop > flTop) {
+                            py = flTop;
+                            if (vy < -200 && !onGround) landAnim = 0.22;
+                            vy = 0;
+                            onGround = true;
+                        } else if (vy > 0 && playerTop > flBottom && playerBottom < flBottom) {
+                            py = flBottom - PH;
+                            vy = -200;
+                        }
+                    }
+                }
+
+                if (py + PH > lvl.worldHeight) { py = lvl.worldHeight - PH; vy = 0; }
+
+                let dead = false;
+                for (const lv of lvl.lavas)   { if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lv.h)) { dead = true; break; } }
+                if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
+                if (dead) {
+                    px = lvl.spawnX; py = lvl.spawnY;
+                    vx = 0; vy = 0; onGround = false;
+                    for (const en  of lvl.enemies) en.x = en.startX;
+                    for (const orb of lvl.orbs)    orb.actTimer = 0;
+                }
+
+                if (hit(px, py, PW, PH, lvl.flagX, lvl.flagY, FLAG_W, FLAG_H)) loadLvl(lvlIdx + 1);
+
+                if (jumpAnim > 0) jumpAnim -= dt;
+                if (landAnim > 0) landAnim -= dt;
+
+                updateCam();
+            }
+
+            const COL = {
+                floor: '#9b9b9c', wall: '#9b9b9c', lava: '#fc9312',
+                tramp: '#1264fc', enemy: '#fc1212',
+                orbRing: '#eaecd1', orbCore: '#fce512',
+                flagPole: '#ffad66', flagBody: '#ca0000',
+            };
+
+            function resolveFill(obj, fallbackCol) {
+                return (obj.pat) ? obj.pat : fallbackCol;
+            }
+
+            function applyTextureTransform(obj, x, y) {
+                if (obj.pat) {
+                    const m = new DOMMatrix();
+                    m.translateSelf(wx(x), wy(y, obj.h ?? 0));
+                    obj.pat.setTransform(m);
+                }
+            }
+
+            function fillRect(x, y, w, h, col, r = 0) {
+                ctx.fillStyle = col;
+                if (r > 0) {
+                    ctx.beginPath(); ctx.roundRect(wx(x), wy(y, h), w, h, r); ctx.fill();
+                } else {
+                    ctx.fillRect(wx(x), wy(y, h), w, h);
+                }
+            }
+
+            function texFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
+                if (obj.pat) applyTextureTransform(obj, x, y);
+                ctx.fillStyle = resolveFill(obj, fallbackCol);
+                const cx = wx(x), cy = wy(y, h);
+                if (r > 0) {
+                    ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.fill();
+                } else {
+                    ctx.fillRect(cx, cy, w, h);
+                }
+            }
+
+            function ghostFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
+                if (!obj.ghost) { texFillRect(obj, x, y, w, h, fallbackCol, r); return; }
+                ctx.save();
+                if (!obj.pat) ctx.globalAlpha = 0.25;
+                texFillRect(obj, x, y, w, h, fallbackCol, r);
+                if (!obj.pat) {
+                    ctx.globalAlpha = 0.55;
+                    ctx.strokeStyle = fallbackCol;
+                    ctx.lineWidth   = 2;
+                    ctx.setLineDash([6, 4]);
+                    const cx = wx(x), cy = wy(y, h);
+                    if (r > 0) { ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.stroke(); }
+                    else       { ctx.strokeRect(cx, cy, w, h); }
+                }
+                ctx.restore();
+            }
+
+            function drawBg() {
+                const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                g.addColorStop(0, '#0f0f23');
+                g.addColorStop(1, '#1a1a2e');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = 'rgba(155,155,156,0.06)';
+                ctx.lineWidth = 1;
+                const gs = 80, ox = camX % gs, oy = camY % gs;
+                for (let x = -ox; x < canvas.width;  x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+                for (let y = -oy; y < canvas.height; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+            }
+
+            function drawFlag() {
+                const fx = wx(lvl.flagX), fy = wy(lvl.flagY, FLAG_H);
+                ctx.fillStyle = COL.flagPole;
+                ctx.fillRect(fx, fy, 4, FLAG_H);
+                ctx.fillStyle = COL.flagBody;
+                ctx.beginPath();
+                ctx.moveTo(fx + 4, fy);
+                ctx.lineTo(fx + 36, fy + 16);
+                ctx.lineTo(fx + 4,  fy + 32);
+                ctx.closePath(); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(fx + 2, fy, 5, 0, Math.PI * 2);
+                ctx.fillStyle = COL.flagPole;
+                ctx.fill();
+            }
+
+            const PLAYER_PATH = new Path2D(
+                'M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045' +
+                'C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 ' +
+                '29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 ' +
+                '1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566' +
+                'C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 ' +
+                '5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 ' +
+                '30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 ' +
+                '8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 ' +
+                '14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132' +
+                'C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 ' +
+                '24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 ' +
+                '27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587' +
+                'C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 ' +
+                '40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726' +
+                'C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 ' +
+                '17.3781 44.6726 17.3781H44.6819Z' +
+                'M37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 ' +
+                '28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794' +
+                'C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 ' +
+                '24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 ' +
+                '34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929' +
+                'C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z'
+            );
+
+            function drawPlayer() {
+                const cx = wx(px) + PW / 2;
+                const cy = wy(py, PH) + PH / 2;
+                ctx.save();
+                ctx.translate(cx, cy);
+
+                let sx = 1, sy = 1;
+                if (jumpAnim > 0) {
+                    const t = jumpAnim / 0.3;
+                    sx = 1 - 0.28 * Math.sin(t * Math.PI);
+                    sy = 1 + 0.28 * Math.sin(t * Math.PI);
+                } else if (landAnim > 0) {
+                    const t = landAnim / 0.22;
+                    sx = 1 + 0.22 * Math.sin(t * Math.PI);
+                    sy = 1 - 0.22 * Math.sin(t * Math.PI);
+                }
+                ctx.scale(sx, sy);
+
+                ctx.shadowColor = 'rgba(255,255,255,0.3)';
+                ctx.shadowBlur  = 8;
+                ctx.translate(-PW / 2, -PH / 2);
+
+                const bgColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--bg-primary-normal').trim() || '#ffffff';
+                ctx.fillStyle = bgColor;
+                ctx.fill(PLAYER_PATH);
+                ctx.restore();
+            }
+
+            function drawOrb(orb) {
+                const cx = wx(orb.x);
+                const cy = wy(orb.y, orb.r * 2) + orb.r;
+                const glow = orb.actTimer > 0;
+                ctx.save();
+                if (orb.ghost) ctx.globalAlpha = 0.3;
+                if (glow && !orb.ghost) { ctx.shadowColor = 'rgba(255,220,0,0.9)'; ctx.shadowBlur = 20; }
+                if (orb.pat) {
+                    const m = new DOMMatrix();
+                    m.translateSelf(cx - orb.r, cy - orb.r);
+                    orb.pat.setTransform(m);
+                    ctx.fillStyle = orb.pat;
+                } else {
+                    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, orb.r);
+                    g.addColorStop(0,   glow ? 'rgba(255,240,0,1)'   : COL.orbCore);
+                    g.addColorStop(0.5, glow ? 'rgba(255,180,0,0.8)' : 'rgba(252,229,18,0.6)');
+                    g.addColorStop(1,   'rgba(0,0,0,0)');
+                    ctx.fillStyle = g;
+                }
+                ctx.beginPath(); ctx.arc(cx, cy, orb.r, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = COL.orbRing; ctx.lineWidth = 2;
+                if (orb.ghost) ctx.setLineDash([4, 3]);
+                ctx.beginPath(); ctx.arc(cx, cy, orb.r, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawEnemy(en) {
+                ctx.save();
+                if (en.ghost) { ctx.globalAlpha = 0.25; ctx.setLineDash([6,4]); }
+                if (en.pat) {
+                    const m = new DOMMatrix();
+                    m.translateSelf(wx(en.x), wy(en.y, en.h));
+                    en.pat.setTransform(m);
+                    ctx.fillStyle = en.pat;
+                    const cx = wx(en.x), cy = wy(en.y, en.h);
+                    ctx.beginPath(); ctx.roundRect(cx, cy, en.w, en.h, 6); ctx.fill();
+                } else {
+                    fillRect(en.x, en.y, en.w, en.h, COL.enemy, 6);
+                }
+                if (en.ghost) {
+                    ctx.globalAlpha = 0.55;
+                    ctx.strokeStyle = COL.enemy; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.roundRect(wx(en.x), wy(en.y, en.h), en.w, en.h, 6); ctx.stroke();
+                }
+                ctx.globalAlpha = en.ghost ? 0.35 : 1;
+                ctx.fillStyle   = '#fff';
+                ctx.font        = 'bold 15px sans-serif';
+                ctx.textAlign   = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(en.label, wx(en.x + en.w / 2), wy(en.y, en.h) + en.h / 2);
+                ctx.restore();
+            }
+
+            const btns = [];
+            function drawBtn(x, y, w, h, label, col, cb) {
+                const hov = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+                ctx.fillStyle = hov ? darken(col) : col;
+                ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill();
+                ctx.fillStyle   = '#fff';
+                ctx.font        = 'bold 20px sans-serif';
+                ctx.textAlign   = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, x + w / 2, y + h / 2);
+                btns.push({ x, y, w, h, cb });
+            }
+            function darken(hex) {
+                return hex === '#3f8541' ? '#145716' : '#333';
+            }
+
+            let mouseX = -1, mouseY = -1;
+            canvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+            canvas.addEventListener('click', e => {
+                for (const b of btns) {
+                    if (e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h) {
+                        b.cb(); return;
+                    }
+                }
+            });
+
+            function drawWinScreen() {
+                ctx.fillStyle = 'rgba(0,0,0,0.72)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fce512';
+                ctx.font      = 'bold 56px sans-serif';
+                ctx.fillText('🎉 Voltooid! 🎉', canvas.width / 2, canvas.height / 2 - 70);
+                ctx.fillStyle = '#9b9b9c';
+                ctx.font      = '30px sans-serif';
+                ctx.fillText(`Tijd: ${elapsed.toFixed(1)}s`, canvas.width / 2, canvas.height / 2 - 10);
+                const rec = get('gamerecord');
+                if (!n(rec)) ctx.fillText(`Record: ${parseFloat(rec).toFixed(1)}s`, canvas.width / 2, canvas.height / 2 + 40);
+                const bw = 300, bh = 54, bx = canvas.width / 2 - bw / 2;
+                drawBtn(bx, canvas.height / 2 + 100, bw, bh, lvl?.playAgainText || 'Opnieuw spelen', '#3f8541', () => { elapsed = 0; timing = true; loadLvl(0); });
+                drawBtn(bx, canvas.height / 2 + 170, bw, bh, lvl?.closeGameText || 'Sluiten', '#555', () => endGame());
+            }
+
+            function drawHUD() {
+                const rec = get('gamerecord');
+                let txt = `Tijd: ${elapsed.toFixed(0)}s`;
+                if (!n(rec)) txt += `, record: ${parseFloat(rec).toFixed(0)}s`;
+                id('mod-playtime').textContent = txt;
+            }
+
+            function render() {
+                btns.length = 0;
+                if (!lvl) return;
+                drawBg();
+                for (const fl of lvl.floors)     ghostFillRect(fl,  fl.x,  fl.y,  fl.w, fl.h, COL.floor);
+                for (const wl of lvl.walls)       ghostFillRect(wl,  wl.x,  wl.y,  wl.w, wl.h, COL.wall);
+                for (const lv of lvl.lavas)       ghostFillRect(lv,  lv.x,  lv.y,  lv.w, lv.h, COL.lava);
+                for (const tr of lvl.trampolines) ghostFillRect(tr,  tr.x,  tr.y,  tr.w, tr.h, COL.tramp, 8);
+                for (const mp of lvl.mpUp)        ghostFillRect(mp,  mp.x,  mp.cy, mp.w, mp.h, COL.floor);
+                for (const mp of lvl.mpRight)     ghostFillRect(mp,  mp.cx, mp.y,  mp.w, mp.h, COL.floor);
+                for (const en of lvl.enemies)     drawEnemy(en);
+                for (const orb of lvl.orbs)       drawOrb(orb);
+                drawFlag();
+                drawPlayer();
+                drawHUD();
+                if (phase === 'win') drawWinScreen();
+            }
+
+            let lastTs = null;
+            function loop(ts) {
+                if (!gameAlive) return;
+                const dt = lastTs === null ? 0.016 : Math.min((ts - lastTs) / 1000, 0.05);
+                lastTs = ts;
+                if (timing && phase === 'playing') elapsed += dt;
+                update(dt);
+                render();
+                requestAnimationFrame(loop);
+            }
+
+            elapsed = 0; timing = true;
+            loadLvl(0);
+            requestAnimationFrame(loop);
         });
 
-        if (window.location.hash == '#mod-play') {
+        if (window.location.hash === '#mod-play') {
             id('mod-play-game').click();
             history.replaceState('', document.title, window.location.pathname + window.location.search);
         }

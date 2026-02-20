@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<level
+	title       = "Level 1 - Onder de grond"
+	song        = "sounds/carefree.mp3"
+	worldWidth  = "1200"
+	worldHeight = "1600"
+	spawnX      = "90"
+	spawnY      = "540"
+	flagX       = "1100"
+	flagY       = "0">
+	<floor x="0"    y="0"   width="1200" height="20"/>
+
+	<!-- BLOCK -->
+	<wall x="0"  y="600"  width="600"  height="800" texture="platformer_textures/dirt.png"/>
+
+	<!-- PIPE -->
+	<wall x="60"  y="400"  width="20"  height="200" texture="platformer_textures/pipe-wall.png"/>
+	<wall x="40"  y="380"  width="40"  height="20" texture="platformer_textures/pipe-wall.png"/>
+	<wall x="150"  y="400"  width="20"  height="200" texture="platformer_textures/pipe-wall.png"/>
+	<wall x="150"  y="380"  width="40"  height="20" texture="platformer_textures/pipe-wall.png"/>
+	<wall x="80"  y="380"  width="70"  height="220" ghost="true" texture="platformer_textures/pipe-inside.png"/>
+
+</level>

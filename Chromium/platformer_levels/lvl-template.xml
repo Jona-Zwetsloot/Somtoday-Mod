@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LEVEL XML FORMAT
+  ═══════════════════════════════════════════════════════════════
+
+  All coordinates (x, y) are in PIXELS.
+  x = distance from the LEFT edge of the world.
+  y = distance from the BOTTOM edge of the world (y=0 is the floor).
+
+  <level> attributes
+  ──────────────────
+  title        Display name shown in the HUD.
+  song         Path (relative to extension root) of an MP3/OGG to loop.
+               Omit or leave empty for silence.
+  worldWidth   Total width  of this level in pixels.  (default 3000)
+  worldHeight  Total height of this level in pixels.  (default 1400)
+  spawnX       Player spawn position X.               (default 60)
+  spawnY       Player spawn position Y.               (default 120)
+  flagX        End-flag position X.                   (default worldWidth - 100)
+  flagY        End-flag position Y.
+-->
+<level
+    title       = "Level 1 - Introductie"
+    song        = "sounds/carefree.mp3"
+    worldWidth  = "5000"
+    worldHeight = "1600"
+    spawnX      = "60"
+    spawnY      = "120"
+    flagX       = "4850"
+    flagY       = "120">
+
+  <!-- Optional subtitle shown below the title -->
+  <description>Loop, spring en ontwijkt!</description>
+
+  <!--
+    FLOOR  – solid horizontal platform the player stands on.
+    x, y   = bottom-left corner of the floor block.
+    width  = horizontal extent in pixels.
+    height = thickness in pixels (make it thin, e.g. 20, or thick for ramps).
+  -->
+  <floor x="0"    y="0"   width="1200" height="20"/>
+  <floor x="1300" y="0"   width="600"  height="20"/>
+  <floor x="2000" y="0"   width="3000" height="20"/>
+  
+  <floor x="700"  y="200" width="300"  height="20"/>
+  <floor x="1100" y="350" width="250"  height="20"/>
+
+  <!--
+    WALL  – solid vertical obstacle.
+    x, y   = bottom-left corner.
+    width  = thickness in pixels (e.g. 20 thin, 60 fat).
+    height = how tall the wall is.
+  -->
+  <wall x="500"  y="20"  width="20"  height="20"/>
+  <wall x="1900" y="20"  width="60"  height="300"/>
+
+  <!--
+    LAVA  – kills the player on touch (respawn at spawn point).
+    x, y   = bottom-left corner.
+    width, height = size of the lava block.
+  -->
+  <lava x="1200" y="0"   width="100"  height="20"/>
+  <lava x="2400" y="0"   width="200"  height="20"/>
+
+  <!--
+    TRAMPOLINE – bounces the player upward.
+    strength   = multiplier (default 2.5).  Higher = higher bounce.
+  -->
+  <trampoline x="800"  y="20"  width="120" height="20" strength="2.5"/>
+  <trampoline x="1450" y="20"  width="80"  height="20" strength="3.2"/>
+
+  <!--
+    ENEMY – red square that chases the player; resets on contact.
+    x, y = starting position.
+    min  = leftmost X the enemy will chase to   (optional).
+    max  = rightmost X the enemy will chase to  (optional).
+    (width/height are fixed at 50 × 50 px)
+  -->
+  <enemy x="1600" y="20" min="1500" max="1900"/>
+  <enemy x="3000" y="20" min="2800" max="3200"/>
+
+  <!--
+    ORB – yellow jump-boost orb. Press jump while touching it.
+    x, y     = centre position.
+    strength = boost multiplier (default 2.5).
+  -->
+  <orb x="600"  y="500" strength="2.5"/>
+  <orb x="1050" y="600" strength="3.0"/>
+
+  <!--
+    MOVING PLATFORM (vertical) – bounces up and down between startY and endY.
+    x          = fixed horizontal position.
+    startY     = lower Y boundary (platform begins here).
+    endY       = upper Y boundary.
+    width, height = platform dimensions.
+  -->
+  <movingPlatformUp x="2200" startY="20" endY="600" width="140" height="20"/>
+
+  <!--
+    MOVING PLATFORM (horizontal) – slides left and right between startX and endX.
+    y          = fixed vertical position.
+    startX     = left  X boundary.
+    endX       = right X boundary.
+    width, height = platform dimensions.
+  -->
+  <movingPlatformRight y="400" startX="2700" endX="3200" width="140" height="20"/>
+
+  <!--
+    END-SCREEN BUTTONS (optional – override default text)
+  -->
+  <playAgainButton>Opnieuw spelen</playAgainButton>
+  <closeGameButton>Terug naar de pagina</closeGameButton>
+
+</level>
