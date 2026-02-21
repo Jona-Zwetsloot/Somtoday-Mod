@@ -1,9 +1,20 @@
 // MINIGAME
 // Platformer v2 minigame
 async function startPlatformerGame() {
+    if (!isExtension) {
+        tn('body', 0).insertAdjacentHTML('beforeend', `
+<div id="mod-game-unavailable" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:99999;font-family:sans-serif;">
+  <div style="background:#1a1a2e;border:1.5px solid rgba(155,155,156,0.25);border-radius:18px;padding:48px 56px;text-align:center;max-width:480px;">
+    <div style="font-size:48px;margin-bottom:16px;">🎮</div>
+    <p style="color:#ffffff;font-size:20px;margin:0;">Sorry, maar Somtoday Mod platformer v2 is niet beschikbaar op ${platform}</p>
+  </div>
+</div>`);
+        return;
+    }
+
     tn('body', 0).classList.add('mod-game-playing');
 
-    const DEBUG_MODE = true;
+    const DEBUG_MODE = true; // IMPORTANT: Disable for release
     let debugVisible = false;
 
     tn('body', 0).insertAdjacentHTML('beforeend', `
@@ -44,13 +55,15 @@ async function startPlatformerGame() {
     window.addEventListener('resize', updateMobileVis);
 
     let musicAudio = null;
+    let sfxVolume = 0.4;
+    let musicVolume = 0.2;
     function playLevelMusic(src) {
         if (musicAudio) { musicAudio.pause(); musicAudio = null; }
         if (!src) return;
         try {
             musicAudio = new Audio(getAudioUrl(src));
             musicAudio.loop   = true;
-            musicAudio.volume = 0.2;
+            musicAudio.volume = musicVolume;
             musicAudio.play().catch(() => {});
         } catch(e) {}
     }
@@ -83,21 +96,21 @@ async function startPlatformerGame() {
         const el     = doc.querySelector('level');
         const descEl = el.querySelector('description');
         const lvl = {
-            index:       idx,
-            title:       el.getAttribute('title')      || `Level ${idx + 1}`,
+            index: idx,
+            title: el.getAttribute('title') || `Level ${idx + 1}`,
             description: descEl ? descEl.textContent.trim() : '',
-            song:        el.getAttribute('song')       || null,
-            worldWidth:  parseFloat(el.getAttribute('worldWidth'))  || 3000,
+            song: el.getAttribute('song') || null,
+            worldWidth: parseFloat(el.getAttribute('worldWidth')) || 3000,
             worldHeight: parseFloat(el.getAttribute('worldHeight')) || 1400,
-            spawnX:      parseFloat(el.getAttribute('spawnX'))      || 60,
-            spawnY:      parseFloat(el.getAttribute('spawnY'))      || 120,
-            flagX:       parseFloat(el.getAttribute('flagX'))       || 2900,
-            flagY:       parseFloat(el.getAttribute('flagY'))       || 120,
-            floors:      [], walls:   [], lavas:    [],
-            trampolines: [], enemies: [], orbs:     [],
-            mpUp:        [], mpRight: [], coins:    [], checkpoints: [],
-            texts:       [], portals: [],
-            drawOrder:   [],
+            spawnX: parseFloat(el.getAttribute('spawnX')) || 60,
+            spawnY: parseFloat(el.getAttribute('spawnY')) || 120,
+            flagX: parseFloat(el.getAttribute('flagX')) || 2900,
+            flagY: parseFloat(el.getAttribute('flagY')) || 120,
+            floors: [], walls: [], lavas: [],
+            trampolines: [], enemies: [], orbs: [],
+            mpUp: [], mpRight: [], coins: [], checkpoints: [],
+            texts: [], portals: [],
+            drawOrder: [],
             playAgainText: 'Opnieuw spelen',
             closeGameText: 'Sluiten',
         };
@@ -116,7 +129,9 @@ async function startPlatformerGame() {
                 const obj = { type: 'floor', x, y, w, h, ghost, oneWay, texture, textureMode, tex: null };
                 lvl.floors.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'wall') {
-                const obj = { type: 'wall', x, y, w, h, ghost, texture, textureMode, tex: null };
+                const textureGhost = c.getAttribute('textureGhost') || null;
+                const opaque = c.getAttribute('opaque') === 'true';
+                const obj = { type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode, textureGhost, tex: null, texGhost: null, playerOverlap: false };
                 lvl.walls.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'lava') {
                 const obj = { type: 'lava', x, y, w, h, ghost, texture, textureMode, tex: null };
@@ -127,10 +142,11 @@ async function startPlatformerGame() {
             } else if (tag === 'enemy') {
                 const mn = c.getAttribute('min') !== null ? parseFloat(c.getAttribute('min')) : null;
                 const mx = c.getAttribute('max') !== null ? parseFloat(c.getAttribute('max')) : null;
+                const detectionR = parseFloat(c.getAttribute('detectionRadius')) || 200;
                 const n1 = Math.floor(Math.random() * 5) + 1;
                 let   n2 = Math.floor(Math.random() * 10);
                 if (n1 === 5 && n2 >= 5) n2 = 4;
-                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, min: mn, max: mx, label: `${n1},${n2}`, ghost, texture, textureMode, tex: null };
+                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, min: mn, max: mx, detectionR, detected: false, label: `${n1},${n2}`, ghost, texture, textureMode, tex: null };
                 lvl.enemies.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'orb') {
                 const obj = { type: 'orb', x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, textureMode, tex: null };
@@ -147,7 +163,8 @@ async function startPlatformerGame() {
                 lvl.mpRight.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'coin') {
                 const r = parseFloat(c.getAttribute('r')) || 14;
-                const obj = { type: 'coin', x, y, r, collected: false, bobTimer: Math.random() * Math.PI * 2, ghost, texture, textureMode, tex: null };
+                const blue = c.getAttribute('blue') === 'true';
+                const obj = { type: 'coin', x, y, r, collected: false, bobTimer: Math.random() * Math.PI * 2, ghost, texture, textureMode, tex: null, blue };
                 lvl.coins.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'checkpoint') {
                 const obj = { type: 'checkpoint', x, y, activated: false };
@@ -197,8 +214,23 @@ async function startPlatformerGame() {
         const all = [...lvl.floors, ...lvl.walls, ...lvl.lavas, ...lvl.trampolines,
                         ...lvl.enemies, ...lvl.orbs, ...lvl.mpUp, ...lvl.mpRight, ...lvl.coins, ...lvl.portals];
         await Promise.all(all.map(async obj => {
-            if (obj.texture) obj.tex = await loadTexture(obj.texture);
+            if (obj.texture) {
+                obj.tex = await loadTexture(obj.texture);
+                if (obj.tex && obj.textureMode === 'tile' && obj.w && obj.h) {
+                    obj.bakedCanvas = bakeTiledTexture(obj.tex, obj.w, obj.h);
+                }
+            }
+            if (obj.textureGhost) obj.texGhost = await loadTexture(obj.textureGhost);
         }));
+    }
+
+    function bakeTiledTexture(texEntry, w, h) {
+        const oc = new OffscreenCanvas(w, h);
+        const octx = oc.getContext('2d');
+        const pat = octx.createPattern(texEntry.img, 'repeat');
+        octx.fillStyle = pat;
+        octx.fillRect(0, 0, w, h);
+        return oc;
     }
 
     const levels = [];
@@ -222,6 +254,9 @@ async function startPlatformerGame() {
     const MAX_FALL = -1400;
     const FLAG_W   = 14, FLAG_H = 80;
     const PORTAL_COOLDOWN = 0.4;
+    const DEATH_DUR = 0.7;
+
+    const sfxPool = {};
 
     let lvl      = null;
     let lvlIdx   = 0;
@@ -251,6 +286,11 @@ async function startPlatformerGame() {
 
     let mLeft = false, mRight = false, mJump = false;
 
+    let debugCpIdx = -1;
+
+    let deathTimer = 0;
+    let deathSlices = [];
+
     function getCurrentCheckpoint() {
         return checkpointHistory.length > 0 ? checkpointHistory[checkpointHistory.length - 1] : null;
     }
@@ -270,7 +310,6 @@ async function startPlatformerGame() {
         } else {
             px = cp.x; py = cp.y;
             sessionCoins = cp.coins;
-            elapsed = cp.elapsed;
             lvl.coins.forEach((co, i) => { co.collected = cp.collectedSnapshot.has(i); });
         }
     }
@@ -281,6 +320,18 @@ async function startPlatformerGame() {
         if (['ArrowUp','KeyW','Space'].includes(e.code)) jumpQ = true;
         if (DEBUG_MODE && e.code === 'KeyH') debugVisible = !debugVisible;
         if (e.code === 'Escape') togglePause();
+        if (DEBUG_MODE && e.code === 'KeyE') {
+            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints];
+            debugCpIdx = Math.min(debugCpIdx + 1, cps.length - 1);
+            const cp = cps[debugCpIdx];
+            px = cp.x; py = cp.y; vx = 0; vy = 0; snapCam = true;
+        }
+        if (DEBUG_MODE && e.code === 'KeyQ') {
+            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints];
+            debugCpIdx = Math.max(debugCpIdx - 1, 0);
+            const cp = cps[debugCpIdx];
+            px = cp.x; py = cp.y; vx = 0; vy = 0; snapCam = true;
+        }
     });
     document.addEventListener('keyup', e => { KEY[e.code] = false; });
 
@@ -321,13 +372,14 @@ async function startPlatformerGame() {
         if (idx >= levels.length) { winGame(); return; }
         lvlIdx = idx;
         lvl    = levels[idx];
-        for (const mp of lvl.mpUp)         { mp.cy = mp.startY; mp.dir = 1; }
-        for (const mp of lvl.mpRight)      { mp.cx = mp.startX; mp.dir = 1; }
-        for (const orb of lvl.orbs)        { orb.actTimer = 0; }
-        for (const en  of lvl.enemies)     { en.x = en.startX; }
-        for (const co  of lvl.coins)       { co.collected = false; }
+        for (const mp of lvl.mpUp) { mp.cy = mp.startY; mp.dir = 1; }
+        for (const mp of lvl.mpRight) { mp.cx = mp.startX; mp.dir = 1; }
+        for (const orb of lvl.orbs) { orb.actTimer = 0; }
+        for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+        for (const co  of lvl.coins) { co.collected = false; }
         for (const cp  of lvl.checkpoints) { cp.activated = false; }
-        for (const pt  of lvl.portals)     { pt.cooldown = 0; }
+        for (const pt  of lvl.portals) { pt.cooldown = 0; }
+        for (const wl  of lvl.walls) { wl.playerOverlap = false; }
         checkpointHistory = [];
         px = lvl.spawnX; py = lvl.spawnY;
         vx = 0; vy = 0; onGround = false;
@@ -340,6 +392,7 @@ async function startPlatformerGame() {
         descTimer = lvl.description ? 4.0 : 0;
         camX = Math.max(0, px - canvas.width / 2);
         camY = Math.max(0, lvl.worldHeight - py - canvas.height / 2);
+        debugCpIdx = -1;
         id('mod-level-title').textContent = lvl.title;
         playLevelMusic(lvl.song);
     }
@@ -400,25 +453,44 @@ async function startPlatformerGame() {
         }
     }
 
-    function teleportThroughPortal(destPortal, enterSide) {
-        if (enterSide === 'left') {
-            px = destPortal.x + destPortal.w + 10;
-            py = destPortal.y + (destPortal.h - PH) / 2;
-        } else if (enterSide === 'right') {
-            px = destPortal.x - PW - 10;
-            py = destPortal.y + (destPortal.h - PH) / 2;
-        } else if (enterSide === 'bottom') {
-            px = destPortal.x + (destPortal.w - PW) / 2;
-            py = destPortal.y + destPortal.h + 10;
+    function teleportThroughPortal(srcPortal, destPortal, enterSide) {
+        if (enterSide === 'left' || enterSide === 'right') {
+            const relY = Math.max(0, Math.min(1, (py - srcPortal.y) / srcPortal.h));
+            px = enterSide === 'left' ? destPortal.x + destPortal.w + 10 : destPortal.x - PW - 10;
+            py = destPortal.y + relY * destPortal.h;
         } else {
+            const relY = Math.max(0, Math.min(1, (py - srcPortal.y) / srcPortal.h));
             px = destPortal.x + (destPortal.w - PW) / 2;
-            py = destPortal.y - PH - 10;
+            py = destPortal.y + relY * destPortal.h;
         }
-        portalCooldownTimer = PORTAL_COOLDOWN;
+        portalCooldownTimer = 0;
         snapCam = true;
     }
 
     function update(dt) {
+        if (phase === 'dying') {
+            deathTimer -= dt;
+            for (const s of deathSlices) {
+                s.worldX      += s.vx * dt;
+                s.worldYBottom += s.vy * dt;
+                s.vy           -= GRAV * dt;
+                if (s.vy < MAX_FALL) s.vy = MAX_FALL;
+                s.rot          += s.rotV * dt;
+            }
+            if (deathTimer <= 0) {
+                deathSlices = [];
+                const cp = getCurrentCheckpoint();
+                restoreFromCheckpoint(cp);
+                vx = 0; vy = 0; onGround = false;
+                portalCooldownTimer = 0;
+                snapCam = true;
+                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+                for (const orb of lvl.orbs)    orb.actTimer = 0;
+                phase = 'playing';
+            }
+            updateCam();
+            return;
+        }
         if (phase !== 'playing') return;
 
         if (descTimer > 0) descTimer -= dt;
@@ -430,9 +502,14 @@ async function startPlatformerGame() {
         const goLeft  = mLeft  || KEY['ArrowLeft']  || KEY['KeyA'];
         const goRight = mRight || KEY['ArrowRight'] || KEY['KeyD'];
 
-        if (goRight && !goLeft)      vx =  SPEED;
+        if (goRight && !goLeft) vx =  SPEED;
         else if (goLeft && !goRight) vx = -SPEED;
-        else                         vx =  0;
+        else vx =  0;
+
+        if (standingOn?._mp) {
+            if (standingOn.type === 'mpRight') px = Math.max(0, Math.min(px + standingOn._mp.deltaX, lvl.worldWidth - PW));
+            if (standingOn.type === 'mpUp')    py += standingOn._mp.deltaY;
+        }
 
         if (!onGround) {
             vy -= GRAV * dt;
@@ -444,7 +521,7 @@ async function startPlatformerGame() {
         const wantJump = jumpQ || (jumpHeld && onGround);
 
         const jumpReleasedSinceLastJump = !jumpHeldLastFrame;
-
+        
         if (wantJump) {
             let jumped = false;
             let orbHit = false;
@@ -462,6 +539,7 @@ async function startPlatformerGame() {
                     jumpAnim = 0.3;
                     orbHit = true;
                     jumped = true;
+                    playSfx('orb-jump');
                     break;
                 }
             }
@@ -497,27 +575,37 @@ async function startPlatformerGame() {
                 vy = tr.strength * 380;
                 onGround = false;
                 jumpAnim = 0.3;
+                playSfx('orb-jump');
             }
         }
 
         for (const mp of lvl.mpUp) {
             const spd = 200 * dt;
+            const oldCy = mp.cy;
             mp.cy += mp.dir * spd;
             if (mp.cy >= mp.endY)   { mp.cy = mp.endY;   mp.dir = -1; }
             if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir =  1; }
+            mp.deltaY = mp.cy - oldCy;
         }
         for (const mp of lvl.mpRight) {
             const spd = 160 * dt;
+            const oldCx = mp.cx;
             mp.cx += mp.dir * spd;
             if (mp.cx >= mp.endX)   { mp.cx = mp.endX;   mp.dir = -1; }
             if (mp.cx <= mp.startX) { mp.cx = mp.startX; mp.dir =  1; }
+            mp.deltaX = mp.cx - oldCx;
         }
 
         for (const en of lvl.enemies) {
             const spd = 100 * dt;
-            en.x += en.x > px ? -spd : spd;
+            const edx = (px + PW / 2) - (en.x + en.w / 2);
+            const edy = (py + PH / 2) - (en.y + en.h / 2);
+            en.detected = Math.sqrt(edx * edx + edy * edy) <= en.detectionR;
+            if (en.detected) {
+                en.x += en.x + en.w / 2 > px + PW / 2 ? -spd : spd;
+            }
             if (en.min !== null && en.x < en.min) en.x = en.min;
-            if (en.max !== null && en.x > en.max) en.x = en.max;
+            if (en.max !== null && en.x + en.w > en.max) en.x = en.max - en.w;
         }
 
         for (const orb of lvl.orbs) { if (orb.actTimer > 0) orb.actTimer -= dt; }
@@ -540,13 +628,11 @@ async function startPlatformerGame() {
             if (co.ghost || co.collected) continue;
             if (hit(px, py, PW, PH, co.x - co.r, co.y - co.r, co.r * 2, co.r * 2)) {
                 co.collected = true;
-                sessionCoins++;
-                sessionTotalCoins++;
-                const coinAudio = new Audio(getAudioUrl('coin'));
-                coinAudio.loop   = false;
-                coinAudio.volume = 0.4;
-                coinAudio.play().catch(() => {});
-                coinPopups.push({ x: wx(co.x), y: wy(co.y, co.r * 2), life: 0.8, maxLife: 0.8 });
+                const coinVal = co.blue ? 10 : 1;
+                sessionCoins += coinVal;
+                sessionTotalCoins += coinVal;
+                playSfx('coin');
+                coinPopups.push({ x: wx(co.x), y: wy(co.y, co.r * 2), life: 0.8, maxLife: 0.8, value: coinVal, blue: co.blue });
             }
         }
 
@@ -556,7 +642,7 @@ async function startPlatformerGame() {
                 const destPortal = lvl.portals.find(p => p.portalId === portal.toPortalId);
                 if (!destPortal) continue;
                 const enterSide = getEnterSide(portal);
-                teleportThroughPortal(destPortal, enterSide);
+                teleportThroughPortal(portal, destPortal, enterSide);
                 break;
             }
         }
@@ -572,12 +658,16 @@ async function startPlatformerGame() {
             }
         }
 
+        for (const wl of lvl.walls) {
+            if (wl.ghost) wl.playerOverlap = hit(px, py, PW, PH, wl.x, wl.y, wl.w, wl.h);
+        }
+
         py += vy * dt;
 
         const solids = [
             ...lvl.floors.filter(f => !f.ghost),
-            ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x,  y: mp.cy, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpUp' })),
-            ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpRight' })),
+            ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpUp', _mp: mp })),
+            ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpRight', _mp: mp })),
         ];
         onGround = false;
         standingOn = null;
@@ -625,13 +715,10 @@ async function startPlatformerGame() {
         for (const lv of lvl.lavas)   { if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lv.h)) { dead = true; break; } }
         if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
         if (dead) {
-            const cp = getCurrentCheckpoint();
-            restoreFromCheckpoint(cp);
-            vx = 0; vy = 0; onGround = false;
-            portalCooldownTimer = 0;
-            snapCam = true;
-            for (const en  of lvl.enemies) en.x = en.startX;
-            for (const orb of lvl.orbs)    orb.actTimer = 0;
+            playSfx('die');
+            createDeathSlices();
+            phase = 'dying';
+            deathTimer = DEATH_DUR;
         }
 
         if (hit(px, py, PW, PH, lvl.flagX, lvl.flagY, FLAG_W, FLAG_H)) loadLvl(lvlIdx + 1);
@@ -653,8 +740,24 @@ async function startPlatformerGame() {
         portalGlow:  'rgba(168,85,247,0.55)',
     };
 
+    function isVisible(x, y, w, h) {
+        const cx = wx(x), cy = wy(y, h);
+        return cx + w > 0 && cx < canvas.width && cy + h > 0 && cy < canvas.height;
+    }
+
     function texFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
         const cx = wx(x), cy = wy(y, h);
+        if (obj.bakedCanvas) {
+            if (r > 0) {
+                ctx.save();
+                ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.clip();
+                ctx.drawImage(obj.bakedCanvas, cx, cy);
+                ctx.restore();
+            } else {
+                ctx.drawImage(obj.bakedCanvas, cx, cy);
+            }
+            return;
+        }
         if (obj.tex) {
             if (obj.textureMode === 'stretch') {
                 if (r > 0) { ctx.save(); ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.clip(); }
@@ -688,6 +791,32 @@ async function startPlatformerGame() {
 
     function ghostFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
         if (!obj.ghost) { texFillRect(obj, x, y, w, h, fallbackCol, r); return; }
+        const cxPos = wx(x), cyPos = wy(y, h);
+        if (obj.texGhost) {
+            texFillRect(obj, x, y, w, h, fallbackCol, r);
+            if (obj.playerOverlap) {
+                ctx.save();
+                if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.clip(); }
+                else       { ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip(); }
+                const m = new DOMMatrix();
+                m.translateSelf(cxPos, cyPos);
+                obj.texGhost.pat.setTransform(m);
+                ctx.fillStyle = obj.texGhost.pat;
+                ctx.globalAlpha = 1;
+                if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.fill(); }
+                else       { ctx.fillRect(cxPos, cyPos, w, h); }
+                ctx.restore();
+            }
+            return;
+        }
+        if (obj.playerOverlap && obj.opaque) {
+            ctx.save();
+            ctx.globalAlpha = 0.5;
+            texFillRect(obj, x, y, w, h, fallbackCol, r);
+            ctx.restore();
+            return;
+        }
+
         ctx.save();
         if (!obj.tex) ctx.globalAlpha = 0.25;
         texFillRect(obj, x, y, w, h, fallbackCol, r);
@@ -696,9 +825,8 @@ async function startPlatformerGame() {
             ctx.strokeStyle = fallbackCol;
             ctx.lineWidth   = 2;
             ctx.setLineDash([6, 4]);
-            const cx = wx(x), cy = wy(y, h);
-            if (r > 0) { ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.stroke(); }
-            else       { ctx.strokeRect(cx, cy, w, h); }
+            if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.stroke(); }
+            else       { ctx.strokeRect(cxPos, cyPos, w, h); }
         }
         ctx.restore();
     }
@@ -851,31 +979,39 @@ async function startPlatformerGame() {
         if (co.collected) return;
         const bob = Math.sin(co.bobTimer) * 4;
         const cx = wx(co.x);
-        const cy = wy(co.y, co.r * 2) + co.r + bob;
+        const cy = wy(co.y - co.r, co.r * 2) + co.r + bob;
         ctx.save();
         if (co.ghost) ctx.globalAlpha = 0.3;
-        ctx.shadowColor = 'rgba(255, 215, 0, 0.7)';
-        ctx.shadowBlur  = 10;
+        if (co.blue) {
+            ctx.shadowColor = 'rgba(80, 160, 255, 0.9)';
+            ctx.shadowBlur  = 18;
+        } else {
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.7)';
+            ctx.shadowBlur  = 10;
+        }
+        const innerCol = co.blue ? '#a0d4ff' : COL.coinShine;
+        const midCol   = co.blue ? '#5b9cf6' : COL.coin;
+        const outerCol = co.blue ? '#1a4d99' : COL.coinShadow;
         const g = ctx.createRadialGradient(cx - co.r * 0.3, cy - co.r * 0.3, 0, cx, cy, co.r);
-        g.addColorStop(0,   COL.coinShine);
-        g.addColorStop(0.4, COL.coin);
-        g.addColorStop(1,   COL.coinShadow);
+        g.addColorStop(0,   innerCol);
+        g.addColorStop(0.4, midCol);
+        g.addColorStop(1,   outerCol);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(cx, cy, co.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur  = 0;
-        ctx.strokeStyle = COL.coinShadow;
+        ctx.strokeStyle = outerCol;
         ctx.lineWidth   = 1.5;
         if (co.ghost) ctx.setLineDash([4, 3]);
         ctx.beginPath();
         ctx.arc(cx, cy, co.r, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.fillStyle    = COL.coinShadow;
-        ctx.font         = `bold ${Math.round(co.r * 1.1)}px sans-serif`;
+        ctx.fillStyle    = outerCol;
+        ctx.font         = `bold ${Math.round(co.r * (co.blue ? 0.72 : 1.1))}px sans-serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('$', cx, cy + 1);
+        ctx.fillText(co.blue ? '$10' : '$', cx, cy + 1);
         ctx.restore();
     }
 
@@ -883,11 +1019,11 @@ async function startPlatformerGame() {
         for (const popup of coinPopups) {
             ctx.save();
             ctx.globalAlpha  = popup.life / popup.maxLife;
-            ctx.fillStyle    = COL.coin;
+            ctx.fillStyle    = popup.blue ? '#5b9cf6' : COL.coin;
             ctx.font         = 'bold 20px sans-serif';
             ctx.textAlign    = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('+1', popup.x, popup.y);
+            ctx.fillText(`+${popup.value || 1}`, popup.x, popup.y);
             ctx.restore();
         }
     }
@@ -973,7 +1109,18 @@ async function startPlatformerGame() {
         for (const lv of lvl.lavas) { if (!lv.ghost) ctx.strokeRect(wx(lv.x), wy(lv.y, lv.h), lv.w, lv.h); }
 
         ctx.strokeStyle = 'rgba(255,50,50,0.9)';
-        for (const en of lvl.enemies) { if (!en.ghost) ctx.strokeRect(wx(en.x), wy(en.y, en.h), en.w, en.h); }
+        for (const en of lvl.enemies) {
+            if (!en.ghost) {
+                ctx.strokeRect(wx(en.x), wy(en.y, en.h), en.w, en.h);
+                const ecx = wx(en.x + en.w / 2);
+                const ecy = wy(en.y + en.h / 2, 0);
+                ctx.strokeStyle = en.detected ? 'rgba(255,220,0,0.9)' : 'rgba(255,220,0,0.35)';
+                ctx.beginPath();
+                ctx.arc(ecx, ecy, en.detectionR, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,50,50,0.9)';
+            }
+        }
 
         ctx.strokeStyle = 'rgba(200,100,255,0.9)';
         for (const pt of lvl.portals) ctx.strokeRect(wx(pt.x), wy(pt.y, pt.h), pt.w, pt.h);
@@ -996,6 +1143,7 @@ async function startPlatformerGame() {
             `elapsed: ${elapsed.toFixed(2)}s`,
             `portalCooldown: ${portalCooldownTimer.toFixed(2)}s`,
             `checkpoints: ${checkpointHistory.length}`,
+            `[Q/E] chp: ${debugCpIdx < 0 ? 'spawn' : debugCpIdx} / ${lvl.checkpoints.length - 1}`,
         ];
 
         const lh = 18, pad = 10;
@@ -1169,19 +1317,39 @@ async function startPlatformerGame() {
     }
 
     let mouseX = -1, mouseY = -1;
-    canvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-    canvas.addEventListener('click', e => {
+    function handleSliderAt(clientX, clientY) {
         for (const b of btns) {
-            if (e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h) {
+            if (!b._slider) continue;
+            if (clientX >= b.x && clientX <= b.x + b.w && clientY >= b.y && clientY <= b.y + b.h) {
+                const v = Math.max(0, Math.min(1, (clientX - b._sliderX) / b._sliderW));
+                b._setVol(v);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    let mouseDown = false;
+    canvas.addEventListener('mousedown', e => { mouseDown = true; handleSliderAt(e.clientX, e.clientY); });
+    canvas.addEventListener('mouseup', () => mouseDown = false);
+    canvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; if (mouseDown) handleSliderAt(e.clientX, e.clientY); });
+    canvas.addEventListener('click', e => {
+        if (handleSliderAt(e.clientX, e.clientY)) return;
+        for (const b of btns) {
+            if (!b._slider && e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h) {
                 b.cb(); return;
             }
         }
     });
+    canvas.addEventListener('touchmove', e => {
+        const t = e.touches[0]; if (!t) return;
+        handleSliderAt(t.clientX, t.clientY);
+    }, { passive: true });
     canvas.addEventListener('touchend', e => {
-        const touch = e.changedTouches[0];
-        if (!touch) return;
+        const touch = e.changedTouches[0]; if (!touch) return;
+        if (handleSliderAt(touch.clientX, touch.clientY)) return;
         for (const b of btns) {
-            if (touch.clientX >= b.x && touch.clientX <= b.x + b.w && touch.clientY >= b.y && touch.clientY <= b.y + b.h) {
+            if (!b._slider && touch.clientX >= b.x && touch.clientX <= b.x + b.w && touch.clientY >= b.y && touch.clientY <= b.y + b.h) {
                 b.cb(); return;
             }
         }
@@ -1195,7 +1363,7 @@ async function startPlatformerGame() {
         ctx.fillStyle = 'rgba(0,0,0,0.65)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const panelW = 360, panelH = 390;
+        const panelW = 360, panelH = 530;
         const px2 = canvas.width / 2 - panelW / 2;
         const py2 = canvas.height / 2 - panelH / 2;
 
@@ -1224,7 +1392,7 @@ async function startPlatformerGame() {
                 const cp = getCurrentCheckpoint();
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
-                for (const en  of lvl.enemies) en.x = en.startX;
+                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
                 for (const orb of lvl.orbs)    orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
@@ -1245,7 +1413,7 @@ async function startPlatformerGame() {
                 const cp = getCurrentCheckpoint();
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
-                for (const en  of lvl.enemies) en.x = en.startX;
+                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
                 for (const orb of lvl.orbs)    orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
@@ -1256,6 +1424,40 @@ async function startPlatformerGame() {
         );
 
         drawBtn(bx, py2 + 84 + (bh + gap) * 3, bw, bh, '✕  Sluiten', '#555', () => endGame());
+
+        const sliderX = px2 + 30;
+        const sliderW = panelW - 60;
+        const sliderY1 = py2 + 84 + (bh + gap) * 4 + 10;
+        const sliderY2 = sliderY1 + 52;
+
+        for (const [label, vol, setVol, y] of [
+            ['🎵 Muziek', musicVolume, (v) => { musicVolume = v; if (musicAudio) musicAudio.volume = v; }, sliderY1],
+            ['🔊 Geluiden', sfxVolume, (v) => { sfxVolume = v; }, sliderY2],
+        ]) {
+            ctx.fillStyle = '#aaa';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, sliderX, y + 8);
+
+            const trackY = y + 28;
+            const trackH = 6;
+            ctx.fillStyle = '#333';
+            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH/2, sliderW, trackH, 3); ctx.fill();
+
+            ctx.fillStyle = '#5b9cf6';
+            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH/2, sliderW * vol, trackH, 3); ctx.fill();
+
+            const knobX = sliderX + sliderW * vol;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(knobX, trackY, 9, 0, Math.PI * 2); ctx.fill();
+
+            btns.push({
+                x: sliderX, y: trackY - 14, w: sliderW, h: 28,
+                cb: () => {},
+                _slider: true, _setVol: setVol, _sliderX: sliderX, _sliderW: sliderW,
+            });
+        }
 
         ctx.fillStyle    = 'rgba(155,155,156,0.5)';
         ctx.font         = '13px sans-serif';
@@ -1304,43 +1506,139 @@ async function startPlatformerGame() {
         id('mod-coins-hud').textContent = totalPossible > 0 ? `🪙 ${sessionCoins}` : '';
     }
 
+    function redrawObj(o) {
+        if (o.type === 'floor') {
+            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.floor);
+        } else if (o.type === 'wall') {
+            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.wall);
+        } else if (o.type === 'lava') {
+            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.lava);
+        } else if (o.type === 'trampoline') {
+            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.tramp, 8);
+        } else if (o.type === 'mpUp') {
+            if (isVisible(o.x, o.cy, o.w, o.h)) ghostFillRect(o, o.x, o.cy, o.w, o.h, COL.floor);
+        } else if (o.type === 'mpRight') {
+            if (isVisible(o.cx, o.y, o.w, o.h)) ghostFillRect(o, o.cx, o.y, o.w, o.h, COL.floor);
+        } else if (o.type === 'enemy') {
+            if (isVisible(o.x, o.y, o.w, o.h)) drawEnemy(o);
+        } else if (o.type === 'orb') {
+            if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawOrb(o);
+        } else if (o.type === 'coin') {
+            if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawCoin(o);
+        } else if (o.type === 'checkpoint') {
+            if (isVisible(o.x, o.y, FLAG_W, FLAG_H)) drawCheckpoint(o);
+        } else if (o.type === 'text') {
+            if (isVisible(o.x - 400, o.y - 40, 800, 80)) drawText(o);
+        } else if (o.type === 'portal') {
+            if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
+        }
+    }
     function render(dt) {
         btns.length = 0;
         if (!lvl) return;
         drawBg();
-
         const floorCanvasY = wy(0, 0);
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, 0, canvas.width, floorCanvasY);
         ctx.clip();
 
+        const activeGhostWalls = lvl.walls.filter(w => w.ghost && w.opaque && w.playerOverlap);
+        const ghostWallRevealSets = activeGhostWalls.map(gw => ({
+            wall: gw,
+            objectsBehind: lvl.drawOrder.slice(0, lvl.drawOrder.indexOf(gw)),
+        }));
+
         for (const o of lvl.drawOrder) {
-            if      (o.type === 'floor')       ghostFillRect(o, o.x,  o.y,  o.w, o.h, COL.floor);
-            else if (o.type === 'wall')        ghostFillRect(o, o.x,  o.y,  o.w, o.h, COL.wall);
-            else if (o.type === 'lava')        ghostFillRect(o, o.x,  o.y,  o.w, o.h, COL.lava);
-            else if (o.type === 'trampoline')  ghostFillRect(o, o.x,  o.y,  o.w, o.h, COL.tramp, 8);
-            else if (o.type === 'mpUp')        ghostFillRect(o, o.x,  o.cy, o.w, o.h, COL.floor);
-            else if (o.type === 'mpRight')     ghostFillRect(o, o.cx, o.y,  o.w, o.h, COL.floor);
-            else if (o.type === 'enemy')       drawEnemy(o);
-            else if (o.type === 'orb')         drawOrb(o);
-            else if (o.type === 'coin')        drawCoin(o);
-            else if (o.type === 'checkpoint')  drawCheckpoint(o);
-            else if (o.type === 'text')        drawText(o);
-            else if (o.type === 'portal')      drawPortal(o);
+            if (o.type === 'floor') {
+                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.floor);
+            } else if (o.type === 'wall') {
+                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.wall);
+            } else if (o.type === 'lava') {
+                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.lava);
+            } else if (o.type === 'trampoline') {
+                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.tramp, 8);
+            } else if (o.type === 'mpUp') {
+                if (isVisible(o.x, o.cy, o.w, o.h)) ghostFillRect(o, o.x, o.cy, o.w, o.h, COL.floor);
+            } else if (o.type === 'mpRight') {
+                if (isVisible(o.cx, o.y, o.w, o.h)) ghostFillRect(o, o.cx, o.y, o.w, o.h, COL.floor);
+            } else if (o.type === 'enemy') {
+                if (isVisible(o.x, o.y, o.w, o.h)) drawEnemy(o);
+            } else if (o.type === 'orb') {
+                if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawOrb(o);
+            } else if (o.type === 'coin') {
+                if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawCoin(o);
+            } else if (o.type === 'checkpoint') {
+                if (isVisible(o.x, o.y, FLAG_W, FLAG_H)) drawCheckpoint(o);
+            } else if (o.type === 'text') {
+                if (isVisible(o.x - 400, o.y - 40, 800, 80)) drawText(o);
+            } else if (o.type === 'portal') {
+                if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
+            }
         }
         drawFlag();
-        drawPlayer();
+        if (phase === 'dying') drawDeathSlices(); else drawPlayer();
+
+        for (const { wall: gw, objectsBehind } of ghostWallRevealSets) {
+            if (!isVisible(gw.x, gw.y, gw.w, gw.h)) continue;
+            if (!gw.playerOverlap) continue;
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(wx(gw.x), wy(gw.y, gw.h), gw.w, gw.h);
+            ctx.clip();
+            for (const o of objectsBehind) redrawObj(o);
+            drawFlag();
+            if (phase === 'dying') drawDeathSlices(); else drawPlayer();
+            ctx.restore();
+        }
+
         drawCoinPopups();
-
         ctx.restore();
-
         drawHUD();
         drawDescription();
         if (phase === 'paused') drawPauseScreen();
         if (phase === 'win')    drawWinScreen();
-
         drawDebug(dt);
+    }
+
+    function createDeathSlices() {
+        deathSlices = [];
+        const count = 6;
+        const sliceH = PH / count;
+        const col = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary-normal').trim() || '#ffffff';
+        for (let i = 0; i < count; i++) {
+            deathSlices.push({
+                worldX: px,
+                worldYBottom: py + PH - (i + 1) * sliceH,
+                localY: i * sliceH,
+                h: sliceH,
+                vx: (Math.random() - 0.5) * 700,
+                vy: 200 + Math.random() * 500,
+                rot: 0,
+                rotV: (Math.random() - 0.5) * 18,
+                col,
+            });
+        }
+    }
+
+    function drawDeathSlices() {
+        const alpha = Math.max(0, deathTimer / DEATH_DUR);
+        for (const s of deathSlices) {
+            const sx = wx(s.worldX);
+            const sy = wy(s.worldYBottom, s.h);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(sx + PW / 2, sy + s.h / 2);
+            ctx.rotate(s.rot);
+            ctx.beginPath();
+            ctx.rect(-PW / 2, -s.h / 2, PW, s.h);
+            ctx.clip();
+            ctx.translate(-PW / 2, -s.h / 2 - s.localY);
+            ctx.fillStyle = s.col;
+            ctx.fill(PLAYER_PATH);
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
     }
 
     let lastTs = null;
@@ -1364,5 +1662,15 @@ async function startPlatformerGame() {
         } else {
             return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.mp3';
         }
+    }
+
+    function playSfx(name) {
+        if (!sfxPool[name]) sfxPool[name] = [];
+        const pool = sfxPool[name];
+        let a = pool.find(x => x.paused || x.ended);
+        if (!a) { a = new Audio(getAudioUrl(name)); pool.push(a); }
+        a.currentTime = 0;
+        a.volume = sfxVolume;
+        a.play().catch(() => {});
     }
 }

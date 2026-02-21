@@ -33,7 +33,7 @@
 	<floor x="170"  y="930"  width="430"  height="470" texture="platformer_textures/lvl-0/dirt.png"/>
 
 	<!-- PIPE -->
-	<wall x="80"  y="380"  width="70"  height="1020" ghost="true" texture="platformer_textures/lvl-0/pipe-inside.png" textureMode="stretch"/>
+	<wall x="80"  y="380"  width="70"  height="1020" ghost="true" opaque="true" texture="platformer_textures/lvl-0/pipe-inside.png" textureMode="stretch"/>
 
 	<wall x="60"  y="400"  width="20"  height="1000" texture="platformer_textures/lvl-0/pipe-wall.png"/>
 	<wall x="40"  y="380"  width="40"  height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
@@ -102,12 +102,60 @@
 	<!-- SECOND PART OF LEVEL -->
 
 	<!-- PORTAL TO FIRST PART OF LEVEL -->
-	<portal x="7000"  y="60"  width="1"  height="200" portal-id="2" to-portal-id="1"/>
+	<portal x="7000"  y="530"  width="1"  height="200" portal-id="2" to-portal-id="1"/>
 
-	<!-- FLOOR -->
-	<floor x="6700" y="0" width="600" height="60"/>
+	<!-- FLOATING PLATFORM -->
+	<floor x="6700" y="500" width="600" height="30"/>
+
+	<!-- MOVING PLATFORM -->
+  	<movingPlatformRight y="510" startX="6200" endX="6560" width="140" height="20"/>
+
+	<!-- COINS FOR MOVING PLATFORM -->
+	<coin x="6350" y="620" />
+	<coin x="6550" y="620" />
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="6000" y="500" width="200" height="30"/>
+
+	<!-- ENEMIES -->
+	<enemy x="6050" y="530" min="6000" max="6200" detectionRadius="400"/>
+	<text x="6100" y="650">Pas op voor de <b><r>vijanden</r></b>!</text>
+
+	<!-- ORB -->
+  	<orb x="5850" y="530" strength="2.5"/>
 
 	<!-- CHECKPOINT -->
-  	<checkpoint x="6800" y="60" />
+  	<checkpoint x="6800" y="530" />
 
+	<!-- FLOATING PLATFORM -->
+	<floor x="5500" y="670" width="200" height="30"/>
+
+	<!-- LAVA -->
+  	<lava x="4000" y="0" width="5000" height="109"/>
+	<wall x="4000" y="0" width="5000" height="109" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+	<wall x="4000" y="0" width="5000" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+
+	<!-- SECRET COIN -->
+	<coin x="5300" y="749" blue="true" />
+
+	<!-- SECOND BLOCK -->
+	<floor x="4400"  y="0"  width="1100"  height="700" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="5200"  y="700"  width="300"  height="98" ghost="true" opaque="true" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="4400"  y="700"  width="800"  height="98" texture="platformer_textures/lvl-0/dirt.png"/>
+	<floor x="4400"  y="798"  width="1100"  height="1002" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="5500"  y="700"  width="30"  height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
+
+	<!-- TRAMPOLINE  -->
+  	<trampoline x="5575" y="700"  width="50"  height="10" strength="3.2"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="5700" y="1050" width="200" height="30"/>
+
+	<!-- ORB -->
+  	<orb x="6050" y="1110" strength="1.5"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="6200" y="1050" width="200" height="30"/>
 </level>
