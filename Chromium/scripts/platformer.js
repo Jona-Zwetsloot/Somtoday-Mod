@@ -505,6 +505,8 @@ async function startPlatformerGame() {
 
     let doorMsg = null;
 
+    let noclip = false;
+
     function getCurrentCheckpoint() {
         return checkpointHistory.length > 0 ? checkpointHistory[checkpointHistory.length - 1] : null;
     }
@@ -623,6 +625,7 @@ async function startPlatformerGame() {
         KEY[e.code] = true;
         if (['ArrowUp','KeyW','Space'].includes(e.code)) jumpQ = true;
         if (DEBUG_MODE && e.code === 'KeyH') debugVisible = !debugVisible;
+        if (DEBUG_MODE && e.code === 'KeyN') { noclip = !noclip; }
         if (e.code === 'Escape') togglePause();
         if (DEBUG_MODE && e.code === 'KeyE') {
             const areaCps = lvl.areas
@@ -1274,6 +1277,33 @@ async function startPlatformerGame() {
             if (en.max !== null && en.x + en.w > en.max) { en.x = en.max - en.w; }
         }
 
+        for (let i = 0; i < lvl.enemies.length; i++) {
+            const a = lvl.enemies[i];
+            if (a.ghost) continue;
+            for (let j = i + 1; j < lvl.enemies.length; j++) {
+                const b = lvl.enemies[j];
+                if (b.ghost) continue;
+                if (!hit(a.x, a.y, a.w, a.h, b.x, b.y, b.w, b.h)) continue;
+                const overlapX = Math.min((a.x + a.w) - b.x, (b.x + b.w) - a.x);
+                const overlapY = Math.min((a.y + a.h) - b.y, (b.y + b.h) - a.y);
+                if (overlapX <= overlapY) {
+                    const half = overlapX / 2;
+                    const aLeft = (a.x + a.w/2) < (b.x + b.w/2);
+                    if (aLeft) { a.x -= half; b.x += half; }
+                    else       { a.x += half; b.x -= half; }
+                } else {
+                    const half = overlapY / 2;
+                    const aBelow = (a.y + a.h/2) < (b.y + b.h/2);
+                    if (aBelow) { a.y -= half; b.y += half; }
+                    else        { a.y += half; b.y -= half; }
+                }
+                if (a.min !== null && a.x < a.min) a.x = a.min;
+                if (a.max !== null && a.x + a.w > a.max) a.x = a.max - a.w;
+                if (b.min !== null && b.x < b.min) b.x = b.min;
+                if (b.max !== null && b.x + b.w > b.max) b.x = b.max - b.w;
+            }
+        }
+
         for (const orb of lvl.orbs) { if (orb.actTimer > 0) orb.actTimer -= dt; }
 
         for (const cp of lvl.checkpoints) {
@@ -1346,7 +1376,7 @@ async function startPlatformerGame() {
         px += vx * dt;
         px = Math.max(0, Math.min(px, lvl.worldWidth - PW));
 
-        for (const wl of lvl.walls) {
+        if (!noclip) for (const wl of lvl.walls) {
             if (wl.ghost) continue;
             let wx2, wy2, ww, wh;
             if (wl.keyId) {
@@ -1414,12 +1444,10 @@ async function startPlatformerGame() {
                     onGround = true;
                     standingOn = fl;
                 } else if (!fl.oneWay && vy > 0 && playerTop > flBottom && playerBottom < flBottom) {
-                    py = flBottom - PH;
-                    vy = -200;
+                    if (!noclip) { py = flBottom - PH; vy = -200; }
                 }
             } else if (!fl.oneWay) {
-                px = px + PW / 2 < fl.x + fl.w / 2 ? fl.x - PW : fl.x + fl.w;
-                vx = 0;
+                if (!noclip) { px = px + PW / 2 < fl.x + fl.w / 2 ? fl.x - PW : fl.x + fl.w; vx = 0; }
             }
         }
         if (!onGround) {
@@ -1459,11 +1487,13 @@ async function startPlatformerGame() {
         }
 
         let dead = false;
-        for (const lv of lvl.lavas) {
-            const lh = lv.flowUp ? lv.currentH : lv.h;
-            if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lh)) { dead = true; break; }
+        if (!noclip) {
+            for (const lv of lvl.lavas) {
+                const lh = lv.flowUp ? lv.currentH : lv.h;
+                if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lh)) { dead = true; break; }
+            }
+            if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
         }
-        if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
         if (dead) {
             playSfx('die');
             createDeathSlices();
@@ -2185,6 +2215,7 @@ async function startPlatformerGame() {
             `[Q/E] chp: ${debugCpIdx < 0 ? 'spawn' : debugCpIdx} / ${lvl.checkpoints.length - 1}`,
             `heldKey: ${heldKey ? heldKey.keyId + ' (' + heldKey.keyColor + ')' : 'none'}`,
             `areas: ${lvl.areas.map(a => a.areaId + (a.triggered ? '✓' : '○')).join(', ') || 'none'}`,
+            noclip ? '[N] NOCLIP ON' : '[N] noclip off',
         ];
 
         const lh = 18, pad = 10;
