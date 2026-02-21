@@ -55,10 +55,58 @@ async function startPlatformerGame() {
     window.addEventListener('resize', updateMobileVis);
 
     let musicAudio = null;
-    let sfxVolume = 0.4;
-    let musicVolume = 0.2;
+    let musicFading = null;
+    let currentSong = null;
+    let sfxVolume = get('platformer-sfxVolume') || 0.4;
+    let musicVolume = get('platformer-musicVolume') || 0.2;
+
+    function _killAudio(a) {
+        if (!a) return;
+        try { a.pause(); a.src = ''; } catch(e) {}
+    }
+
+    function _killFading() {
+        if (!musicFading) return;
+        _killAudio(musicFading.outAudio);
+        _killAudio(musicFading.inAudio);
+        musicFading = null;
+    }
+
+    function fadeMusicTo(src, duration = 1.5) {
+        currentSong = src;
+        const outAudio = musicFading ? musicFading.inAudio : musicAudio;
+        if (musicFading) { _killAudio(musicFading.outAudio); musicFading = null; }
+        musicAudio = null;
+        let inAudio = null;
+        if (src) {
+            try {
+                inAudio = new Audio(getAudioUrl(src));
+                inAudio.loop   = true;
+                inAudio.volume = 0;
+                inAudio.play().catch(() => {});
+            } catch(e) {}
+        }
+        musicFading = { outAudio, inAudio, timer: 0, duration: Math.max(0.05, duration) };
+    }
+
+    function updateMusicFade(dt) {
+        if (!musicFading) return;
+        musicFading.timer += dt;
+        const t = Math.min(1, musicFading.timer / musicFading.duration);
+        if (musicFading.outAudio) musicFading.outAudio.volume = musicVolume * (1 - t);
+        if (musicFading.inAudio)  musicFading.inAudio.volume  = musicVolume * t;
+        if (t >= 1) {
+            _killAudio(musicFading.outAudio);
+            musicAudio = musicFading.inAudio;
+            musicFading = null;
+        }
+    }
+
     function playLevelMusic(src) {
-        if (musicAudio) { musicAudio.pause(); musicAudio = null; }
+        currentSong = src;
+        _killFading();
+        _killAudio(musicAudio);
+        musicAudio = null;
         if (!src) return;
         try {
             musicAudio = new Audio(getAudioUrl(src));
@@ -67,13 +115,12 @@ async function startPlatformerGame() {
             musicAudio.play().catch(() => {});
         } catch(e) {}
     }
+
     function stopMusic() {
-        if (musicAudio) {
-            const a = musicAudio;
-            musicAudio = null;
-            a.pause();
-            a.src = '';
-        }
+        currentSong = null;
+        _killFading();
+        _killAudio(musicAudio);
+        musicAudio = null;
     }
 
     const textureCache = {};
@@ -104,12 +151,16 @@ async function startPlatformerGame() {
             worldHeight: parseFloat(el.getAttribute('worldHeight')) || 1400,
             spawnX: parseFloat(el.getAttribute('spawnX')) || 60,
             spawnY: parseFloat(el.getAttribute('spawnY')) || 120,
-            flagX: parseFloat(el.getAttribute('flagX')) || 2900,
-            flagY: parseFloat(el.getAttribute('flagY')) || 120,
             floors: [], walls: [], lavas: [],
             trampolines: [], enemies: [], orbs: [],
             mpUp: [], mpRight: [], coins: [], checkpoints: [],
-            texts: [], portals: [],
+            texts: [], portals: [], ends: [],
+            keys: [],
+            areas: [],
+            cameras: [],
+            musicTriggers: [],
+            enemySpawners: [],
+            despawnTriggers: [],
             drawOrder: [],
             playAgainText: 'Opnieuw spelen',
             closeGameText: 'Sluiten',
@@ -129,12 +180,45 @@ async function startPlatformerGame() {
                 const obj = { type: 'floor', x, y, w, h, ghost, oneWay, texture, textureMode, tex: null };
                 lvl.floors.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'wall') {
-                const textureGhost = c.getAttribute('textureGhost') || null;
-                const opaque = c.getAttribute('opaque') === 'true';
-                const obj = { type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode, textureGhost, tex: null, texGhost: null, playerOverlap: false };
+                const textureGhost  = c.getAttribute('textureGhost') || null;
+                const opaque        = c.getAttribute('opaque') === 'true';
+                const keyId         = c.getAttribute('keyId') || null;
+                const keyColor      = c.getAttribute('keyColor') || '#ffd700';
+                const keyholeAttr   = c.getAttribute('keyhole') || 'visible';
+                const closeOnAreaId = c.getAttribute('closeOnAreaId') || null;
+                const riseWithId    = c.getAttribute('riseWithId')  || null;
+                const riseYOnly     = c.getAttribute('riseYOnly')   === 'true';
+                const riseYOffset   = parseFloat(c.getAttribute('riseYOffset')) || 0;
+                const obj = {
+                    type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode,
+                    textureGhost, tex: null, texGhost: null, playerOverlap: false,
+                    keyId, keyColor,
+                    keyholeVisible: keyholeAttr !== 'invisible',
+                    doorOpen: false,
+                    doorSlide: 0,
+                    doorDir: 0,
+                    closeOnAreaId,
+                    areaCloseSlide: closeOnAreaId ? 1 : 0,
+                    areaCloseDir: 0,
+                    riseWithId, riseYOnly, riseYOffset,
+                    riseCurrentY: y,
+                    riseCurrentH: h,
+                };
                 lvl.walls.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'lava') {
-                const obj = { type: 'lava', x, y, w, h, ghost, texture, textureMode, tex: null };
+                const flowUp       = c.getAttribute('flowUp') === 'true';
+                const flowSpeed    = parseFloat(c.getAttribute('flowSpeed'))    || 50;
+                const flowDuration = parseFloat(c.getAttribute('flowDuration')) || 0;
+                const flowAreaId   = c.getAttribute('flowAreaId') || null;
+                const riseId       = c.getAttribute('riseId') || null;
+                const obj = {
+                    type: 'lava', x, y, w, h, ghost, texture, textureMode, tex: null,
+                    flowUp, flowSpeed, flowDuration, flowAreaId,
+                    riseId,
+                    currentH: h,
+                    flowTimer: 0,
+                    flowing: flowUp && !flowAreaId,
+                };
                 lvl.lavas.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'trampoline') {
                 const obj = { type: 'trampoline', x, y, w, h, ghost, texture, textureMode, tex: null, strength: parseFloat(c.getAttribute('strength')) || 2.5 };
@@ -143,10 +227,11 @@ async function startPlatformerGame() {
                 const mn = c.getAttribute('min') !== null ? parseFloat(c.getAttribute('min')) : null;
                 const mx = c.getAttribute('max') !== null ? parseFloat(c.getAttribute('max')) : null;
                 const detectionR = parseFloat(c.getAttribute('detectionRadius')) || 200;
+                const stuck = c.getAttribute('stuck') === 'false';
                 const n1 = Math.floor(Math.random() * 5) + 1;
-                let   n2 = Math.floor(Math.random() * 10);
+                let n2 = Math.floor(Math.random() * 10);
                 if (n1 === 5 && n2 >= 5) n2 = 4;
-                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, min: mn, max: mx, detectionR, detected: false, label: `${n1},${n2}`, ghost, texture, textureMode, tex: null };
+                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, startY: y, min: mn, max: mx, detectionR, detected: false, label: `${n1},${n2}`, ghost, texture, textureMode, tex: null, stuck: stuck, vy: 0, onGround: false };
                 lvl.enemies.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'orb') {
                 const obj = { type: 'orb', x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, textureMode, tex: null };
@@ -154,7 +239,10 @@ async function startPlatformerGame() {
             } else if (tag === 'movingPlatformUp') {
                 const sy = parseFloat(c.getAttribute('startY')) || y;
                 const ey = parseFloat(c.getAttribute('endY'))   || y + 300;
-                const obj = { type: 'mpUp', x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, oneWay, texture, textureMode, tex: null };
+                const triggerMode = c.getAttribute('triggerMode') === 'true';
+                const triggerTimeout = parseFloat(c.getAttribute('triggerTimeout') ?? 1.0);
+                const returnTimeout = parseFloat(c.getAttribute('returnTimeout') ?? 2.0);
+                const obj = { type: 'mpUp', x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, oneWay, texture, textureMode, tex: null, triggerMode, triggerTimeout, returnTimeout, triggerTimer: 0, returnTimer: 0, triggerState: 'idle' };
                 lvl.mpUp.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'movingPlatformRight') {
                 const sx = parseFloat(c.getAttribute('startX')) || x;
@@ -169,6 +257,9 @@ async function startPlatformerGame() {
             } else if (tag === 'checkpoint') {
                 const obj = { type: 'checkpoint', x, y, activated: false };
                 lvl.checkpoints.push(obj); lvl.drawOrder.push(obj);
+            } else if (tag === 'end') {
+                const obj = { type: 'end', x, y, w, h };
+                lvl.ends.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'text') {
                 const baseFont  = c.getAttribute('font')  || '20px sans-serif';
                 const baseColor = c.getAttribute('color') || '#ffffff';
@@ -201,6 +292,70 @@ async function startPlatformerGame() {
                 const toPortalId = c.getAttribute('to-portal-id') || null;
                 const obj = { type: 'portal', x, y, w, h, portalId, toPortalId, cooldown: 0, texture, textureMode, tex: null };
                 lvl.portals.push(obj); lvl.drawOrder.push(obj);
+            } else if (tag === 'key') {
+                const keyId    = c.getAttribute('keyId')    || `key_${Math.random()}`;
+                const keyColor = c.getAttribute('color')    || '#ffd700';
+                const r        = parseFloat(c.getAttribute('r')) || 16;
+                const obj = {
+                    type: 'key', x, y, origX: x, origY: y, r, keyId, keyColor,
+                    collected: false,
+                    bobTimer: Math.random() * Math.PI * 2,
+                    ghost,
+                    _swapLocked: false,
+                };
+                lvl.keys.push(obj); lvl.drawOrder.push(obj);
+            } else if (tag === 'area') {
+                const areaId      = c.getAttribute('id') || `area_${Math.random()}`;
+                const checkpointX = c.getAttribute('checkpointX') !== null ? parseFloat(c.getAttribute('checkpointX')) : null;
+                const checkpointY = c.getAttribute('checkpointY') !== null ? parseFloat(c.getAttribute('checkpointY')) : null;
+                const obj = {
+                    type: 'area', x, y, w, h, areaId,
+                    checkpointX, checkpointY,
+                    triggered: false,
+                };
+                lvl.areas.push(obj);
+            } else if (tag === 'camera') {
+                const areaId = c.getAttribute('areaId') || null;
+                const lockX = c.getAttribute('lockX') === 'true';
+                const lockY = c.getAttribute('lockY') === 'true';
+                const targetCamX = c.getAttribute('targetCamX') !== null ? parseFloat(c.getAttribute('targetCamX')) : null;
+                const targetCamY = c.getAttribute('targetCamY') !== null ? parseFloat(c.getAttribute('targetCamY')) : null;
+                lvl.cameras.push({ type: 'camera', areaId, lockX, lockY, targetCamX, targetCamY });
+            } else if (tag === 'music') {
+                const areaId = c.getAttribute('areaId') || null;
+                const song = c.getAttribute('song') || null;
+                const fadeDuration = parseFloat(c.getAttribute('fadeDuration')) || 1.5;
+                const restartOnDie = c.getAttribute('restartOnDie') === 'true';
+                lvl.musicTriggers.push({ areaId, song, fadeDuration, fired: false, restartOnDie });
+            } else if (tag === 'enemySpawner') {
+                const areaId = c.getAttribute('areaId') || null;
+                const count = parseInt(c.getAttribute('count')) || 1;
+                const spawnX = parseFloat(c.getAttribute('x')) ?? 0;
+                const spawnY = parseFloat(c.getAttribute('y')) ?? 0;
+                const spawnSpread = parseFloat(c.getAttribute('spread')) || 0;
+                const mn = c.getAttribute('min') !== null ? parseFloat(c.getAttribute('min')) : null;
+                const mx = c.getAttribute('max') !== null ? parseFloat(c.getAttribute('max')) : null;
+                const detectionR = parseFloat(c.getAttribute('detectionRadius')) || 200;
+                const stuck = c.getAttribute('stuck') !== 'false';
+                const ghost = c.getAttribute('ghost') === 'true';
+                const texture = c.getAttribute('texture') || null;
+                const textureMode = c.getAttribute('textureMode') || 'tile';
+                if (!lvl.enemySpawners) lvl.enemySpawners = [];
+                lvl.enemySpawners.push({
+                    areaId, count, spawnX, spawnY, spread: spawnSpread,
+                    min: mn, max: mx, detectionR,
+                    stuck, ghost, texture, textureMode,
+                    speed: parseFloat(c.getAttribute('speed')) || 100,
+                    fired: false,
+                });
+            } else if (tag === 'despawnEnemies') {
+                const dsAreaId = c.getAttribute('areaId') || null;
+                const dsSpawnerArea = c.getAttribute('spawnerAreaId') || null;
+                lvl.despawnTriggers.push({
+                    areaId: dsAreaId,
+                    spawnerAreaId: dsSpawnerArea,
+                    fired: false,
+                });
             } else if (tag === 'playAgainButton') {
                 lvl.playAgainText = c.textContent || lvl.playAgainText;
             } else if (tag === 'closeGameButton') {
@@ -240,7 +395,7 @@ async function startPlatformerGame() {
             const resp = await fetch(chrome.runtime.getURL(`platformer_levels/lvl-${i}.xml`));
             if (!resp.ok) break;
             const xml = parser.parseFromString(await resp.text(), 'text/xml');
-            if (xml.querySelector('parsererror')) break;
+            if (xml.querySelector('parseerror')) break;
             const lvl = parseLvl(xml, i);
             await loadLevelTextures(lvl);
             levels.push(lvl);
@@ -252,9 +407,9 @@ async function startPlatformerGame() {
     const JUMP_V   = 620;
     const SPEED    = 300;
     const MAX_FALL = -1400;
-    const FLAG_W   = 14, FLAG_H = 80;
     const PORTAL_COOLDOWN = 0.4;
     const DEATH_DUR = 0.7;
+    const DOOR_SLIDE_SPEED = 4;
 
     const sfxPool = {};
 
@@ -291,6 +446,10 @@ async function startPlatformerGame() {
     let deathTimer = 0;
     let deathSlices = [];
 
+    let heldKey = null;
+
+    let doorMsg = null;
+
     function getCurrentCheckpoint() {
         return checkpointHistory.length > 0 ? checkpointHistory[checkpointHistory.length - 1] : null;
     }
@@ -301,17 +460,107 @@ async function startPlatformerGame() {
         return snap;
     }
 
+    function captureKeySnapshot() {
+        const collectedKeys = new Set();
+        if (lvl) lvl.keys.forEach((k, i) => { if (k.collected) collectedKeys.add(i); });
+        return { collectedKeys, heldKey: heldKey ? { ...heldKey } : null };
+    }
+
+    function captureAreaSnapshot() {
+        if (!lvl) return [];
+        return lvl.areas.map(a => ({ triggered: a.triggered }));
+    }
+
+    function captureLavaSnapshot() {
+        if (!lvl) return [];
+        return lvl.lavas.map(lv => ({
+            currentH: lv.currentH,
+            flowTimer: lv.flowTimer,
+            flowing: lv.flowing,
+        }));
+    }
+
     function restoreFromCheckpoint(cp) {
         if (!cp) {
             sessionCoins -= lvl.coins.filter(co => co.collected).length;
             elapsed = 0;
             px = lvl.spawnX; py = lvl.spawnY;
             lvl.coins.forEach(co => { co.collected = false; });
+            lvl.keys.forEach(k => { k.collected = false; k.x = k.origX; k.y = k.origY; k._swapLocked = false; });
+            heldKey = null;
+            lvl.walls.forEach(w => {
+                if (w.keyId) { w.doorOpen = false; w.doorSlide = 0; w.doorDir = 0; }
+                if (w.closeOnAreaId) { w.areaCloseSlide = 1; w.areaCloseDir = 0; }
+            });
+            lvl.areas.forEach(a => { a.triggered = false; });
+            lvl.musicTriggers.forEach(mt => { mt.fired = false; });
+            lvl.despawnTriggers.forEach(ds => { ds.fired = false; });
+            lvl.enemySpawners.forEach(sp => { sp.fired = false; sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
+            lvl.enemies = lvl.enemies.filter(en => !en._spawned);
+            lvl.drawOrder = lvl.drawOrder.filter(o => !(o.type === 'enemy' && o._spawned));
+            lvl.lavas.forEach(lv => {
+                if (lv.flowUp) { lv.currentH = lv.h; lv.flowTimer = 0; lv.flowing = !lv.flowAreaId; }
+            });
+            lvl.enemies.forEach(en => { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; });
+            if (currentSong !== lvl.song) fadeMusicTo(lvl.song, 1.0);
         } else {
             px = cp.x; py = cp.y;
             sessionCoins = cp.coins;
             lvl.coins.forEach((co, i) => { co.collected = cp.collectedSnapshot.has(i); });
+            if (cp.keySnapshot) {
+                lvl.keys.forEach((k, i) => {
+                    k.collected = cp.keySnapshot.collectedKeys.has(i);
+                    if (!k.collected) { k.x = k.origX; k.y = k.origY; }
+                    k._swapLocked = false;
+                });
+                heldKey = cp.keySnapshot.heldKey ? { ...cp.keySnapshot.heldKey } : null;
+            }
+            if (cp.doorSnapshot) {
+                lvl.walls.forEach((w, i) => {
+                    if (w.keyId && cp.doorSnapshot[i] !== undefined) {
+                        w.doorOpen   = cp.doorSnapshot[i].doorOpen;
+                        w.doorSlide  = cp.doorSnapshot[i].doorSlide;
+                        w.doorDir    = 0;
+                    }
+                });
+            }
+            lvl.areas.forEach(a => { a.triggered = false; });
+            lvl.musicTriggers.forEach(mt => { mt.fired = false; });
+            lvl.despawnTriggers.forEach(ds => { ds.fired = false; });
+            lvl.enemySpawners.forEach(sp => { sp.fired = false; sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
+            lvl.enemies = lvl.enemies.filter(en => !en._spawned);
+            lvl.drawOrder = lvl.drawOrder.filter(o => !(o.type === 'enemy' && o._spawned));
+            lvl.walls.forEach(w => {
+                if (!w.closeOnAreaId) return;
+                const linkedArea = lvl.areas.find(a => a.areaId === w.closeOnAreaId);
+                const areaIdx    = lvl.areas.indexOf(linkedArea);
+                const wasTriggeredAtCp = cp.areaSnapshot && areaIdx !== -1 && cp.areaSnapshot[areaIdx]?.triggered;
+                w.areaCloseSlide = wasTriggeredAtCp ? 0 : 1;
+                w.areaCloseDir   = 0;
+            });
+            if (cp.lavaSnapshot) {
+                lvl.lavas.forEach((lv, i) => {
+                    const snap = cp.lavaSnapshot[i];
+                    if (!snap || !lv.flowUp) return;
+                    lv.currentH  = snap.currentH;
+                    lv.flowTimer = snap.flowTimer;
+                    lv.flowing   = snap.flowing;
+                });
+            }
+            lvl.enemies.forEach(en => { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; });
+            const fadeSong = cp.songSnapshot !== undefined ? cp.songSnapshot : lvl.song;
+            const shouldRestart = currentSong !== fadeSong ||
+                lvl.musicTriggers.some(mt => mt.song === fadeSong && mt.restartOnDie);
+            if (shouldRestart) fadeMusicTo(fadeSong, 1.0);
         }
+    }
+
+    function captureDoorSnapshot() {
+        const snap = {};
+        if (lvl) lvl.walls.forEach((w, i) => {
+            if (w.keyId) snap[i] = { doorOpen: w.doorOpen, doorSlide: w.doorSlide };
+        });
+        return snap;
     }
 
     document.addEventListener('keydown', e => {
@@ -321,13 +570,33 @@ async function startPlatformerGame() {
         if (DEBUG_MODE && e.code === 'KeyH') debugVisible = !debugVisible;
         if (e.code === 'Escape') togglePause();
         if (DEBUG_MODE && e.code === 'KeyE') {
-            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints];
+            const areaCps = lvl.areas
+                .filter(a => a.checkpointX !== null)
+                .map(a => ({ x: a.checkpointX, y: a.checkpointY ?? a.checkpointX }));
+            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints, ...areaCps];
             debugCpIdx = Math.min(debugCpIdx + 1, cps.length - 1);
             const cp = cps[debugCpIdx];
+            const alreadyIn = checkpointHistory.some(h => h.x === cp.x && h.y === cp.y);
+            if (!alreadyIn && debugCpIdx > 0) {
+                checkpointHistory.push({
+                    x: cp.x, y: cp.y,
+                    coins: sessionCoins,
+                    elapsed,
+                    songSnapshot: currentSong,
+                    collectedSnapshot: captureCollectedSnapshot(),
+                    keySnapshot: captureKeySnapshot(),
+                    doorSnapshot: captureDoorSnapshot(),
+                    areaSnapshot: captureAreaSnapshot(),
+                    lavaSnapshot: captureLavaSnapshot(),
+                });
+            }
             px = cp.x; py = cp.y; vx = 0; vy = 0; snapCam = true;
         }
         if (DEBUG_MODE && e.code === 'KeyQ') {
-            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints];
+            const areaCps = lvl.areas
+                .filter(a => a.checkpointX !== null)
+                .map(a => ({ x: a.checkpointX, y: a.checkpointY ?? a.checkpointX }));
+            const cps = [{ x: lvl.spawnX, y: lvl.spawnY }, ...lvl.checkpoints, ...areaCps];
             debugCpIdx = Math.max(debugCpIdx - 1, 0);
             const cp = cps[debugCpIdx];
             px = cp.x; py = cp.y; vx = 0; vy = 0; snapCam = true;
@@ -341,10 +610,18 @@ async function startPlatformerGame() {
             phase = 'paused';
             timing = false;
             if (musicAudio) musicAudio.pause();
+            if (musicFading) {
+                if (musicFading.outAudio) musicFading.outAudio.pause();
+                if (musicFading.inAudio)  musicFading.inAudio.pause();
+            }
         } else if (phase === 'paused') {
             phase = 'playing';
             timing = true;
             if (musicAudio) musicAudio.play().catch(() => {});
+            if (musicFading) {
+                if (musicFading.outAudio) musicFading.outAudio.play().catch(() => {});
+                if (musicFading.inAudio)  musicFading.inAudio.play().catch(() => {});
+            }
         }
     }
 
@@ -365,21 +642,40 @@ async function startPlatformerGame() {
     }
 
     function countLevelCoins(l) {
-        return l ? l.coins.filter(c => !c.ghost).length : 0;
+        return l ? l.coins.filter(c => !c.ghost).reduce((t, c) => t + (c.blue ? 10 : 1), 0) : 0;
+    }
+
+    function showDoorMsg(text) {
+        doorMsg = { text, timer: 2.2, maxTimer: 2.2 };
     }
 
     function loadLvl(idx) {
         if (idx >= levels.length) { winGame(); return; }
         lvlIdx = idx;
         lvl    = levels[idx];
-        for (const mp of lvl.mpUp) { mp.cy = mp.startY; mp.dir = 1; }
+        for (const mp of lvl.mpUp) { mp.cy = mp.startY; mp.dir = 1; mp.triggerTimer = 0; mp.returnTimer = 0; mp.triggerState = 'idle'; }
         for (const mp of lvl.mpRight) { mp.cx = mp.startX; mp.dir = 1; }
         for (const orb of lvl.orbs) { orb.actTimer = 0; }
-        for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+        for (const en  of lvl.enemies) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; }
         for (const co  of lvl.coins) { co.collected = false; }
         for (const cp  of lvl.checkpoints) { cp.activated = false; }
         for (const pt  of lvl.portals) { pt.cooldown = 0; }
-        for (const wl  of lvl.walls) { wl.playerOverlap = false; }
+        for (const wl  of lvl.walls) {
+            wl.playerOverlap = false;
+            if (wl.keyId) { wl.doorOpen = false; wl.doorSlide = 0; wl.doorDir = 0; }
+            if (wl.closeOnAreaId) { wl.areaCloseSlide = 1; wl.areaCloseDir = 0; }
+        }
+        for (const k of lvl.keys) { k.collected = false; k.x = k.origX; k.y = k.origY; k._swapLocked = false; }
+        for (const a of lvl.areas) { a.triggered = false; }
+        for (const mt of lvl.musicTriggers) { mt.fired = false; }
+        for (const sp of lvl.enemySpawners) { sp.fired = false; sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; }
+        for (const ds of lvl.despawnTriggers) { ds.fired = false; }
+        for (const lv of lvl.lavas) {
+            if (lv.flowUp) { lv.currentH = lv.h; lv.flowTimer = 0; lv.flowing = !lv.flowAreaId; }
+        }
+        if (lvl.enemySpawners) lvl.enemySpawners.forEach(s => s.fired = false);
+        heldKey = null;
+        doorMsg = null;
         checkpointHistory = [];
         px = lvl.spawnX; py = lvl.spawnY;
         vx = 0; vy = 0; onGround = false;
@@ -417,8 +713,20 @@ async function startPlatformerGame() {
     }
 
     function updateCam() {
-        const tx = px + PW / 2 - canvas.width  * 0.4;
-        const ty = lvl.worldHeight - py - PH / 2 - canvas.height / 2;
+        let tx = px + PW / 2 - canvas.width  * 0.4;
+        let ty = lvl.worldHeight - py - PH / 2 - canvas.height / 2;
+
+        for (const cam of lvl.cameras) {
+            if (!cam.areaId) continue;
+            const area = lvl.areas.find(a => a.areaId === cam.areaId);
+            if (!area) continue;
+            const inArea = px + PW > area.x && px < area.x + area.w &&
+                           py + PH > area.y && py < area.y + area.h;
+            if (!inArea) continue;
+            if (cam.lockX && cam.targetCamX !== null) tx = cam.targetCamX;
+            if (cam.lockY && cam.targetCamY !== null) ty = cam.targetCamY;
+        }
+
         if (snapCam) {
             camX = tx;
             camY = ty;
@@ -467,6 +775,18 @@ async function startPlatformerGame() {
         snapCam = true;
     }
 
+    function getDoorEffectiveRect(wl) {
+        if (!wl.keyId) return { x: wl.x, y: wl.y, w: wl.w, h: wl.h };
+        const slideOffset = wl.doorSlide * wl.h;
+        return { x: wl.x, y: wl.y + slideOffset, w: wl.w, h: wl.h * (1 - wl.doorSlide) };
+    }
+
+    function getAreaCloseRect(wl) {
+        if (!wl.closeOnAreaId) return { x: wl.x, y: wl.y, w: wl.w, h: wl.h };
+        const vis = 1 - wl.areaCloseSlide;
+        return { x: wl.x, y: wl.y, w: wl.w, h: wl.h * vis };
+    }
+
     function update(dt) {
         if (phase === 'dying') {
             deathTimer -= dt;
@@ -495,9 +815,176 @@ async function startPlatformerGame() {
 
         if (descTimer > 0) descTimer -= dt;
         if (portalCooldownTimer > 0) portalCooldownTimer -= dt;
+        if (doorMsg && doorMsg.timer > 0) doorMsg.timer -= dt;
+
+        updateMusicFade(dt);
 
         for (const popup of coinPopups) { popup.y -= 60 * dt; popup.life -= dt; }
         coinPopups = coinPopups.filter(p => p.life > 0);
+
+        for (const wl of lvl.walls) {
+            if (!wl.keyId) continue;
+            if (wl.doorDir === 1) {
+                wl.doorSlide = Math.min(1, wl.doorSlide + DOOR_SLIDE_SPEED * dt);
+                if (wl.doorSlide >= 1) { wl.doorSlide = 1; wl.doorDir = 0; wl.doorOpen = true; }
+            }
+        }
+
+        for (const wl of lvl.walls) {
+            if (!wl.closeOnAreaId || wl.areaCloseDir === 0) continue;
+            wl.areaCloseSlide = Math.max(0, wl.areaCloseSlide - DOOR_SLIDE_SPEED * dt);
+            if (wl.areaCloseSlide <= 0) { wl.areaCloseSlide = 0; wl.areaCloseDir = 0; }
+        }
+
+        for (const lv of lvl.lavas) {
+            if (!lv.flowUp || !lv.flowing) continue;
+            if (lv.flowDuration > 0 && lv.flowTimer >= lv.flowDuration) continue;
+            lv.flowTimer += dt;
+            const elapsed2 = lv.flowDuration > 0 ? Math.min(lv.flowTimer, lv.flowDuration) : lv.flowTimer;
+            lv.currentH = lv.h + lv.flowSpeed * elapsed2;
+        }
+
+        for (const wl of lvl.walls) {
+            if (!wl.riseWithId) continue;
+            const lava = lvl.lavas.find(lv => lv.riseId === wl.riseWithId);
+            if (!lava) continue;
+            const lavaTopY = lava.y + (lava.flowUp ? lava.currentH : lava.h);
+            if (wl.riseYOnly) {
+                wl.riseCurrentY = lavaTopY + wl.riseYOffset;
+                wl.riseCurrentH = wl.h;
+            } else {
+                wl.riseCurrentY = lava.y + wl.riseYOffset;
+                wl.riseCurrentH = lavaTopY - lava.y - wl.riseYOffset;
+            }
+        }
+
+        for (const area of lvl.areas) {
+            if (area.triggered) continue;
+            const fullyInside = px >= area.x && px + PW <= area.x + area.w &&
+                                py >= area.y && py + PH <= area.y + area.h;
+            if (!fullyInside) continue;
+            area.triggered = true;
+
+            if (area.checkpointX !== null) {
+                checkpointHistory.push({
+                    x: area.checkpointX,
+                    y: area.checkpointY ?? area.checkpointX,
+                    coins: sessionCoins,
+                    elapsed,
+                    songSnapshot: currentSong,
+                    collectedSnapshot: captureCollectedSnapshot(),
+                    keySnapshot: captureKeySnapshot(),
+                    doorSnapshot: captureDoorSnapshot(),
+                    areaSnapshot: captureAreaSnapshot(),
+                    lavaSnapshot: captureLavaSnapshot(),
+                });
+            }
+
+            for (const wl of lvl.walls) {
+                if (wl.closeOnAreaId === area.areaId) {
+                    wl.areaCloseDir = 1;
+                }
+            }
+
+            for (const lv of lvl.lavas) {
+                if (lv.flowAreaId === area.areaId) {
+                    lv.flowing   = true;
+                    lv.flowTimer = 0;
+                }
+            }
+
+            for (const sp of lvl.enemySpawners) {
+                if (!sp.fired && sp.areaId === area.areaId) {
+                    sp.fired = true;
+                    sp._pendingSpawns = sp.count;
+                    sp._spawnTimer = 0;
+                    sp._waitingForExit = true;
+                }
+            }
+
+            for (const ds of lvl.despawnTriggers) {
+                if (!ds.fired && ds.areaId === area.areaId) {
+                    ds.fired = true;
+                    if (ds.spawnerAreaId === null) {
+                        lvl.enemies = [];
+                        lvl.drawOrder = lvl.drawOrder.filter(o => o.type !== 'enemy');
+                    } else {
+                        const spawner = lvl.enemySpawners.find(sp => sp.areaId === ds.spawnerAreaId);
+                        if (spawner) {
+                            lvl.enemies = lvl.enemies.filter(en => !(en._spawned && en._spawnerAreaId === ds.spawnerAreaId));
+                            lvl.drawOrder = lvl.drawOrder.filter(o => !(o.type === 'enemy' && o._spawned && o._spawnerAreaId === ds.spawnerAreaId));
+                            spawner.fired = false;
+                        }
+                    }
+                }
+            }
+
+            for (const mt of lvl.musicTriggers) {
+                if (!mt.fired && mt.areaId === area.areaId) {
+                    mt.fired = true;
+                    fadeMusicTo(mt.song, mt.fadeDuration);
+                }
+            }
+        }
+
+        const SPAWN_INTERVAL = 0.4;
+        const SPAWN_CLEAR_RADIUS = 60;
+
+        for (const sp of lvl.enemySpawners) {
+            if (!sp._waitingForExit && !sp._pendingSpawns) continue;
+
+            const area = lvl.areas.find(a => a.areaId === sp.areaId);
+            const playerInArea = area && (
+                px + PW > area.x && px < area.x + area.w &&
+                py + PH > area.y && py < area.y + area.h
+            );
+
+            if (sp._waitingForExit) {
+                if (!playerInArea) sp._waitingForExit = false;
+                continue;
+            }
+
+            if (sp._pendingSpawns > 0) {
+                sp._spawnTimer -= dt;
+                if (sp._spawnTimer > 0) continue;
+
+                const spawnIdx = sp.count - sp._pendingSpawns;
+                const ex = sp.spawnX + spawnIdx * sp.spread;
+                const ey = sp.spawnY;
+                const dx = (px + PW / 2) - (ex + 25);
+                const dy = (py + PH / 2) - (ey + 25);
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < SPAWN_CLEAR_RADIUS) continue;
+
+                const n1 = Math.floor(Math.random() * 5) + 1;
+                let   n2 = Math.floor(Math.random() * 10);
+                if (n1 === 5 && n2 >= 5) n2 = 4;
+                const spawnedEnemy = {
+                    type: 'enemy',
+                    x: ex, y: ey,
+                    startX: ex, startY: ey,
+                    _spawnerAreaId: sp.areaId,
+                    w: 50, h: 50,
+                    min: sp.min, max: sp.max,
+                    detectionR: sp.detectionR,
+                    speed: sp.speed,
+                    detected: false,
+                    label: `${n1},${n2}`,
+                    ghost: sp.ghost,
+                    texture: sp.texture,
+                    textureMode: sp.textureMode,
+                    tex: null,
+                    stuck: sp.stuck,
+                    vy: 0, onGround: false,
+                    _spawned: true,
+                };
+                if (sp.texture) loadTexture(sp.texture).then(t => { spawnedEnemy.tex = t; });
+                lvl.enemies.push(spawnedEnemy);
+                lvl.drawOrder.push(spawnedEnemy);
+                sp._pendingSpawns--;
+                sp._spawnTimer = SPAWN_INTERVAL;
+            }
+        }
 
         const goLeft  = mLeft  || KEY['ArrowLeft']  || KEY['KeyA'];
         const goRight = mRight || KEY['ArrowRight'] || KEY['KeyD'];
@@ -521,7 +1008,7 @@ async function startPlatformerGame() {
         const wantJump = jumpQ || (jumpHeld && onGround);
 
         const jumpReleasedSinceLastJump = !jumpHeldLastFrame;
-        
+
         if (wantJump) {
             let jumped = false;
             let orbHit = false;
@@ -580,13 +1067,52 @@ async function startPlatformerGame() {
         }
 
         for (const mp of lvl.mpUp) {
-            const spd = 200 * dt;
             const oldCy = mp.cy;
-            mp.cy += mp.dir * spd;
-            if (mp.cy >= mp.endY)   { mp.cy = mp.endY;   mp.dir = -1; }
-            if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir =  1; }
+            if (mp.triggerMode) {
+                const playerOnTop = standingOn?._mp === mp;
+                const fallDir = mp.endY > mp.startY ? 1 : -1;
+                if (mp.triggerState === 'idle') {
+                    if (playerOnTop) {
+                        mp.triggerTimer += dt;
+                        const nudge = Math.min(mp.triggerTimer / mp.triggerTimeout, 1) * 3;
+                        mp.cy = mp.startY - nudge;
+                    } else {
+                        mp.triggerTimer = 0;
+                        mp.cy = mp.startY;
+                    }
+                    if (mp.triggerTimer >= mp.triggerTimeout) {
+                        mp.triggerState = 'falling';
+                        mp.triggerTimer = 0;
+                    }
+                } else if (mp.triggerState === 'falling') {
+                    mp.cy += fallDir * 200 * dt;
+                    if ((fallDir === 1 && mp.cy >= mp.endY) || (fallDir === -1 && mp.cy <= mp.endY)) {
+                        mp.cy = mp.endY;
+                        mp.triggerState = 'waiting';
+                        mp.returnTimer = mp.returnTimeout;
+                    }
+                } else if (mp.triggerState === 'waiting') {
+                    mp.returnTimer -= dt;
+                    if (mp.returnTimer <= 0) {
+                        mp.triggerState = 'returning';
+                    }
+                } else if (mp.triggerState === 'returning') {
+                    mp.cy -= fallDir * 200 * dt;
+                    if ((fallDir === 1 && mp.cy <= mp.startY) || (fallDir === -1 && mp.cy >= mp.startY)) {
+                        mp.cy = mp.startY;
+                        mp.triggerState = 'idle';
+                        mp.triggerTimer = 0;
+                    }
+                }
+            } else {
+                const spd = 200 * dt;
+                mp.cy += mp.dir * spd;
+                if (mp.cy >= mp.endY)   { mp.cy = mp.endY;   mp.dir = -1; }
+                if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir =  1; }
+            }
             mp.deltaY = mp.cy - oldCy;
         }
+
         for (const mp of lvl.mpRight) {
             const spd = 160 * dt;
             const oldCx = mp.cx;
@@ -597,15 +1123,99 @@ async function startPlatformerGame() {
         }
 
         for (const en of lvl.enemies) {
-            const spd = 100 * dt;
+            const spd = (en.speed ?? 100) * dt;
             const edx = (px + PW / 2) - (en.x + en.w / 2);
             const edy = (py + PH / 2) - (en.y + en.h / 2);
             en.detected = Math.sqrt(edx * edx + edy * edy) <= en.detectionR;
+
             if (en.detected) {
-                en.x += en.x + en.w / 2 > px + PW / 2 ? -spd : spd;
+                const moveDir = en.x + en.w / 2 > px + PW / 2 ? -1 : 1;
+
+                if (en.stuck) {
+                    const nextX = en.x + moveDir * spd;
+                    const checkX = moveDir > 0 ? nextX + en.w : nextX;
+                    const groundCheckY = en.y - 2;
+                    let hasGround = false;
+                    for (const fl of [...lvl.floors, ...lvl.mpUp.map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h })), ...lvl.mpRight.map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h }))]) {
+                        if (checkX >= fl.x && checkX <= fl.x + fl.w &&
+                            groundCheckY <= fl.y + fl.h && groundCheckY >= fl.y - 4) {
+                            hasGround = true; break;
+                        }
+                    }
+                    if (hasGround) en.x += moveDir * spd;
+                } else {
+                    en.x += moveDir * spd;
+
+                    if (!en.onGround) {
+                        en.vy -= GRAV * dt;
+                        if (en.vy < MAX_FALL) en.vy = MAX_FALL;
+                    }
+                    en.y += en.vy * dt;
+
+                    en.onGround = false;
+                    const enSolids = [
+                        ...lvl.floors.filter(f => !f.ghost),
+                        ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h })),
+                        ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h })),
+                        ...lvl.walls.filter(w => !w.ghost && !w.keyId && !w.closeOnAreaId),
+                    ];
+
+                    for (const fl of enSolids) {
+                        if (!hit(en.x, en.y, en.w, en.h, fl.x, fl.y, fl.w, fl.h)) continue;
+                        const enBottom = en.y;
+                        const enTop = en.y + en.h;
+                        const flTop = fl.y + fl.h;
+                        const flBottom = fl.y;
+                        const overlapY = Math.min(enTop - flBottom, flTop - enBottom);
+                        const overlapX = Math.min((en.x + en.w) - fl.x, (fl.x + fl.w) - en.x);
+                        if (overlapY < overlapX) {
+                            if (en.vy <= 0 && enBottom < flTop && enTop > flTop - 2) {
+                                en.y = flTop;
+                                en.vy = 0;
+                                en.onGround = true;
+                            } else if (en.vy > 0) {
+                                en.y = flBottom - en.h;
+                                en.vy = -100;
+                            }
+                        } else {
+                            en.x -= moveDir * spd;
+                            if (en.onGround) {
+                                en.vy = JUMP_V * 0.85;
+                                en.onGround = false;
+                            }
+                        }
+                    }
+
+                    if (en.onGround && py + PH < en.y - 20) {
+                        en.vy = JUMP_V * 0.85;
+                        en.onGround = false;
+                    }
+                }
+            } else if (!en.stuck) {
+                if (!en.onGround) {
+                    en.vy -= GRAV * dt;
+                    if (en.vy < MAX_FALL) en.vy = MAX_FALL;
+                }
+                en.y += en.vy * dt;
+                en.onGround = false;
+                const enSolids = [
+                    ...lvl.floors.filter(f => !f.ghost),
+                    ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h })),
+                    ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h })),
+                ];
+                for (const fl of enSolids) {
+                    if (!hit(en.x, en.y, en.w, en.h, fl.x, fl.y, fl.w, fl.h)) continue;
+                    const enBottom = en.y;
+                    const enTop = en.y + en.h;
+                    const flTop = fl.y + fl.h;
+                    if (en.vy <= 0 && enBottom < flTop) {
+                        en.y = flTop; en.vy = 0; en.onGround = true;
+                    }
+                }
             }
-            if (en.min !== null && en.x < en.min) en.x = en.min;
-            if (en.max !== null && en.x + en.w > en.max) en.x = en.max - en.w;
+
+            if (en.min !== null && en.x < en.min) { en.x = en.min; }
+            if (en.max !== null && en.x + en.w > en.max) { en.x = en.max - en.w; }
         }
 
         for (const orb of lvl.orbs) { if (orb.actTimer > 0) orb.actTimer -= dt; }
@@ -618,7 +1228,12 @@ async function startPlatformerGame() {
                     y: cp.y,
                     coins: sessionCoins,
                     elapsed,
+                    songSnapshot: currentSong,
                     collectedSnapshot: captureCollectedSnapshot(),
+                    keySnapshot: captureKeySnapshot(),
+                    doorSnapshot: captureDoorSnapshot(),
+                    areaSnapshot: captureAreaSnapshot(),
+                    lavaSnapshot: captureLavaSnapshot(),
                 });
             }
         }
@@ -633,6 +1248,31 @@ async function startPlatformerGame() {
                 sessionTotalCoins += coinVal;
                 playSfx('coin');
                 coinPopups.push({ x: wx(co.x), y: wy(co.y, co.r * 2), life: 0.8, maxLife: 0.8, value: coinVal, blue: co.blue });
+            }
+        }
+
+        for (const k of lvl.keys) {
+            k.bobTimer += dt * 2.5;
+            if (k.ghost || k.collected) continue;
+            if (k._swapLocked) {
+                if (!hit(px, py, PW, PH, k.x - k.r, k.y - k.r, k.r * 2, k.r * 2)) {
+                    k._swapLocked = false;
+                }
+                continue;
+            }
+            if (hit(px, py, PW, PH, k.x - k.r, k.y - k.r, k.r * 2, k.r * 2)) {
+                k.collected = true;
+                if (heldKey) {
+                    const droppedKey = lvl.keys.find(kk => kk.keyId === heldKey.keyId);
+                    if (droppedKey) {
+                        droppedKey.collected = false;
+                        droppedKey.x = px + PW / 2;
+                        droppedKey.y = py;
+                        droppedKey._swapLocked = true;
+                    }
+                }
+                heldKey = { keyId: k.keyId, keyColor: k.keyColor };
+                playSfx('coin');
             }
         }
 
@@ -652,8 +1292,20 @@ async function startPlatformerGame() {
 
         for (const wl of lvl.walls) {
             if (wl.ghost) continue;
-            if (hit(px, py, PW, PH, wl.x, wl.y, wl.w, wl.h)) {
-                px = vx >= 0 ? wl.x - PW : wl.x + wl.w;
+            let wx2, wy2, ww, wh;
+            if (wl.keyId) {
+                const dr = getDoorEffectiveRect(wl);
+                if (dr.h <= 1) continue;
+                wx2 = dr.x; wy2 = dr.y; ww = dr.w; wh = dr.h;
+            } else if (wl.closeOnAreaId) {
+                const dr = getAreaCloseRect(wl);
+                if (dr.h <= 1) continue;
+                wx2 = dr.x; wy2 = dr.y; ww = dr.w; wh = dr.h;
+            } else {
+                wx2 = wl.x; wy2 = wl.y; ww = wl.w; wh = wl.h;
+            }
+            if (hit(px, py, PW, PH, wx2, wy2, ww, wh)) {
+                px = vx >= 0 ? wx2 - PW : wx2 + ww;
                 vx = 0;
             }
         }
@@ -664,10 +1316,28 @@ async function startPlatformerGame() {
 
         py += vy * dt;
 
+        const solidWallEntries = lvl.walls
+            .filter(w => !w.ghost &&
+                !(w.keyId && w.doorSlide >= 1) &&
+                !(w.closeOnAreaId && w.areaCloseSlide >= 1))
+            .map(w => {
+                if (w.keyId) {
+                    const dr = getDoorEffectiveRect(w);
+                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w };
+                }
+                if (w.closeOnAreaId) {
+                    const dr = getAreaCloseRect(w);
+                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w };
+                }
+                return { x: w.x, y: w.y, w: w.w, h: w.h, oneWay: false, type: 'wall', _wall: w };
+            })
+            .filter(e => e.h > 1);
+
         const solids = [
             ...lvl.floors.filter(f => !f.ghost),
             ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpUp', _mp: mp })),
             ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpRight', _mp: mp })),
+            ...solidWallEntries,
         ];
         onGround = false;
         standingOn = null;
@@ -708,11 +1378,35 @@ async function startPlatformerGame() {
         }
 
         if (py + PH > lvl.worldHeight) { py = lvl.worldHeight - PH; vy = 0; }
-
         if (py <= 0) { py = 0; if (vy < -200 && !onGround) landAnim = 0.22; vy = 0; onGround = true; standingOn = { type: 'world_floor' }; }
 
+        const DOOR_TOUCH_MARGIN = 6;
+        for (const wl of lvl.walls) {
+            if (!wl.keyId || wl.doorOpen || wl.doorDir === 1) continue;
+            const dr = getDoorEffectiveRect(wl);
+            if (dr.h <= 1) continue;
+            if (hit(
+                px - DOOR_TOUCH_MARGIN, py - DOOR_TOUCH_MARGIN,
+                PW + DOOR_TOUCH_MARGIN * 2, PH + DOOR_TOUCH_MARGIN * 2,
+                dr.x, dr.y, dr.w, dr.h
+            )) {
+                if (!heldKey) {
+                    showDoorMsg('Je hebt een sleutel nodig om deze deur te openen');
+                } else if (heldKey.keyId !== wl.keyId) {
+                    showDoorMsg('Dit is niet de juiste sleutel, zoek een andere sleutel');
+                } else {
+                    wl.doorDir = 1;
+                    heldKey = null;
+                    playSfx('coin');
+                }
+            }
+        }
+
         let dead = false;
-        for (const lv of lvl.lavas)   { if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lv.h)) { dead = true; break; } }
+        for (const lv of lvl.lavas) {
+            const lh = lv.flowUp ? lv.currentH : lv.h;
+            if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lh)) { dead = true; break; }
+        }
         if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
         if (dead) {
             playSfx('die');
@@ -721,7 +1415,9 @@ async function startPlatformerGame() {
             deathTimer = DEATH_DUR;
         }
 
-        if (hit(px, py, PW, PH, lvl.flagX, lvl.flagY, FLAG_W, FLAG_H)) loadLvl(lvlIdx + 1);
+        for (const en of lvl.ends) {
+            if (hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { loadLvl(lvlIdx + 1); break; }
+        }
 
         if (jumpAnim > 0) jumpAnim -= dt;
         if (landAnim > 0) landAnim -= dt;
@@ -733,12 +1429,13 @@ async function startPlatformerGame() {
         floor: '#9b9b9c', wall: '#9b9b9c', lava: '#fc9312',
         tramp: '#1264fc', enemy: '#fc1212',
         orbRing: '#eaecd1', orbCore: '#fce512',
-        flagPole: '#ffad66', flagBody: '#ca0000',
         coin: '#ffd700', coinShine: '#fff8a0', coinShadow: '#b8860b',
         portalInner: 'rgba(120,60,255,0.35)',
         portalRim:   '#a855f7',
         portalGlow:  'rgba(168,85,247,0.55)',
     };
+
+    const FLAG_W = 14, FLAG_H = 80;
 
     function isVisible(x, y, w, h) {
         const cx = wx(x), cy = wy(y, h);
@@ -816,7 +1513,6 @@ async function startPlatformerGame() {
             ctx.restore();
             return;
         }
-
         ctx.save();
         if (!obj.tex) ctx.globalAlpha = 0.25;
         texFillRect(obj, x, y, w, h, fallbackCol, r);
@@ -829,6 +1525,162 @@ async function startPlatformerGame() {
             else       { ctx.strokeRect(cxPos, cyPos, w, h); }
         }
         ctx.restore();
+    }
+
+    function drawKeyDoor(wl) {
+        if (wl.doorSlide >= 1) return;
+
+        const dr = getDoorEffectiveRect(wl);
+        if (dr.h <= 0) return;
+
+        const cx = wx(dr.x);
+        const cy = wy(dr.y, dr.h);
+        const w  = dr.w;
+        const h  = dr.h;
+        const kc = wl.keyColor || '#ffd700';
+
+        ctx.save();
+
+        if (wl.tex) {
+            if (wl.textureMode === 'stretch') {
+                ctx.drawImage(wl.tex.img, cx, cy, w, h);
+            } else if (wl.textureMode === 'cover') {
+                const imgW = wl.tex.img.naturalWidth, imgH = wl.tex.img.naturalHeight;
+                const scale = Math.max(w / imgW, h / imgH);
+                const dw = imgW * scale, dh = imgH * scale;
+                ctx.save();
+                ctx.beginPath(); ctx.rect(cx, cy, w, h); ctx.clip();
+                ctx.drawImage(wl.tex.img, cx + (w - dw) / 2, cy + (h - dh) / 2, dw, dh);
+                ctx.restore();
+            } else {
+                if (wl.bakedCanvas) {
+                    ctx.save();
+                    ctx.beginPath(); ctx.rect(cx, cy, w, h); ctx.clip();
+                    ctx.drawImage(wl.bakedCanvas, cx, cy);
+                    ctx.restore();
+                } else {
+                    const m = new DOMMatrix();
+                    m.translateSelf(cx, cy);
+                    wl.tex.pat.setTransform(m);
+                    ctx.fillStyle = wl.tex.pat;
+                    ctx.fillRect(cx, cy, w, h);
+                }
+            }
+        } else {
+            ctx.fillStyle = blendDoorColor(kc);
+            ctx.beginPath();
+            ctx.roundRect(cx, cy, w, h, 4);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+            ctx.lineWidth = 2;
+            const panelInset = Math.min(8, w * 0.12, h * 0.08);
+            if (w > 20 && h > 20) {
+                ctx.strokeRect(cx + panelInset, cy + panelInset, w - panelInset * 2, h - panelInset * 2);
+            }
+
+            ctx.strokeStyle = kc;
+            ctx.lineWidth   = 2.5;
+            ctx.shadowColor = kc;
+            ctx.shadowBlur  = 8;
+            ctx.beginPath();
+            ctx.roundRect(cx, cy, w, h, 4);
+            ctx.stroke();
+        }
+
+        if (wl.keyholeVisible && h > 20) {
+            const khCx  = cx + w / 2;
+            const khCy  = cy + h * 0.42;
+            const khR   = Math.min(Math.max(w * 0.22, 10), Math.max(h * 0.18, 10), 28);
+            const slotW = khR * 0.85;
+            const slotH = khR * 1.4;
+
+            ctx.save();
+            ctx.shadowColor = kc;
+            ctx.shadowBlur  = 16;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.75)';
+            ctx.beginPath();
+            ctx.arc(khCx, khCy, khR, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = kc;
+            ctx.lineWidth   = 3;
+            ctx.beginPath();
+            ctx.arc(khCx, khCy, khR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(0,0,0,0.75)';
+            ctx.beginPath();
+            ctx.moveTo(khCx - slotW / 2, khCy + khR * 0.1);
+            ctx.lineTo(khCx + slotW / 2, khCy + khR * 0.1);
+            ctx.lineTo(khCx + slotW * 0.3, khCy + khR * 0.1 + slotH);
+            ctx.lineTo(khCx - slotW * 0.3, khCy + khR * 0.1 + slotH);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = kc;
+            ctx.lineWidth   = 2;
+            ctx.beginPath();
+            ctx.moveTo(khCx - slotW / 2, khCy + khR * 0.1);
+            ctx.lineTo(khCx + slotW / 2, khCy + khR * 0.1);
+            ctx.lineTo(khCx + slotW * 0.3, khCy + khR * 0.1 + slotH);
+            ctx.lineTo(khCx - slotW * 0.3, khCy + khR * 0.1 + slotH);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        ctx.restore();
+    }
+
+    function drawAreaCloseWall(wl) {
+        if (wl.areaCloseSlide >= 1) return;
+        const dr = getAreaCloseRect(wl);
+        if (dr.h <= 0) return;
+        const cxPos = wx(dr.x);
+        const cyPos = wy(dr.y, dr.h);
+        const w = dr.w;
+        const h = dr.h;
+        ctx.save();
+        if (wl.tex) {
+            if (wl.textureMode === 'stretch') {
+                ctx.drawImage(wl.tex.img, cxPos, cyPos, w, h);
+            } else if (wl.textureMode === 'cover') {
+                const imgW = wl.tex.img.naturalWidth, imgH = wl.tex.img.naturalHeight;
+                const scale = Math.max(w / imgW, h / imgH);
+                const dw = imgW * scale, dh = imgH * scale;
+                ctx.save();
+                ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip();
+                ctx.drawImage(wl.tex.img, cxPos + (w - dw) / 2, cyPos + (h - dh) / 2, dw, dh);
+                ctx.restore();
+            } else if (wl.bakedCanvas) {
+                ctx.save();
+                ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip();
+                ctx.drawImage(wl.bakedCanvas, cxPos, cyPos);
+                ctx.restore();
+            } else {
+                const m = new DOMMatrix();
+                m.translateSelf(cxPos, cyPos);
+                wl.tex.pat.setTransform(m);
+                ctx.fillStyle = wl.tex.pat;
+                ctx.fillRect(cxPos, cyPos, w, h);
+            }
+        } else {
+            ctx.fillStyle = COL.wall;
+            ctx.fillRect(cxPos, cyPos, w, h);
+        }
+        ctx.restore();
+    }
+
+    function blendDoorColor(hexColor) {
+        try {
+            const r = parseInt(hexColor.slice(1,3),16);
+            const g = parseInt(hexColor.slice(3,5),16);
+            const b = parseInt(hexColor.slice(5,7),16);
+            return `rgb(${Math.round(r * 0.22 + 60)},${Math.round(g * 0.22 + 60)},${Math.round(b * 0.22 + 60)})`;
+        } catch(e) { return '#555'; }
     }
 
     function drawBg() {
@@ -908,6 +1760,8 @@ async function startPlatformerGame() {
         ctx.restore();
     }
 
+    function drawEnd(en) {}
+
     function drawCheckpoint(cp) {
         const fx = wx(cp.x), fy = wy(cp.y, FLAG_H);
         const poleCol = cp.activated ? '#4caf50' : '#888';
@@ -927,22 +1781,6 @@ async function startPlatformerGame() {
         ctx.fillStyle = poleCol;
         ctx.fill();
         ctx.restore();
-    }
-
-    function drawFlag() {
-        const fx = wx(lvl.flagX), fy = wy(lvl.flagY, FLAG_H);
-        ctx.fillStyle = COL.flagPole;
-        ctx.fillRect(fx, fy, 4, FLAG_H);
-        ctx.fillStyle = COL.flagBody;
-        ctx.beginPath();
-        ctx.moveTo(fx + 4, fy);
-        ctx.lineTo(fx + 36, fy + 16);
-        ctx.lineTo(fx + 4,  fy + 32);
-        ctx.closePath(); ctx.fill();
-        ctx.beginPath();
-        ctx.arc(fx + 2, fy, 5, 0, Math.PI * 2);
-        ctx.fillStyle = COL.flagPole;
-        ctx.fill();
     }
 
     function drawText(t) {
@@ -1012,6 +1850,121 @@ async function startPlatformerGame() {
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(co.blue ? '$10' : '$', cx, cy + 1);
+        ctx.restore();
+    }
+
+    function drawKey(k) {
+        if (k.collected) return;
+        const bob = Math.sin(k.bobTimer) * 3;
+        const kc  = k.keyColor || '#ffd700';
+        const cx  = wx(k.x);
+        const cy  = wy(k.y, k.r * 2) + k.r + bob;
+        const r   = k.r;
+
+        ctx.save();
+        if (k.ghost) ctx.globalAlpha = 0.3;
+        ctx.shadowColor = kc;
+        ctx.shadowBlur  = 14;
+
+        const headR = r * 0.58;
+        ctx.fillStyle = kc;
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.18, cy - r * 0.1, headR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = blendDoorColor(kc);
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.18, cy - r * 0.1, headR * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        const shaftX  = cx - r * 0.18 + headR * 0.85;
+        const shaftY  = cy - r * 0.1;
+        const shaftL  = r * 1.1;
+        const shaftH  = r * 0.28;
+        ctx.fillStyle = kc;
+        ctx.fillRect(shaftX, shaftY - shaftH / 2, shaftL, shaftH);
+
+        const toothW = shaftH * 0.7;
+        const toothH = shaftH * 0.8;
+        const t1X    = shaftX + shaftL * 0.45;
+        const t2X    = shaftX + shaftL * 0.7;
+        ctx.fillRect(t1X, shaftY + shaftH / 2, toothW, toothH);
+        ctx.fillRect(t2X, shaftY + shaftH / 2, toothW, toothH);
+
+        ctx.shadowBlur  = 0;
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+        ctx.lineWidth   = 1.2;
+        if (k.ghost) ctx.setLineDash([3, 2]);
+
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.18, cy - r * 0.1, headR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawHeldKey() {
+        if (!heldKey) return;
+        const kc = heldKey.keyColor || '#ffd700';
+        const kx = wx(px + PW / 2);
+        const ky = wy(py + PH, 0) - 12;
+        const r  = 9;
+
+        ctx.save();
+        ctx.shadowColor = kc;
+        ctx.shadowBlur  = 10;
+
+        const headR = r * 0.56;
+        ctx.fillStyle = kc;
+        ctx.beginPath();
+        ctx.arc(kx - r * 0.18, ky, headR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath();
+        ctx.arc(kx - r * 0.18, ky, headR * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        const shaftX = kx - r * 0.18 + headR * 0.85;
+        const shaftH = r * 0.28;
+        ctx.fillStyle = kc;
+        ctx.fillRect(shaftX, ky - shaftH / 2, r * 1.05, shaftH);
+
+        const tw = shaftH * 0.7, th = shaftH * 0.8;
+        ctx.fillRect(shaftX + r * 0.42, ky + shaftH / 2, tw, th);
+        ctx.fillRect(shaftX + r * 0.67, ky + shaftH / 2, tw, th);
+
+        ctx.restore();
+    }
+
+    function drawDoorMessage() {
+        if (!doorMsg || doorMsg.timer <= 0) return;
+        const alpha = Math.min(1, doorMsg.timer / 0.4) * Math.min(1, doorMsg.timer);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        ctx.font = 'bold 17px sans-serif';
+        const textW  = ctx.measureText(doorMsg.text).width;
+        const pad    = 16;
+        const boxW   = textW + pad * 2;
+        const boxH   = 44;
+        const bx     = canvas.width / 2 - boxW / 2;
+        const by     = canvas.height * 0.62;
+
+        ctx.fillStyle = 'rgba(20,5,5,0.82)';
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 10);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fc4040';
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 10);
+        ctx.stroke();
+
+        ctx.fillStyle    = '#ffdddd';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(doorMsg.text, canvas.width / 2, by + boxH / 2);
         ctx.restore();
     }
 
@@ -1097,16 +2050,26 @@ async function startPlatformerGame() {
             }
         }
 
+        ctx.strokeStyle = 'rgba(255,215,0,0.9)';
+        for (const k of lvl.keys) {
+            if (!k.collected) {
+                const s = k.r * 2;
+                ctx.strokeRect(wx(k.x - k.r), wy(k.y - k.r, s), s, s);
+            }
+        }
+
         ctx.strokeStyle = 'rgba(80,160,255,0.7)';
         for (const cp of lvl.checkpoints) {
             ctx.strokeRect(wx(cp.x), wy(cp.y, FLAG_H), FLAG_W, FLAG_H);
         }
 
-        ctx.strokeStyle = 'rgba(80,160,255,0.8)';
-        ctx.strokeRect(wx(lvl.flagX), wy(lvl.flagY, FLAG_H), FLAG_W, FLAG_H);
+        ctx.strokeStyle = 'rgba(252,229,18,0.9)';
+        for (const en of lvl.ends) {
+            ctx.strokeRect(wx(en.x), wy(en.y, en.h), en.w, en.h);
+        }
 
         ctx.strokeStyle = 'rgba(255,80,80,0.8)';
-        for (const lv of lvl.lavas) { if (!lv.ghost) ctx.strokeRect(wx(lv.x), wy(lv.y, lv.h), lv.w, lv.h); }
+        for (const lv of lvl.lavas) { if (!lv.ghost) ctx.strokeRect(wx(lv.x), wy(lv.y, lv.flowUp ? lv.currentH : lv.h), lv.w, lv.flowUp ? lv.currentH : lv.h); }
 
         ctx.strokeStyle = 'rgba(255,50,50,0.9)';
         for (const en of lvl.enemies) {
@@ -1124,6 +2087,20 @@ async function startPlatformerGame() {
 
         ctx.strokeStyle = 'rgba(200,100,255,0.9)';
         for (const pt of lvl.portals) ctx.strokeRect(wx(pt.x), wy(pt.y, pt.h), pt.w, pt.h);
+
+        ctx.strokeStyle = 'rgba(0,255,180,0.7)';
+        ctx.setLineDash([6, 4]);
+        for (const area of lvl.areas) {
+            ctx.strokeRect(wx(area.x), wy(area.y, area.h), area.w, area.h);
+            ctx.fillStyle = area.triggered ? 'rgba(0,255,180,0.08)' : 'rgba(0,255,180,0.03)';
+            ctx.fillRect(wx(area.x), wy(area.y, area.h), area.w, area.h);
+            ctx.fillStyle = area.triggered ? 'rgba(0,255,180,0.9)' : 'rgba(0,255,180,0.5)';
+            ctx.font = '11px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`area:${area.areaId}`, wx(area.x) + 3, wy(area.y, area.h) + 3);
+        }
+        ctx.setLineDash([]);
 
         ctx.restore();
 
@@ -1144,6 +2121,8 @@ async function startPlatformerGame() {
             `portalCooldown: ${portalCooldownTimer.toFixed(2)}s`,
             `checkpoints: ${checkpointHistory.length}`,
             `[Q/E] chp: ${debugCpIdx < 0 ? 'spawn' : debugCpIdx} / ${lvl.checkpoints.length - 1}`,
+            `heldKey: ${heldKey ? heldKey.keyId + ' (' + heldKey.keyColor + ')' : 'none'}`,
+            `areas: ${lvl.areas.map(a => a.areaId + (a.triggered ? '✓' : '○')).join(', ') || 'none'}`,
         ];
 
         const lh = 18, pad = 10;
@@ -1213,6 +2192,8 @@ async function startPlatformerGame() {
         ctx.fillStyle = bgColor;
         ctx.fill(PLAYER_PATH);
         ctx.restore();
+
+        drawHeldKey();
     }
 
     function drawOrb(orb) {
@@ -1431,8 +2412,17 @@ async function startPlatformerGame() {
         const sliderY2 = sliderY1 + 52;
 
         for (const [label, vol, setVol, y] of [
-            ['🎵 Muziek', musicVolume, (v) => { musicVolume = v; if (musicAudio) musicAudio.volume = v; }, sliderY1],
-            ['🔊 Geluiden', sfxVolume, (v) => { sfxVolume = v; }, sliderY2],
+            ['Muziek', musicVolume, (v) => {
+                set('platformer-musicVolume', v);
+                musicVolume = v;
+                if (musicAudio) musicAudio.volume = v;
+                if (musicFading) {
+                    const t = Math.min(1, musicFading.timer / musicFading.duration);
+                    if (musicFading.outAudio) musicFading.outAudio.volume = v * (1 - t);
+                    if (musicFading.inAudio)  musicFading.inAudio.volume  = v * t;
+                }
+            }, sliderY1],
+            ['Geluiden', sfxVolume, (v) => { set('platformer-sfxVolume', v); sfxVolume = v; }, sliderY2],
         ]) {
             ctx.fillStyle = '#aaa';
             ctx.font = '14px sans-serif';
@@ -1510,9 +2500,20 @@ async function startPlatformerGame() {
         if (o.type === 'floor') {
             if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.floor);
         } else if (o.type === 'wall') {
-            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.wall);
+            const drawY = o.riseWithId ? o.riseCurrentY : o.y;
+            const drawH = o.riseWithId ? o.riseCurrentH : o.h;
+            if (isVisible(o.x, drawY, o.w, drawH)) {
+                if (o.keyId) {
+                    drawKeyDoor(o);
+                } else if (o.closeOnAreaId) {
+                    drawAreaCloseWall(o);
+                } else {
+                    ghostFillRect(o, o.x, drawY, o.w, drawH, COL.wall);
+                }
+            }
         } else if (o.type === 'lava') {
-            if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.lava);
+            const lh = o.flowUp ? o.currentH : o.h;
+            if (isVisible(o.x, o.y, o.w, lh)) ghostFillRect(o, o.x, o.y, o.w, lh, COL.lava);
         } else if (o.type === 'trampoline') {
             if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.tramp, 8);
         } else if (o.type === 'mpUp') {
@@ -1525,14 +2526,19 @@ async function startPlatformerGame() {
             if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawOrb(o);
         } else if (o.type === 'coin') {
             if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawCoin(o);
+        } else if (o.type === 'key') {
+            if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawKey(o);
         } else if (o.type === 'checkpoint') {
             if (isVisible(o.x, o.y, FLAG_W, FLAG_H)) drawCheckpoint(o);
+        } else if (o.type === 'end') {
+            if (isVisible(o.x, o.y, o.w, o.h)) drawEnd(o);
         } else if (o.type === 'text') {
             if (isVisible(o.x - 400, o.y - 40, 800, 80)) drawText(o);
         } else if (o.type === 'portal') {
             if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
         }
     }
+
     function render(dt) {
         btns.length = 0;
         if (!lvl) return;
@@ -1553,9 +2559,20 @@ async function startPlatformerGame() {
             if (o.type === 'floor') {
                 if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.floor);
             } else if (o.type === 'wall') {
-                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.wall);
+                const drawY = o.riseWithId ? o.riseCurrentY : o.y;
+                const drawH = o.riseWithId ? o.riseCurrentH : o.h;
+                if (isVisible(o.x, drawY, o.w, drawH)) {
+                    if (o.keyId) {
+                        drawKeyDoor(o);
+                    } else if (o.closeOnAreaId) {
+                        drawAreaCloseWall(o);
+                    } else {
+                        ghostFillRect(o, o.x, drawY, o.w, drawH, COL.wall);
+                    }
+                }
             } else if (o.type === 'lava') {
-                if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.lava);
+                const lh = o.flowUp ? o.currentH : o.h;
+                if (isVisible(o.x, o.y, o.w, lh)) ghostFillRect(o, o.x, o.y, o.w, lh, COL.lava);
             } else if (o.type === 'trampoline') {
                 if (isVisible(o.x, o.y, o.w, o.h)) ghostFillRect(o, o.x, o.y, o.w, o.h, COL.tramp, 8);
             } else if (o.type === 'mpUp') {
@@ -1568,15 +2585,18 @@ async function startPlatformerGame() {
                 if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawOrb(o);
             } else if (o.type === 'coin') {
                 if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawCoin(o);
+            } else if (o.type === 'key') {
+                if (isVisible(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2)) drawKey(o);
             } else if (o.type === 'checkpoint') {
                 if (isVisible(o.x, o.y, FLAG_W, FLAG_H)) drawCheckpoint(o);
+            } else if (o.type === 'end') {
+                if (isVisible(o.x, o.y, o.w, o.h)) drawEnd(o);
             } else if (o.type === 'text') {
                 if (isVisible(o.x - 400, o.y - 40, 800, 80)) drawText(o);
             } else if (o.type === 'portal') {
                 if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
             }
         }
-        drawFlag();
         if (phase === 'dying') drawDeathSlices(); else drawPlayer();
 
         for (const { wall: gw, objectsBehind } of ghostWallRevealSets) {
@@ -1587,7 +2607,6 @@ async function startPlatformerGame() {
             ctx.rect(wx(gw.x), wy(gw.y, gw.h), gw.w, gw.h);
             ctx.clip();
             for (const o of objectsBehind) redrawObj(o);
-            drawFlag();
             if (phase === 'dying') drawDeathSlices(); else drawPlayer();
             ctx.restore();
         }
@@ -1596,6 +2615,7 @@ async function startPlatformerGame() {
         ctx.restore();
         drawHUD();
         drawDescription();
+        drawDoorMessage();
         if (phase === 'paused') drawPauseScreen();
         if (phase === 'win')    drawWinScreen();
         drawDebug(dt);

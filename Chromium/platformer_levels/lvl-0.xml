@@ -5,9 +5,7 @@
 	worldWidth  = "10000"
 	worldHeight = "1600"
 	spawnX      = "90"
-	spawnY      = "650"
-	flagX       = "2000"
-	flagY       = "0">
+	spawnY      = "650">
 	<description>Zoek de uitgang naar boven</description>
 
 	<!-- FIRST PART OF LEVEL -->
@@ -25,7 +23,7 @@
 	<wall x="260" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
 	<wall x="500" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
 
-	<!-- BLOCK -->
+	<!-- BLOCK LEFT -->
 	<wall x="0"  y="600"  width="60"  height="800" texture="platformer_textures/lvl-0/dirt.png"/>
 
 	<floor x="170"  y="600"  width="430"  height="130" texture="platformer_textures/lvl-0/dirt.png"/>
@@ -44,6 +42,22 @@
 	<!-- FLOOR -->
 	<floor x="1106" y="0" width="394" height="60"/>
 
+	<!-- CRATE -->
+	<floor x="1451"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<!-- FALLING CRATES -->
+  	<movingPlatformUp x="1598" startY="50" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0"  texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+  	<movingPlatformUp x="1794" startY="70" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0"  texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+  	<movingPlatformUp x="1990" startY="60" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0"  texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<!-- KEY PLATFORM -->
+	<floor x="2186" y="60" width="150" height="20"/>
+
+	<!-- FIST KEY -->
+	<key x="2260" y="100" keyId="key_red" color="#e74c3c" r="16" />
+
 	<!-- LAVA -->
   	<lava x="1500" y="0" width="1200" height="40"/>
 
@@ -51,9 +65,28 @@
 	
 	<wall x="1500" y="0" width="1200" height="40" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
 
+	<!-- SECRET COIN 1 -->
+	<coin x="2436" y="129" blue="true" />
+
+	<!-- BLOCK RIGHT -->
+	<floor x="2336"  y="0"  width="2064"  height="80" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="2336"  y="80"  width="200"  height="98" ghost="true" opaque="true" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="2536"  y="80"  width="1864"  height="98" texture="platformer_textures/lvl-0/dirt.png"/>
+	<floor x="2336"  y="178"  width="1200"  height="552" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="2336"  y="730"  width="1200"  height="200" ghost="true"/>
+
+	<floor x="2336"  y="930"  width="1200"  height="870" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="2336" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
+	<wall x="2336" y="60" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading-left.png" textureMode="stretch"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="2306"  y="80"  width="30"  height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton-invert.png" textureMode="stretch"/>
+
+	<!-- LAVA GLOW -->
 	<wall x="1460" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
 	
-
 	<!-- FIRST OBSTACLE -->
 	<floor x="700"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
 	<floor x="749"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
@@ -92,9 +125,23 @@
 	<!-- FLOATING PLATFORMS -->
 	<floor x="1150" y="530" width="150" height="30"/>
 
+	<floor x="1420" y="530" width="150" height="30"/>
+
 	<text x="950" y="700">Spring wanneer je een <b><y>orb</y></b> aanraakt</text>
   	<orb x="950" y="600" strength="2.5"/>
 	<floor x="600" y="700" width="150" height="30"/>
+	
+	<!-- ORB TO SECOND DOOR -->
+  	<orb x="1770" y="600" strength="2.5"/>
+
+	<!-- PLATFORM TO SECOND DOOR -->
+	<floor x="1986" y="700" width="350" height="30"/>
+
+	<!-- DOOR TO END -->
+	<wall x="2336" y="730" width="30" height="200" keyId="key_green" keyColor="#3ed42a"/>
+
+	<!-- DOOR BEFORE PORTAL -->
+	<wall x="570" y="730" width="30" height="200" keyId="key_red" keyColor="#e74c3c"/>
 
 	<!-- PORTAL TO NEXT PART OF LEVEL -->
 	<portal x="500"  y="730"  width="1"  height="200" portal-id="1" to-portal-id="2"/>
@@ -118,7 +165,7 @@
 	<floor x="6000" y="500" width="200" height="30"/>
 
 	<!-- ENEMIES -->
-	<enemy x="6050" y="530" min="6000" max="6200" detectionRadius="400"/>
+	<enemy x="6050" y="530" min="6000" max="6200" detectionRadius="400" stuck="true"/>
 	<text x="6100" y="650">Pas op voor de <b><r>vijanden</r></b>!</text>
 
 	<!-- ORB -->
@@ -135,14 +182,14 @@
 	<wall x="4000" y="0" width="5000" height="109" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
 	<wall x="4000" y="0" width="5000" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
 
-	<!-- SECRET COIN -->
+	<!-- SECRET COIN 2 -->
 	<coin x="5300" y="749" blue="true" />
 
 	<!-- SECOND BLOCK -->
 	<floor x="4400"  y="0"  width="1100"  height="700" texture="platformer_textures/lvl-0/dirt.png"/>
 	<wall x="5200"  y="700"  width="300"  height="98" ghost="true" opaque="true" texture="platformer_textures/lvl-0/dirt.png"/>
 	<wall x="4400"  y="700"  width="800"  height="98" texture="platformer_textures/lvl-0/dirt.png"/>
-	<floor x="4400"  y="798"  width="1100"  height="1002" texture="platformer_textures/lvl-0/dirt.png"/>
+	<floor x="4400"  y="798"  width="1100"  height="702" texture="platformer_textures/lvl-0/dirt.png"/>
 
 	<!-- SKELETON DECOR -->
 	<wall x="5500"  y="700"  width="30"  height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
@@ -158,4 +205,86 @@
 
 	<!-- FLOATING PLATFORM -->
 	<floor x="6200" y="1050" width="200" height="30"/>
+
+	<!-- GREEN KEY -->
+	<key x="6300" y="1120" keyId="key_green" color="#3ed42a" r="16" />
+	
+	<!-- COIN -->
+	<coin x="5600" y="1200" />
+
+	<!-- THIRD AREA -->
+
+	<!-- FLOOR -->
+	<floor x="3536"  y="0"  width="864"  height="500" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- WOODEN BRIDGE -->
+	<floor x="3536"  y="715"  width="864"  height="15"/>
+
+	<!-- LAVA TOWER AREA -->
+	<area id="lava-tower" x="3536" y="730" width="864" height="1070"
+      checkpointX="3968" checkpointY="730"/>
+
+	<!-- DESPAWN ENEMIES IF IN LAVA TOWER -->
+	<despawnEnemies areaId="lava-tower" spawnerAreaId="ambush" />
+
+	<!-- CAMERA LOCK -->
+	<camera areaId="lava-tower" lockX="true" targetCamX="3050"/>
+
+	<!-- DOOR -->
+	<wall x="3506" y="730" width="30" height="200" closeOnAreaId="lava-tower"/>
+
+	<!-- SONG CHANGE -->
+	<music areaId="lava-tower" song="lavatower" fadeDuration="1.5" restartOnDie="true"/>
+
+	<!-- TRAMPOLINE  -->
+  	<trampoline x="4300" y="730" width="50"  height="10" strength="3.2"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="4000" y="1110" width="200" height="30"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1000" width="100" height="30"/>
+	
+	<!-- ORB -->
+  	<orb x="3836" y="1050" strength="1.5"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1100" width="60" height="20" oneWay="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3636" y="1200" width="60" height="20" oneWay="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1300" width="60" height="20" oneWay="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3636" y="1400" width="200" height="20" oneWay="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3836" y="1500" width="1664" height="20" oneWay="true"/>
+
+	<!-- FLOATING CHAINS -->
+	<floor x="5500" y="1500" width="1664" height="20"/>
+
+	<!-- RISING LAVA -->
+	<lava x="3536" y="500" width="864" height="0"
+      flowUp="true" flowSpeed="80" flowAreaId="lava-tower" riseId="lava-rise"/>
+	
+	<!-- LAVA GLOW -->
+	<wall x="3536" y="500" width="864"  height="0" riseWithId="lava-rise" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+	<wall x="3350" y="500" width="1200" height="200" riseWithId="lava-rise" riseYOnly="true" riseYOffset="-125" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<!-- AMBUSH -->
+	<area id="ambush" x="4400" y="1520" width="100" height="280" />
+
+	<enemySpawner
+		areaId="ambush"
+		x="4400" y="1520"
+		count="10"
+		spread="-10"
+		detectionRadius="2000"
+		speed="300"
+		stuck="false"
+	/>
+
 </level>
