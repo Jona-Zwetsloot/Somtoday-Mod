@@ -40,6 +40,7 @@ async function startPlatformerGame() {
     function resizeCanvas() {
         canvas.width  = window.innerWidth;
         canvas.height = window.innerHeight;
+        try { if (lvl) lvl._bgBaked = null; } catch(e) {}
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -164,6 +165,15 @@ async function startPlatformerGame() {
             drawOrder: [],
             playAgainText: 'Opnieuw spelen',
             closeGameText: 'Sluiten',
+            bgColor: el.getAttribute('bgColor') || null,
+            bgColor2: el.getAttribute('bgColor2') || null,
+            bgTexture: el.getAttribute('bgTexture') || null,
+            bgTextureMode: el.getAttribute('bgTextureMode') || 'tile',
+            bgTextureAlpha: parseFloat(el.getAttribute('bgTextureAlpha') ?? 1),
+            _bgTexEntry: null,
+            _bgBaked:    null,
+            _bgBakedW:   0,
+            _bgBakedH:   0,
         };
         for (const c of el.children) {
             const tag         = c.tagName;
@@ -377,6 +387,51 @@ async function startPlatformerGame() {
             }
             if (obj.textureGhost) obj.texGhost = await loadTexture(obj.textureGhost);
         }));
+        if (lvl.bgTexture) {
+            lvl._bgTexEntry = await loadTexture(lvl.bgTexture);
+        }
+    }
+
+    function bakeBg(lvl) {
+        const w = canvas.width, h = canvas.height;
+        if (lvl._bgBaked && lvl._bgBakedW === w && lvl._bgBakedH === h) {
+            return lvl._bgBaked;
+        }
+        const oc = new OffscreenCanvas(w, h);
+        const octx = oc.getContext('2d');
+
+        const top = lvl.bgColor || '#0f0f23';
+        const bottom = lvl.bgColor2 || (lvl.bgColor ? lvl.bgColor : '#1a1a2e');
+        const g = octx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, top);
+        g.addColorStop(1, bottom);
+        octx.fillStyle = g;
+        octx.fillRect(0, 0, w, h);
+
+        if (lvl._bgTexEntry) {
+            const tex = lvl._bgTexEntry;
+            const mode = lvl.bgTextureMode;
+            const alpha = lvl.bgTextureAlpha ?? 1;
+            octx.globalAlpha = alpha;
+            if (mode === 'tile') {
+                const pat = octx.createPattern(tex.img, 'repeat');
+                octx.fillStyle = pat;
+                octx.fillRect(0, 0, w, h);
+            } else if (mode === 'stretch') {
+                octx.drawImage(tex.img, 0, 0, w, h);
+            } else if (mode === 'cover') {
+                const imgW = tex.img.naturalWidth, imgH = tex.img.naturalHeight;
+                const scale = Math.max(w / imgW, h / imgH);
+                const dw = imgW * scale, dh = imgH * scale;
+                octx.drawImage(tex.img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+            }
+            octx.globalAlpha = 1;
+        }
+
+        lvl._bgBaked  = oc;
+        lvl._bgBakedW = w;
+        lvl._bgBakedH = h;
+        return oc;
     }
 
     function bakeTiledTexture(texEntry, w, h) {
@@ -1074,11 +1129,12 @@ async function startPlatformerGame() {
                 if (mp.triggerState === 'idle') {
                     if (playerOnTop) {
                         mp.triggerTimer += dt;
-                        const nudge = Math.min(mp.triggerTimer / mp.triggerTimeout, 1) * 3;
+                        const nudge = Math.min(mp.triggerTimer / mp.triggerTimeout, 1) * 14;
                         mp.cy = mp.startY - nudge;
                     } else {
-                        mp.triggerTimer = 0;
-                        mp.cy = mp.startY;
+                        mp.triggerTimer = Math.max(0, mp.triggerTimer - dt * 2.5);
+                        const nudge = Math.min(mp.triggerTimer / mp.triggerTimeout, 1) * 14;
+                        mp.cy = mp.startY - nudge;
                     }
                     if (mp.triggerTimer >= mp.triggerTimeout) {
                         mp.triggerState = 'falling';
@@ -1684,16 +1740,22 @@ async function startPlatformerGame() {
     }
 
     function drawBg() {
-        const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        g.addColorStop(0, '#0f0f23');
-        g.addColorStop(1, '#1a1a2e');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(155,155,156,0.06)';
-        ctx.lineWidth = 1;
-        const gs = 80, ox = camX % gs, oy = camY % gs;
-        for (let x = -ox; x < canvas.width;  x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-        for (let y = -oy; y < canvas.height; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+        if (lvl) {
+            ctx.drawImage(bakeBg(lvl), 0, 0);
+        } else {
+            const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            g.addColorStop(0, '#0f0f23');
+            g.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        if (debugVisible) {
+            ctx.strokeStyle = 'rgba(155,155,156,0.06)';
+            ctx.lineWidth = 1;
+            const gs = 80, ox = camX % gs, oy = camY % gs;
+            for (let x = -ox; x < canvas.width;  x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+            for (let y = -oy; y < canvas.height; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+        }
     }
 
     function drawPortal(portal) {

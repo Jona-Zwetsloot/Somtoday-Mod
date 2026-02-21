@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level
-	title       = "Level 1 - Onder de grond"
-	song        = "lvl0"
-	worldWidth  = "10000"
+	title = "Level 1 - Onder de grond"
+	song = "lvl0"
+	worldWidth = "10000"
 	worldHeight = "1600"
-	spawnX      = "90"
-	spawnY      = "650">
+	spawnX = "90"
+	spawnY = "650"
+	bgColor="#120800"
+	bgColor2="#0a0400">
 	<description>Zoek de uitgang naar boven</description>
 
 	<!-- FIRST PART OF LEVEL -->
 
 	<!-- Floor -->
-	<floor x="0" y="0" width="300" height="60" texture="platformer_textures/lvl-0/bricks-start.png"/>
+	<floor x="0" y="0" width="300" height="60" texture="platformer_textures/lvl-0/bricks-1.png"/>
   	<lava x="300" y="0" width="200" height="40"/>
 	<text x="400" y="160">Raak niet de <b><o>lava</o></b> aan</text>
-	<floor x="500" y="0" width="600" height="60" texture="platformer_textures/lvl-0/bricks-second.png"/>
+	<floor x="500" y="0" width="396" height="60" texture="platformer_textures/lvl-0/bricks-2.png"/>
 
 	<wall x="50" y="-350" width="700" height="500" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
 	
@@ -40,7 +42,7 @@
 	<wall x="150"  y="380"  width="40"  height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
 
 	<!-- FLOOR -->
-	<floor x="1106" y="0" width="394" height="60"/>
+	<floor x="1106" y="0" width="394" height="60" texture="platformer_textures/lvl-0/bricks-6.png"/>
 
 	<!-- CRATE -->
 	<floor x="1451"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
@@ -92,12 +94,12 @@
 	<floor x="749"  y="60"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
 	<floor x="749"  y="109"  width="49"  height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
 
-	<floor x="847"  y="60"  width="49"  height="147"/>
-	<floor x="896"  y="158"  width="49"  height="49"/>
+	<floor x="847"  y="60"  width="49"  height="147" texture="platformer_textures/lvl-0/bricks-3.png"/>
+	<floor x="896"  y="158"  width="49"  height="49" texture="platformer_textures/lvl-0/bricks-4.png"/>
 
 	<coin x="749" y="340" />
 
-	<floor x="1106"  y="60"  width="49"  height="147"/>
+	<floor x="1106"  y="60"  width="49"  height="147" texture="platformer_textures/lvl-0/bricks-5.png"/>
 
 	<wall x="847" y="0" width="49" height="109" ghost="true" texture="platformer_textures/lvl-0/lava-glow-right.png" textureMode="stretch"/>
 	<wall x="847" y="109" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading-right.png" textureMode="stretch"/>
@@ -111,14 +113,14 @@
 	<wall x="760" y="-20" width="400" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
 
 	<!-- LADDER UP -->
-	<wall x="1300" y="60" width="20" height="500" ghost="true"/>
-	<wall x="1400" y="60" width="20" height="500" ghost="true"/>
+	<wall x="1300" y="60" width="20" height="500" ghost="true" texture="platformer_textures/lvl-0/ladder-pole.png"/>
+	<wall x="1400" y="60" width="20" height="500" ghost="true" texture="platformer_textures/lvl-0/ladder-pole.png"/>
 
-	<floor x="1300" y="120" width="120" height="20" oneWay="true" />
-	<floor x="1300" y="220" width="120" height="20" oneWay="true" />
-	<floor x="1300" y="320" width="120" height="20" oneWay="true" />
-	<floor x="1300" y="420" width="120" height="20" oneWay="true" />
-	<floor x="1300" y="520" width="120" height="20" oneWay="true" />
+	<floor x="1300" y="120" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="220" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="320" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="420" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="520" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
 
 	<coin x="1360" y="630" />
 
