@@ -176,18 +176,23 @@ async function startPlatformerGame() {
             _bgBakedH:   0,
         };
         for (const c of el.children) {
-            const tag         = c.tagName;
+            const tag = c.tagName;
             if (tag === 'description') continue;
-            const x           = parseFloat(c.getAttribute('x'))       ?? 0;
-            const y           = parseFloat(c.getAttribute('y'))       ?? 0;
-            const w           = parseFloat(c.getAttribute('width'))    || 100;
-            const h           = parseFloat(c.getAttribute('height'))   || 20;
-            const ghost       = c.getAttribute('ghost')       === 'true';
-            const oneWay      = c.getAttribute('oneWay')      === 'true';
-            const texture     = c.getAttribute('texture')     || null;
+            const x = parseFloat(c.getAttribute('x')) ?? 0;
+            const y = parseFloat(c.getAttribute('y')) ?? 0;
+            const w = parseFloat(c.getAttribute('width')) || 100;
+            const h = parseFloat(c.getAttribute('height')) || 20;
+            const ghost = c.getAttribute('ghost') === 'true';
+            const oneWay = c.getAttribute('oneWay') === 'true';
+            const texture = c.getAttribute('texture') || null;
             const textureMode = c.getAttribute('textureMode') || 'tile';
+            const textureFrames = parseInt(c.getAttribute('textureFrames')) || 1;
+            const textureFps = parseFloat(c.getAttribute('textureFps')) || 8;
+            const rotation = parseFloat(c.getAttribute('rotation')) || 0;
+            const invertX = c.getAttribute('invertX') === 'true';
+            const invertY = c.getAttribute('invertY') === 'true';
             if (tag === 'floor') {
-                const obj = { type: 'floor', x, y, w, h, ghost, oneWay, texture, textureMode, tex: null };
+                const obj = { type: 'floor', x, y, w, h, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.floors.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'wall') {
                 const textureGhost  = c.getAttribute('textureGhost') || null;
@@ -200,19 +205,14 @@ async function startPlatformerGame() {
                 const riseYOnly     = c.getAttribute('riseYOnly')   === 'true';
                 const riseYOffset   = parseFloat(c.getAttribute('riseYOffset')) || 0;
                 const obj = {
-                    type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode,
+                    type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY,
                     textureGhost, tex: null, texGhost: null, playerOverlap: false,
                     keyId, keyColor,
                     keyholeVisible: keyholeAttr !== 'invisible',
-                    doorOpen: false,
-                    doorSlide: 0,
-                    doorDir: 0,
-                    closeOnAreaId,
-                    areaCloseSlide: closeOnAreaId ? 1 : 0,
-                    areaCloseDir: 0,
+                    doorOpen: false, doorSlide: 0, doorDir: 0,
+                    closeOnAreaId, areaCloseSlide: closeOnAreaId ? 1 : 0, areaCloseDir: 0,
                     riseWithId, riseYOnly, riseYOffset,
-                    riseCurrentY: y,
-                    riseCurrentH: h,
+                    riseCurrentY: y, riseCurrentH: h,
                 };
                 lvl.walls.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'lava') {
@@ -222,16 +222,14 @@ async function startPlatformerGame() {
                 const flowAreaId   = c.getAttribute('flowAreaId') || null;
                 const riseId       = c.getAttribute('riseId') || null;
                 const obj = {
-                    type: 'lava', x, y, w, h, ghost, texture, textureMode, tex: null,
+                    type: 'lava', x, y, w, h, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null,
                     flowUp, flowSpeed, flowDuration, flowAreaId,
-                    riseId,
-                    currentH: h,
-                    flowTimer: 0,
+                    riseId, currentH: h, flowTimer: 0,
                     flowing: flowUp && !flowAreaId,
                 };
                 lvl.lavas.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'trampoline') {
-                const obj = { type: 'trampoline', x, y, w, h, ghost, texture, textureMode, tex: null, strength: parseFloat(c.getAttribute('strength')) || 2.5 };
+                const obj = { type: 'trampoline', x, y, w, h, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, strength: parseFloat(c.getAttribute('strength')) || 2.5 };
                 lvl.trampolines.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'enemy') {
                 const mn = c.getAttribute('min') !== null ? parseFloat(c.getAttribute('min')) : null;
@@ -241,10 +239,10 @@ async function startPlatformerGame() {
                 const n1 = Math.floor(Math.random() * 5) + 1;
                 let n2 = Math.floor(Math.random() * 10);
                 if (n1 === 5 && n2 >= 5) n2 = 4;
-                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, startY: y, min: mn, max: mx, detectionR, detected: false, label: `${n1},${n2}`, ghost, texture, textureMode, tex: null, stuck: stuck, vy: 0, onGround: false };
+                const obj = { type: 'enemy', x, y, w: 50, h: 50, startX: x, startY: y, min: mn, max: mx, detectionR, detected: false, label: `${n1},${n2}`, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, stuck: stuck, vy: 0, onGround: false };
                 lvl.enemies.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'orb') {
-                const obj = { type: 'orb', x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, textureMode, tex: null };
+                const obj = { type: 'orb', x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.orbs.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'movingPlatformUp') {
                 const sy = parseFloat(c.getAttribute('startY')) || y;
@@ -252,17 +250,17 @@ async function startPlatformerGame() {
                 const triggerMode = c.getAttribute('triggerMode') === 'true';
                 const triggerTimeout = parseFloat(c.getAttribute('triggerTimeout') ?? 1.0);
                 const returnTimeout = parseFloat(c.getAttribute('returnTimeout') ?? 2.0);
-                const obj = { type: 'mpUp', x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, oneWay, texture, textureMode, tex: null, triggerMode, triggerTimeout, returnTimeout, triggerTimer: 0, returnTimer: 0, triggerState: 'idle' };
+                const obj = { type: 'mpUp', x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, triggerMode, triggerTimeout, returnTimeout, triggerTimer: 0, returnTimer: 0, triggerState: 'idle' };
                 lvl.mpUp.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'movingPlatformRight') {
                 const sx = parseFloat(c.getAttribute('startX')) || x;
                 const ex = parseFloat(c.getAttribute('endX'))   || x + 300;
-                const obj = { type: 'mpRight', y, w, h, startX: sx, endX: ex, cx: sx, dir: 1, ghost, oneWay, texture, textureMode, tex: null };
+                const obj = { type: 'mpRight', y, w, h, startX: sx, endX: ex, cx: sx, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.mpRight.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'coin') {
                 const r = parseFloat(c.getAttribute('r')) || 14;
                 const blue = c.getAttribute('blue') === 'true';
-                const obj = { type: 'coin', x, y, r, collected: false, bobTimer: Math.random() * Math.PI * 2, ghost, texture, textureMode, tex: null, blue };
+                const obj = { type: 'coin', x, y, r, collected: false, bobTimer: Math.random() * Math.PI * 2, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, blue };
                 lvl.coins.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'checkpoint') {
                 const obj = { type: 'checkpoint', x, y, activated: false };
@@ -289,18 +287,12 @@ async function startPlatformerGame() {
                     return segs;
                 }
                 const segments = parseSegments(c, false, baseColor);
-                const obj = {
-                    type: 'text',
-                    x, y,
-                    segments,
-                    baseFont,
-                    ghost,
-                };
+                const obj = { type: 'text', x, y, segments, baseFont, ghost };
                 lvl.texts.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'portal') {
                 const portalId   = c.getAttribute('portal-id')    || null;
                 const toPortalId = c.getAttribute('to-portal-id') || null;
-                const obj = { type: 'portal', x, y, w, h, portalId, toPortalId, cooldown: 0, texture, textureMode, tex: null };
+                const obj = { type: 'portal', x, y, w, h, portalId, toPortalId, cooldown: 0, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.portals.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'key') {
                 const keyId    = c.getAttribute('keyId')    || `key_${Math.random()}`;
@@ -354,7 +346,7 @@ async function startPlatformerGame() {
                 lvl.enemySpawners.push({
                     areaId, count, spawnX, spawnY, spread: spawnSpread,
                     min: mn, max: mx, detectionR,
-                    stuck, ghost, texture, textureMode,
+                    stuck, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY,
                     speed: parseFloat(c.getAttribute('speed')) || 100,
                     fired: false,
                 });
@@ -382,7 +374,11 @@ async function startPlatformerGame() {
             if (obj.texture) {
                 obj.tex = await loadTexture(obj.texture);
                 if (obj.tex && obj.textureMode === 'tile' && obj.w && obj.h) {
-                    obj.bakedCanvas = bakeTiledTexture(obj.tex, obj.w, obj.h);
+                    if (obj.textureFrames > 1) {
+                        obj._animBakedFrames = bakeAnimatedTiledTexture(obj.tex, obj.w, obj.h, obj.textureFrames);
+                    } else {
+                        obj.bakedCanvas = bakeTiledTexture(obj.tex, obj.w, obj.h);
+                    }
                 }
             }
             if (obj.textureGhost) obj.texGhost = await loadTexture(obj.textureGhost);
@@ -441,6 +437,22 @@ async function startPlatformerGame() {
         octx.fillStyle = pat;
         octx.fillRect(0, 0, w, h);
         return oc;
+    }
+
+    function bakeAnimatedTiledTexture(texEntry, w, h, frameCount) {
+        const img = texEntry.img;
+        const frameH = img.naturalHeight / frameCount;
+        const frameW = img.naturalWidth;
+        return Array.from({ length: frameCount }, (_, i) => {
+            const oc = new OffscreenCanvas(w, h);
+            const octx = oc.getContext('2d');
+            for (let ty = 0; ty < h; ty += frameH) {
+                for (let tx = 0; tx < w; tx += frameW) {
+                    octx.drawImage(img, 0, i * frameH, frameW, frameH, tx, ty, frameW, frameH);
+                }
+            }
+            return oc;
+        });
     }
 
     const levels = [];
@@ -845,6 +857,60 @@ async function startPlatformerGame() {
         return { x: wl.x, y: wl.y, w: wl.w, h: wl.h * vis };
     }
 
+    function getRotatedCorners(x, y, w, h, rotRad) {
+        const cx = x + w / 2, cy = y + h / 2;
+        const cos = Math.cos(rotRad), sin = Math.sin(rotRad);
+        const hw = w / 2, hh = h / 2;
+        return [
+            [cx - cos * hw + sin * hh, cy - sin * hw - cos * hh],
+            [cx + cos * hw + sin * hh, cy + sin * hw - cos * hh],
+            [cx + cos * hw - sin * hh, cy + sin * hw + cos * hh],
+            [cx - cos * hw - sin * hh, cy - sin * hw + cos * hh],
+        ];
+    }
+
+    function getAxes(corners) {
+        const axes = [];
+        for (let i = 0; i < corners.length; i++) {
+            const [x1, y1] = corners[i];
+            const [x2, y2] = corners[(i + 1) % corners.length];
+            const nx = -(y2 - y1), ny = x2 - x1;
+            const len = Math.sqrt(nx * nx + ny * ny);
+            if (len > 0) axes.push([nx / len, ny / len]);
+        }
+        return axes;
+    }
+
+    function satMTV(ax, ay, aw, ah, bx, by, bw, bh, bRotRad) {
+        if (!bRotRad) return null;
+        const cornersA = [[ax, ay], [ax + aw, ay], [ax + aw, ay + ah], [ax, ay + ah]];
+        const cornersB = getRotatedCorners(bx, by, bw, bh, bRotRad);
+        const axes = [...getAxes(cornersA), ...getAxes(cornersB)];
+        let minOverlap = Infinity, mtvX = 0, mtvY = 0;
+        for (const [nx, ny] of axes) {
+            let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
+            for (const [cx, cy] of cornersA) { const p = cx * nx + cy * ny; minA = Math.min(minA, p); maxA = Math.max(maxA, p); }
+            for (const [cx, cy] of cornersB) { const p = cx * nx + cy * ny; minB = Math.min(minB, p); maxB = Math.max(maxB, p); }
+            if (maxA < minB || maxB < minA) return null;
+            const overlap = Math.min(maxA - minB, maxB - minA);
+            if (overlap < minOverlap) { minOverlap = overlap; mtvX = nx * overlap; mtvY = ny * overlap; }
+        }
+        const dCx = (ax + aw / 2) - (bx + bw / 2);
+        const dCy = (ay + ah / 2) - (by + bh / 2);
+        if (dCx * mtvX + dCy * mtvY < 0) { mtvX = -mtvX; mtvY = -mtvY; }
+        return { x: mtvX, y: mtvY };
+    }
+
+    function hitRotated(ax, ay, aw, ah, obj) {
+        const rot = (obj.rotation || 0) * Math.PI / 180;
+        const bx = obj.x ?? obj.cx ?? 0;
+        const by = obj.y ?? obj.cy ?? 0;
+        const bw = obj.w ?? obj.r * 2;
+        const bh = obj.h ?? obj.r * 2;
+        if (!rot) return hit(ax, ay, aw, ah, bx, by, bw, bh);
+        return satMTV(ax, ay, aw, ah, bx, by, bw, bh, rot) !== null;
+    }
+
     function update(dt) {
         if (phase === 'dying') {
             deathTimer -= dt;
@@ -1214,8 +1280,8 @@ async function startPlatformerGame() {
                     en.onGround = false;
                     const enSolids = [
                         ...lvl.floors.filter(f => !f.ghost),
-                        ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h })),
-                        ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h })),
+                        ...lvl.mpUp.filter(mp => !mp.ghost).map(mp => ({ x: mp.x, y: mp.cy, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpUp', _mp: mp, rotation: mp.rotation || 0 })),
+                        ...lvl.mpRight.filter(mp => !mp.ghost).map(mp => ({ x: mp.cx, y: mp.y, w: mp.w, h: mp.h, oneWay: mp.oneWay, type: 'mpRight', _mp: mp, rotation: mp.rotation || 0 })),
                         ...lvl.walls.filter(w => !w.ghost && !w.keyId && !w.closeOnAreaId),
                     ];
 
@@ -1327,7 +1393,7 @@ async function startPlatformerGame() {
         for (const co of lvl.coins) {
             co.bobTimer += dt * 3;
             if (co.ghost || co.collected) continue;
-            if (hit(px, py, PW, PH, co.x - co.r, co.y - co.r, co.r * 2, co.r * 2)) {
+            if (hitRotated(px, py, PW, PH, { x: co.x - co.r, y: co.y - co.r, w: co.r * 2, h: co.r * 2, rotation: co.rotation || 0 })) {
                 co.collected = true;
                 const coinVal = co.blue ? 10 : 1;
                 sessionCoins += coinVal;
@@ -1409,13 +1475,13 @@ async function startPlatformerGame() {
             .map(w => {
                 if (w.keyId) {
                     const dr = getDoorEffectiveRect(w);
-                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w };
+                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w, rotation: w.rotation || 0 };
                 }
                 if (w.closeOnAreaId) {
                     const dr = getAreaCloseRect(w);
-                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w };
+                    return { x: dr.x, y: dr.y, w: dr.w, h: dr.h, oneWay: false, type: 'wall', _wall: w, rotation: w.rotation || 0 };
                 }
-                return { x: w.x, y: w.y, w: w.w, h: w.h, oneWay: false, type: 'wall', _wall: w };
+                return { x: w.x, y: w.y, w: w.w, h: w.h, oneWay: false, type: 'wall', _wall: w, rotation: w.rotation || 0 };
             })
             .filter(e => e.h > 1);
 
@@ -1448,6 +1514,23 @@ async function startPlatformerGame() {
                 }
             } else if (!fl.oneWay) {
                 if (!noclip) { px = px + PW / 2 < fl.x + fl.w / 2 ? fl.x - PW : fl.x + fl.w; vx = 0; }
+            }
+        }
+        for (const fl of solids) {
+            if (!(fl.rotation || 0)) continue;
+            const rotRad = fl.rotation * Math.PI / 180;
+            const mtv = satMTV(px, py, PW, PH, fl.x, fl.y, fl.w, fl.h, rotRad);
+            if (!mtv) continue;
+            if (Math.abs(mtv.y) >= Math.abs(mtv.x)) {
+                if (mtv.y > 0) {
+                    py += mtv.y;
+                    if (vy < -200 && !onGround) landAnim = 0.22;
+                    vy = 0; onGround = true; standingOn = fl;
+                } else if (!fl.oneWay) {
+                    py += mtv.y; vy = -200;
+                }
+            } else if (!fl.oneWay) {
+                px += mtv.x; vx = 0;
             }
         }
         if (!onGround) {
@@ -1489,10 +1572,9 @@ async function startPlatformerGame() {
         let dead = false;
         if (!noclip) {
             for (const lv of lvl.lavas) {
-                const lh = lv.flowUp ? lv.currentH : lv.h;
-                if (!lv.ghost && hit(px, py, PW, PH, lv.x, lv.y, lv.w, lh)) { dead = true; break; }
+                if (!lv.ghost && hitRotated(px, py, PW, PH, { x: lv.x, y: lv.y, w: lv.w, h: lv.flowUp ? lv.currentH : lv.h, rotation: lv.rotation || 0 })) { dead = true; break; }
             }
-            if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { dead = true; break; } }
+            if (!dead) for (const en of lvl.enemies) { if (!en.ghost && hitRotated(px, py, PW, PH, en)) { dead = true; break; } }
         }
         if (dead) {
             playSfx('die');
@@ -1528,48 +1610,86 @@ async function startPlatformerGame() {
         return cx + w > 0 && cx < canvas.width && cy + h > 0 && cy < canvas.height;
     }
 
-    function texFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
-        const cx = wx(x), cy = wy(y, h);
-        if (obj.bakedCanvas) {
-            if (r > 0) {
-                ctx.save();
-                ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.clip();
-                ctx.drawImage(obj.bakedCanvas, cx, cy);
-                ctx.restore();
-            } else {
-                ctx.drawImage(obj.bakedCanvas, cx, cy);
+    function getAnimFrame(obj) {
+        if (!obj.textureFrames || obj.textureFrames <= 1) return -1;
+        return Math.floor((performance.now() / 1000 * (obj.textureFps || 8)) % obj.textureFrames) | 0;
+    }
+
+    function _texDraw(obj, lx, ly, w, h, fallbackCol, r, inRotCtx) {
+        const frame = getAnimFrame(obj);
+        if (frame >= 0 && obj.tex) {
+            const img = obj.tex.img;
+            const frameH = img.naturalHeight / obj.textureFrames;
+            if (obj._animBakedFrames) {
+                const drawX = inRotCtx ? -w / 2 : lx;
+                const drawY = inRotCtx ? -h / 2 : ly;
+                if (r > 0) { ctx.save(); ctx.beginPath(); ctx.roundRect(drawX, drawY, w, h, r); ctx.clip(); ctx.drawImage(obj._animBakedFrames[frame], drawX, drawY); ctx.restore(); }
+                else ctx.drawImage(obj._animBakedFrames[frame], drawX, drawY);
+                return;
             }
+            ctx.save();
+            ctx.beginPath(); if (r > 0) ctx.roundRect(lx, ly, w, h, r); else ctx.rect(lx, ly, w, h); ctx.clip();
+            if (obj.textureMode === 'cover') {
+                const scale = Math.max(w / img.naturalWidth, h / frameH);
+                const dw = img.naturalWidth * scale, dh = frameH * scale;
+                ctx.drawImage(img, 0, frame * frameH, img.naturalWidth, frameH, lx + (w - dw) / 2, ly + (h - dh) / 2, dw, dh);
+            } else {
+                ctx.drawImage(img, 0, frame * frameH, img.naturalWidth, frameH, lx, ly, w, h);
+            }
+            ctx.restore();
+            return;
+        }
+        if (obj.bakedCanvas) {
+            if (r > 0) { ctx.save(); ctx.beginPath(); ctx.roundRect(lx, ly, w, h, r); ctx.clip(); ctx.drawImage(obj.bakedCanvas, lx, ly); ctx.restore(); }
+            else ctx.drawImage(obj.bakedCanvas, lx, ly);
             return;
         }
         if (obj.tex) {
             if (obj.textureMode === 'stretch') {
-                if (r > 0) { ctx.save(); ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.clip(); }
-                ctx.drawImage(obj.tex.img, cx, cy, w, h);
+                if (r > 0) { ctx.save(); ctx.beginPath(); ctx.roundRect(lx, ly, w, h, r); ctx.clip(); }
+                ctx.drawImage(obj.tex.img, lx, ly, w, h);
                 if (r > 0) ctx.restore();
             } else if (obj.textureMode === 'cover') {
                 const imgW = obj.tex.img.naturalWidth, imgH = obj.tex.img.naturalHeight;
                 const scale = Math.max(w / imgW, h / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
-                const dx = cx + (w - dw) / 2, dy = cy + (h - dh) / 2;
-                ctx.save();
-                ctx.beginPath();
-                if (r > 0) ctx.roundRect(cx, cy, w, h, r); else ctx.rect(cx, cy, w, h);
-                ctx.clip();
-                ctx.drawImage(obj.tex.img, dx, dy, dw, dh);
+                ctx.save(); ctx.beginPath();
+                if (r > 0) ctx.roundRect(lx, ly, w, h, r); else ctx.rect(lx, ly, w, h);
+                ctx.clip(); ctx.drawImage(obj.tex.img, lx + (w - dw) / 2, ly + (h - dh) / 2, dw, dh); ctx.restore();
+            } else if (inRotCtx) {
+                ctx.save(); ctx.beginPath();
+                if (r > 0) ctx.roundRect(lx, ly, w, h, r); else ctx.rect(lx, ly, w, h); ctx.clip();
+                const iw = obj.tex.img.naturalWidth, ih = obj.tex.img.naturalHeight;
+                for (let ty = 0; ty < h; ty += ih) for (let tx = 0; tx < w; tx += iw) ctx.drawImage(obj.tex.img, lx + tx, ly + ty);
                 ctx.restore();
             } else {
-                const m = new DOMMatrix();
-                m.translateSelf(cx, cy);
-                obj.tex.pat.setTransform(m);
-                ctx.fillStyle = obj.tex.pat;
-                if (r > 0) { ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.fill(); }
-                else       { ctx.fillRect(cx, cy, w, h); }
+                const m = new DOMMatrix(); m.translateSelf(lx, ly);
+                obj.tex.pat.setTransform(m); ctx.fillStyle = obj.tex.pat;
+                if (r > 0) { ctx.beginPath(); ctx.roundRect(lx, ly, w, h, r); ctx.fill(); }
+                else ctx.fillRect(lx, ly, w, h);
             }
         } else {
             ctx.fillStyle = fallbackCol;
-            if (r > 0) { ctx.beginPath(); ctx.roundRect(cx, cy, w, h, r); ctx.fill(); }
-            else       { ctx.fillRect(cx, cy, w, h); }
+            if (r > 0) { ctx.beginPath(); ctx.roundRect(lx, ly, w, h, r); ctx.fill(); }
+            else ctx.fillRect(lx, ly, w, h);
         }
+    }
+
+    function texFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
+        const rot = (obj.rotation || 0) * Math.PI / 180;
+        const sx = obj.invertX ? -1 : 1;
+        const sy = obj.invertY ? -1 : 1;
+        const cx = wx(x), cy = wy(y, h);
+        if (rot !== 0 || obj.invertX || obj.invertY) {
+            ctx.save();
+            ctx.translate(cx + w / 2, cy + h / 2);
+            if (rot !== 0) ctx.rotate(rot);
+            ctx.scale(sx, sy);
+            _texDraw(obj, -w / 2, -h / 2, w, h, fallbackCol, r, true);
+            ctx.restore();
+            return;
+        }
+        _texDraw(obj, cx, cy, w, h, fallbackCol, r, false);
     }
 
     function ghostFillRect(obj, x, y, w, h, fallbackCol, r = 0) {
@@ -1619,6 +1739,7 @@ async function startPlatformerGame() {
         const dr = getDoorEffectiveRect(wl);
         if (dr.h <= 0) return;
 
+        const rot = (wl.rotation || 0) * Math.PI / 180;
         const cx = wx(dr.x);
         const cy = wy(dr.y, dr.h);
         const w  = dr.w;
@@ -1627,42 +1748,55 @@ async function startPlatformerGame() {
 
         ctx.save();
 
+        if (rot !== 0) {
+            ctx.translate(cx + w / 2, cy + h / 2);
+            ctx.rotate(rot);
+            ctx.translate(-w / 2, -h / 2);
+        }
+
+        const sx = wl.invertX ? -1 : 1;
+        const sy = wl.invertY ? -1 : 1;
+        if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
+
+        const lx = rot !== 0 ? 0 : cx;
+        const ly = rot !== 0 ? 0 : cy;
+
         if (wl.tex) {
             if (wl.textureMode === 'stretch') {
-                ctx.drawImage(wl.tex.img, cx, cy, w, h);
+                ctx.drawImage(wl.tex.img, lx, ly, w, h);
             } else if (wl.textureMode === 'cover') {
                 const imgW = wl.tex.img.naturalWidth, imgH = wl.tex.img.naturalHeight;
                 const scale = Math.max(w / imgW, h / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
                 ctx.save();
-                ctx.beginPath(); ctx.rect(cx, cy, w, h); ctx.clip();
-                ctx.drawImage(wl.tex.img, cx + (w - dw) / 2, cy + (h - dh) / 2, dw, dh);
+                ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                ctx.drawImage(wl.tex.img, lx + (w - dw) / 2, ly + (h - dh) / 2, dw, dh);
                 ctx.restore();
             } else {
                 if (wl.bakedCanvas) {
                     ctx.save();
-                    ctx.beginPath(); ctx.rect(cx, cy, w, h); ctx.clip();
-                    ctx.drawImage(wl.bakedCanvas, cx, cy);
+                    ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                    ctx.drawImage(wl.bakedCanvas, lx, ly);
                     ctx.restore();
                 } else {
                     const m = new DOMMatrix();
-                    m.translateSelf(cx, cy);
+                    m.translateSelf(lx, ly);
                     wl.tex.pat.setTransform(m);
                     ctx.fillStyle = wl.tex.pat;
-                    ctx.fillRect(cx, cy, w, h);
+                    ctx.fillRect(lx, ly, w, h);
                 }
             }
         } else {
             ctx.fillStyle = blendDoorColor(kc);
             ctx.beginPath();
-            ctx.roundRect(cx, cy, w, h, 4);
+            ctx.roundRect(lx, ly, w, h, 4);
             ctx.fill();
 
             ctx.strokeStyle = 'rgba(0,0,0,0.18)';
             ctx.lineWidth = 2;
             const panelInset = Math.min(8, w * 0.12, h * 0.08);
             if (w > 20 && h > 20) {
-                ctx.strokeRect(cx + panelInset, cy + panelInset, w - panelInset * 2, h - panelInset * 2);
+                ctx.strokeRect(lx + panelInset, ly + panelInset, w - panelInset * 2, h - panelInset * 2);
             }
 
             ctx.strokeStyle = kc;
@@ -1670,13 +1804,13 @@ async function startPlatformerGame() {
             ctx.shadowColor = kc;
             ctx.shadowBlur  = 8;
             ctx.beginPath();
-            ctx.roundRect(cx, cy, w, h, 4);
+            ctx.roundRect(lx, ly, w, h, 4);
             ctx.stroke();
         }
 
         if (wl.keyholeVisible && h > 20) {
-            const khCx  = cx + w / 2;
-            const khCy  = cy + h * 0.42;
+            const khCx  = lx + w / 2;
+            const khCy  = ly + h * 0.42;
             const khR   = Math.min(Math.max(w * 0.22, 10), Math.max(h * 0.18, 10), 28);
             const slotW = khR * 0.85;
             const slotH = khR * 1.4;
@@ -1720,43 +1854,60 @@ async function startPlatformerGame() {
 
         ctx.restore();
     }
-
     function drawAreaCloseWall(wl) {
         if (wl.areaCloseSlide >= 1) return;
         const dr = getAreaCloseRect(wl);
         if (dr.h <= 0) return;
+
+        const rot = (wl.rotation || 0) * Math.PI / 180;
         const cxPos = wx(dr.x);
         const cyPos = wy(dr.y, dr.h);
         const w = dr.w;
         const h = dr.h;
+
         ctx.save();
+
+        if (rot !== 0) {
+            ctx.translate(cxPos + w / 2, cyPos + h / 2);
+            ctx.rotate(rot);
+            ctx.translate(-w / 2, -h / 2);
+        }
+
+        const sx = wl.invertX ? -1 : 1;
+        const sy = wl.invertY ? -1 : 1;
+        if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
+
+        const lx = rot !== 0 ? 0 : cxPos;
+        const ly = rot !== 0 ? 0 : cyPos;
+
         if (wl.tex) {
             if (wl.textureMode === 'stretch') {
-                ctx.drawImage(wl.tex.img, cxPos, cyPos, w, h);
+                ctx.drawImage(wl.tex.img, lx, ly, w, h);
             } else if (wl.textureMode === 'cover') {
                 const imgW = wl.tex.img.naturalWidth, imgH = wl.tex.img.naturalHeight;
                 const scale = Math.max(w / imgW, h / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
                 ctx.save();
-                ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip();
-                ctx.drawImage(wl.tex.img, cxPos + (w - dw) / 2, cyPos + (h - dh) / 2, dw, dh);
+                ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                ctx.drawImage(wl.tex.img, lx + (w - dw) / 2, ly + (h - dh) / 2, dw, dh);
                 ctx.restore();
             } else if (wl.bakedCanvas) {
                 ctx.save();
-                ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip();
-                ctx.drawImage(wl.bakedCanvas, cxPos, cyPos);
+                ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                ctx.drawImage(wl.bakedCanvas, lx, ly);
                 ctx.restore();
             } else {
                 const m = new DOMMatrix();
-                m.translateSelf(cxPos, cyPos);
+                m.translateSelf(lx, ly);
                 wl.tex.pat.setTransform(m);
                 ctx.fillStyle = wl.tex.pat;
-                ctx.fillRect(cxPos, cyPos, w, h);
+                ctx.fillRect(lx, ly, w, h);
             }
         } else {
             ctx.fillStyle = COL.wall;
-            ctx.fillRect(cxPos, cyPos, w, h);
+            ctx.fillRect(lx, ly, w, h);
         }
+
         ctx.restore();
     }
 
@@ -1789,64 +1940,83 @@ async function startPlatformerGame() {
     }
 
     function drawPortal(portal) {
+        const rot = (portal.rotation || 0) * Math.PI / 180;
         const cx = wx(portal.x);
         const cy = wy(portal.y, portal.h);
         const w  = portal.w;
         const h  = portal.h;
 
+        ctx.save();
+
+        if (rot !== 0) {
+            ctx.translate(cx + w / 2, cy + h / 2);
+            ctx.rotate(rot);
+            ctx.translate(-w / 2, -h / 2);
+        }
+
+        const sx = portal.invertX ? -1 : 1;
+        const sy = portal.invertY ? -1 : 1;
+        if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
+
+        const lx = rot !== 0 ? 0 : cx;
+        const ly = rot !== 0 ? 0 : cy;
+
         if (portal.tex) {
-            ctx.save();
-            if (portal.textureMode === 'stretch') {
-                ctx.drawImage(portal.tex.img, cx, cy, w, h);
+            if (portal.bakedCanvas) {
+                ctx.save();
+                ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                ctx.drawImage(portal.bakedCanvas, lx, ly);
+                ctx.restore();
+            } else if (portal.textureMode === 'stretch') {
+                ctx.drawImage(portal.tex.img, lx, ly, w, h);
             } else if (portal.textureMode === 'cover') {
                 const imgW = portal.tex.img.naturalWidth, imgH = portal.tex.img.naturalHeight;
                 const scale = Math.max(w / imgW, h / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
                 ctx.save();
-                ctx.beginPath(); ctx.rect(cx, cy, w, h); ctx.clip();
-                ctx.drawImage(portal.tex.img, cx + (w - dw) / 2, cy + (h - dh) / 2, dw, dh);
+                ctx.beginPath(); ctx.rect(lx, ly, w, h); ctx.clip();
+                ctx.drawImage(portal.tex.img, lx + (w - dw) / 2, ly + (h - dh) / 2, dw, dh);
                 ctx.restore();
             } else {
                 const m = new DOMMatrix();
-                m.translateSelf(cx, cy);
+                m.translateSelf(lx, ly);
                 portal.tex.pat.setTransform(m);
                 ctx.fillStyle = portal.tex.pat;
-                ctx.fillRect(cx, cy, w, h);
+                ctx.fillRect(lx, ly, w, h);
             }
             ctx.restore();
             return;
         }
-
-        const t  = performance.now() / 1000;
+        
+        const t = performance.now() / 1000;
         const pulse = 0.7 + 0.3 * Math.sin(t * 3 + (portal.portalId || 0) * 1.7);
 
-        ctx.save();
         ctx.shadowColor = COL.portalGlow;
         ctx.shadowBlur  = 18 * pulse;
 
         ctx.strokeStyle = COL.portalRim;
         ctx.lineWidth   = 3;
         ctx.beginPath();
-        ctx.roundRect(cx, cy, w, h, 6);
+        ctx.roundRect(lx, ly, w, h, 6);
         ctx.stroke();
 
         ctx.shadowBlur = 0;
 
         const numBands = 6;
         for (let i = 0; i < numBands; i++) {
-            const frac   = (i / numBands + t * 0.4) % 1;
-            const alpha  = (1 - frac) * 0.18 * pulse;
-            const inset  = frac * Math.min(w, h) * 0.38;
+            const frac  = (i / numBands + t * 0.4) % 1;
+            const alpha = (1 - frac) * 0.18 * pulse;
+            const inset = frac * Math.min(w, h) * 0.38;
             ctx.strokeStyle = `rgba(168,85,247,${alpha})`;
             ctx.lineWidth   = 1.5;
             ctx.beginPath();
-            ctx.roundRect(cx + inset, cy + inset, Math.max(2, w - inset * 2), Math.max(2, h - inset * 2), Math.max(1, 6 - inset * 0.1));
+            ctx.roundRect(lx + inset, ly + inset, Math.max(2, w - inset * 2), Math.max(2, h - inset * 2), Math.max(1, 6 - inset * 0.1));
             ctx.stroke();
         }
 
         ctx.fillStyle = COL.portalInner;
         ctx.beginPath();
-        ctx.roundRect(cx, cy, w, h, 6);
+        ctx.roundRect(lx, ly, w, h, 6);
         ctx.fill();
 
         ctx.restore();
@@ -2330,41 +2500,67 @@ async function startPlatformerGame() {
     }
 
     function drawEnemy(en) {
+        const rot = (en.rotation || 0) * Math.PI / 180;
+        const ex = wx(en.x), ey = wy(en.y, en.h);
+
         ctx.save();
-        if (en.ghost) { ctx.globalAlpha = 0.25; ctx.setLineDash([6,4]); }
+
+        if (rot !== 0) {
+            ctx.translate(ex + en.w / 2, ey + en.h / 2);
+            ctx.rotate(rot);
+            ctx.translate(-en.w / 2, -en.h / 2);
+        }
+
+        const sx = en.invertX ? -1 : 1;
+        const sy = en.invertY ? -1 : 1;
+        if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
+
+        const lx = rot !== 0 ? 0 : ex;
+        const ly = rot !== 0 ? 0 : ey;
+
+        if (en.ghost) { ctx.globalAlpha = 0.25; ctx.setLineDash([6, 4]); }
+
         if (en.tex) {
-            const ex = wx(en.x), ey = wy(en.y, en.h);
+            const frame = getAnimFrame(en);
             ctx.save();
-            ctx.beginPath(); ctx.roundRect(ex, ey, en.w, en.h, 6); ctx.clip();
-            if (en.textureMode === 'stretch') {
-                ctx.drawImage(en.tex.img, ex, ey, en.w, en.h);
+            ctx.beginPath(); ctx.roundRect(lx, ly, en.w, en.h, 6); ctx.clip();
+            if (frame >= 0) {
+                const img = en.tex.img;
+                const frameH = img.naturalHeight / en.textureFrames;
+                ctx.drawImage(img, 0, frame * frameH, img.naturalWidth, frameH, lx, ly, en.w, en.h);
+            } else if (en.textureMode === 'stretch') {
+                ctx.drawImage(en.tex.img, lx, ly, en.w, en.h);
             } else if (en.textureMode === 'cover') {
                 const imgW = en.tex.img.naturalWidth, imgH = en.tex.img.naturalHeight;
                 const scale = Math.max(en.w / imgW, en.h / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
-                ctx.drawImage(en.tex.img, ex + (en.w - dw) / 2, ey + (en.h - dh) / 2, dw, dh);
+                ctx.drawImage(en.tex.img, lx + (en.w - dw) / 2, ly + (en.h - dh) / 2, dw, dh);
             } else {
                 const m = new DOMMatrix();
-                m.translateSelf(ex, ey);
+                m.translateSelf(lx, ly);
                 en.tex.pat.setTransform(m);
                 ctx.fillStyle = en.tex.pat;
                 ctx.fill();
             }
             ctx.restore();
         } else {
-            texFillRect(en, en.x, en.y, en.w, en.h, COL.enemy, 6);
+            ctx.fillStyle = COL.enemy;
+            ctx.beginPath(); ctx.roundRect(lx, ly, en.w, en.h, 6); ctx.fill();
         }
+
         if (en.ghost) {
             ctx.globalAlpha = 0.55;
             ctx.strokeStyle = COL.enemy; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.roundRect(wx(en.x), wy(en.y, en.h), en.w, en.h, 6); ctx.stroke();
+            ctx.beginPath(); ctx.roundRect(lx, ly, en.w, en.h, 6); ctx.stroke();
         }
+
         ctx.globalAlpha  = en.ghost ? 0.35 : 1;
         ctx.fillStyle    = '#fff';
         ctx.font         = 'bold 15px sans-serif';
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(en.label, wx(en.x + en.w / 2), wy(en.y, en.h) + en.h / 2);
+        ctx.fillText(en.label, lx + en.w / 2, ly + en.h / 2);
+
         ctx.restore();
     }
 
