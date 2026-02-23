@@ -180,8 +180,15 @@
 
 	<!-- SECOND PART OF LEVEL -->
 
+	<!-- THIRD BLOCK BG -->
+	<wall x="7000" y="530" width="3000" height="1270" texture="platformer_textures/lvl-0/dirt-dark.png" ghost="true"/>
+	<wall x="7074" y="530" width="1926" height="200" texture="platformer_textures/lvl-0/dirt.png"/>
+
 	<!-- PORTAL TO FIRST PART OF LEVEL -->
-	<portal x="7000" y="530" width="1" height="200" portal-id="2" to-portal-id="1"/>
+	<portal x="7034" y="530" width="40" height="200" portal-id="2" to-portal-id="1" texture="platformer_textures/lvl-0/portal.png" invertX="true"/>
+
+	<!-- DECOR -->
+	<wall x="6996" y="530" width="40" height="200" ghost="true" texture="platformer_textures/lvl-0/portal.png"/>
 
 	<!-- FLOATING PLATFORM -->
 	<floor x="6700" y="500" width="350" height="30" texture="platformer_textures/lvl-0/floating-platform-large.png"/>
@@ -281,7 +288,7 @@
 	<despawnEnemies areaId="lava-tower" spawnerAreaId="ambush" />
 
 	<!-- CAMERA LOCK -->
-	<camera areaId="lava-tower" lockX="true" targetCamX="3050"/>
+	<camera areaId="lava-tower" lockX="true" targetCamX="3968"/>
 
 	<!-- DOOR -->
 	<wall x="3506" y="730" width="30" height="200" closeOnAreaId="lava-tower" texture="platformer_textures/lvl-0/door-lava-tower.png"/>
@@ -334,7 +341,7 @@
 	<wall x="4351" y="1451" width="49" height="49" ghost="true" invertX="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
 
 	<!-- FLOATING PLATFORM -->
-	<floor x="5500" y="1500" width="1664" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+	<floor x="5500" y="1500" width="2000" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
 
 	<!-- RISING LAVA -->
 	<lava x="3536" y="500" width="864" height="0"
@@ -358,6 +365,40 @@
 	/>
 
 	<!-- THIRD BLOCK -->
-	<wall x="7000" y="0" width="1200" height="1800" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="7000" y="0" width="3000" height="530" texture="platformer_textures/lvl-0/dirt.png"/>
 
+	<wall x="7000" y="730" width="1200" height="300" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="7000" y="1030" width="500" height="470" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- FOURTH AREA -->
+
+	<!-- ENEMY DESPAWNER -->
+	<area x="7400" y="1520" height="280" width="100" id="enemy-despawner" />
+	<despawnEnemies areaId="enemy-despawner" spawnerAreaId="ambush" />
+
+	<!-- CHECKPOINT -->
+	<checkpoint x="7700" y="1030" />
+
+	<!-- TRAMPOLINE TO GET BACK UP -->
+	<trampoline x="7575" y="1030" width="50" height="10" strength="3.5"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="7500" y="1030" width="30" height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
+
+	<!-- LAVA -->
+ 	<lava x="9000" y="530" width="1000" height="180"/>
+
+	<wall x="9000" y="500" width="1200" height="400" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="9000" y="530" width="9000" height="180" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="8960" y="530" width="40" height="180" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" invertX="true" textureMode="stretch"/>
+	<wall x="8960" y="710" width="40" height="20" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading.png" invertX="true" textureMode="stretch"/>
+	
+	<!-- PLATFORM UP IF YOU GET STUCK -->
+	<movingPlatformUp x="8200" startY="730" endY="1010" width="200" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png" triggerMode="true" triggerTimeout="0.01" returnTimeout="3.0"  />
+
+	<!-- ORB -->
+	<orb x="8450" y="1050" strength="2.5"/>
 </level>

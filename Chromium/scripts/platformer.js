@@ -17,6 +17,12 @@ async function startPlatformerGame() {
     const DEBUG_MODE = true; // IMPORTANT: Disable for release
     let debugVisible = false;
 
+    let CODE_UUID = get('platformer-uuid');
+    if (!CODE_UUID) {
+        CODE_UUID = crypto.randomUUID();
+        set('platformer-uuid', CODE_UUID);
+    }
+
     tn('body', 0).insertAdjacentHTML('beforeend', `
 <div id="mod-game">
 <canvas id="mod-canvas"></canvas>
@@ -36,10 +42,19 @@ async function startPlatformerGame() {
 
     const canvas = id('mod-canvas');
     const ctx    = canvas.getContext('2d');
+    const MAX_CANVAS_WIDTH = 2600;
 
     function resizeCanvas() {
-        canvas.width  = window.innerWidth;
+        const cw = Math.min(window.innerWidth, MAX_CANVAS_WIDTH);
+        canvas.width = cw;
         canvas.height = window.innerHeight;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '50%';
+        canvas.style.transform = 'translateX(-50%)';
+        canvas.style.width = cw + 'px';
+        canvas.style.maxWidth = MAX_CANVAS_WIDTH + 'px';
+        canvas.style.height = window.innerHeight + 'px';
         try { if (lvl) lvl._bgBaked = null; } catch(e) {}
     }
     resizeCanvas();
@@ -58,8 +73,10 @@ async function startPlatformerGame() {
     let musicAudio = null;
     let musicFading = null;
     let currentSong = null;
-    let sfxVolume = get('platformer-sfxVolume') || 0.4;
-    let musicVolume = get('platformer-musicVolume') || 0.2;
+    let sfxVolume = parseFloat(get('platformer-sfxVolume') ?? 1);
+    if (isNaN(sfxVolume)) sfxVolume = 1;
+    let musicVolume = parseFloat(get('platformer-musicVolume') ?? 1);
+    if (isNaN(musicVolume)) musicVolume = 1;
 
     function _killAudio(a) {
         if (!a) return;
@@ -564,13 +581,11 @@ async function startPlatformerGame() {
             lvl.areas.forEach(a => { a.triggered = false; });
             lvl.musicTriggers.forEach(mt => { mt.fired = false; });
             lvl.despawnTriggers.forEach(ds => { ds.fired = false; });
-            lvl.enemySpawners.forEach(sp => { sp.fired = false; sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
-            lvl.enemies = lvl.enemies.filter(en => !en._spawned);
-            lvl.drawOrder = lvl.drawOrder.filter(o => !(o.type === 'enemy' && o._spawned));
+            lvl.enemySpawners.forEach(sp => { sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
             lvl.lavas.forEach(lv => {
                 if (lv.flowUp) { lv.currentH = lv.h; lv.flowTimer = 0; lv.flowing = !lv.flowAreaId; }
             });
-            lvl.enemies.forEach(en => { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; });
+            lvl.enemies.forEach(en => { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; });
             if (currentSong !== lvl.song) fadeMusicTo(lvl.song, 1.0);
         } else {
             px = cp.x; py = cp.y;
@@ -596,9 +611,7 @@ async function startPlatformerGame() {
             lvl.areas.forEach(a => { a.triggered = false; });
             lvl.musicTriggers.forEach(mt => { mt.fired = false; });
             lvl.despawnTriggers.forEach(ds => { ds.fired = false; });
-            lvl.enemySpawners.forEach(sp => { sp.fired = false; sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
-            lvl.enemies = lvl.enemies.filter(en => !en._spawned);
-            lvl.drawOrder = lvl.drawOrder.filter(o => !(o.type === 'enemy' && o._spawned));
+            lvl.enemySpawners.forEach(sp => { sp._pendingSpawns = 0; sp._spawnTimer = 0; sp._waitingForExit = false; });
             lvl.walls.forEach(w => {
                 if (!w.closeOnAreaId) return;
                 const linkedArea = lvl.areas.find(a => a.areaId === w.closeOnAreaId);
@@ -616,7 +629,7 @@ async function startPlatformerGame() {
                     lv.flowing   = snap.flowing;
                 });
             }
-            lvl.enemies.forEach(en => { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; });
+            lvl.enemies.forEach(en => { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; });
             const fadeSong = cp.songSnapshot !== undefined ? cp.songSnapshot : lvl.song;
             const shouldRestart = currentSong !== fadeSong ||
                 lvl.musicTriggers.some(mt => mt.song === fadeSong && mt.restartOnDie);
@@ -705,6 +718,7 @@ async function startPlatformerGame() {
     mBtn('mod-btn-jump',  () => { mJump = true; jumpQ = true; }, () => mJump  = false);
 
     id('mod-pause-btn').addEventListener('click', () => togglePause());
+    id('mod-pause-btn').addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); togglePause(); });
     id('mod-close-button').addEventListener('click', endGame);
 
     function hit(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -793,8 +807,8 @@ async function startPlatformerGame() {
             const inArea = px + PW > area.x && px < area.x + area.w &&
                            py + PH > area.y && py < area.y + area.h;
             if (!inArea) continue;
-            if (cam.lockX && cam.targetCamX !== null) tx = cam.targetCamX;
-            if (cam.lockY && cam.targetCamY !== null) ty = cam.targetCamY;
+            if (cam.lockX && cam.targetCamX !== null) tx = cam.targetCamX - canvas.width / 2;
+            if (cam.lockY && cam.targetCamY !== null) ty = lvl.worldHeight - cam.targetCamY - canvas.height / 2;
         }
 
         if (snapCam) {
@@ -928,7 +942,7 @@ async function startPlatformerGame() {
                 vx = 0; vy = 0; onGround = false;
                 portalCooldownTimer = 0;
                 snapCam = true;
-                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+                for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
                 for (const orb of lvl.orbs)    orb.actTimer = 0;
                 phase = 'playing';
             }
@@ -1948,18 +1962,13 @@ async function startPlatformerGame() {
 
         ctx.save();
 
-        if (rot !== 0) {
-            ctx.translate(cx + w / 2, cy + h / 2);
-            ctx.rotate(rot);
-            ctx.translate(-w / 2, -h / 2);
-        }
-
+        ctx.translate(cx + w / 2, cy + h / 2);
+        if (rot !== 0) ctx.rotate(rot);
         const sx = portal.invertX ? -1 : 1;
         const sy = portal.invertY ? -1 : 1;
         if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
-
-        const lx = rot !== 0 ? 0 : cx;
-        const ly = rot !== 0 ? 0 : cy;
+        const lx = -w / 2;
+        const ly = -h / 2;
 
         if (portal.tex) {
             if (portal.bakedCanvas) {
@@ -2662,7 +2671,7 @@ async function startPlatformerGame() {
                 const cp = getCurrentCheckpoint();
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
-                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+                for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
                 for (const orb of lvl.orbs)    orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
@@ -2683,7 +2692,7 @@ async function startPlatformerGame() {
                 const cp = getCurrentCheckpoint();
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
-                for (const en  of lvl.enemies) { en.x = en.startX; en.detected = false; }
+                for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
                 for (const orb of lvl.orbs)    orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
@@ -2827,7 +2836,6 @@ async function startPlatformerGame() {
             if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
         }
     }
-
     function render(dt) {
         btns.length = 0;
         if (!lvl) return;
