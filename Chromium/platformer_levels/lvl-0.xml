@@ -401,4 +401,10 @@
 
 	<!-- ORB -->
 	<orb x="8450" y="1050" strength="2.5"/>
+
+	<!-- END PLATFORM -->
+	<movingPlatformUp x="8600" startY="1030" endY="1700" width="200" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png" triggerMode="true" triggerTimeout="0.01" returnTimeout="3.0"  />
+
+	<!-- END -->
+	<end x="8600" y="1500" width="200" height="100"/>
 </level>
