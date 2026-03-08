@@ -1,4 +1,3 @@
-@layer mod-night {
 :root.night {
     --bg-mask-normal: rgba(0, 0, 0, 0.9);
     --shadow-color: rgba(0, 0, 0, 0.8);
@@ -170,7 +169,7 @@
     border: 1px solid;
 }
 
-[color=negative][_nghost-ng-c519595809] {
+[color=negative] {
     --text-color: var(--fg-on-negative-weakest) !important;
     --background-color: var(--bg-negative-weakest) !important;
     --text-color-darker: var(--fg-on-negative-normal) !important;
@@ -179,7 +178,7 @@
     --border-color: var(--border-negative-strong) !important;
 }
 
-[color=warning][_nghost-ng-c519595809] {
+[color=warning] {
     --text-color: var(--fg-on-warning-weakest) !important;
     --background-color: var(--bg-warning-weakest) !important;
     --text-color-darker: var(--fg-on-warning-normal) !important;

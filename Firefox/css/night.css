@@ -23,6 +23,7 @@
     --border-primary-weak: #444444;
     --border-primary-normal: #2c2c2c;
     --border-primary-strong: var(--blue-40);
+    --action-primary-normal: var(--blue-30);
     --border-accent-normal: #f2b94c;
     --border-accent-strong: #e8a41f;
     --border-warning-normal: #d96c3f;
@@ -45,6 +46,9 @@
     --bg-elevated-weakest: #141414;
     --bg-elevated-weak: #191919;
     --bg-elevated-strong: #1f1f1f;
+    --bg-primary-weakest: #1f1f1f !important;
+    --fg-on-primary-weakest: #575757;
+    --fg-on-positive-weakest: #3ca86c;
 
     --bg-primary-normal: #575757;
     --bg-primary-strong: #343434;
@@ -57,8 +61,10 @@
     --bg-warning-weak: #3a3a3a;
     --bg-warning-normal: #d96c3f;
     --bg-warning-strong: #c74f20;
+    --bg-warning-weakest: #4d2f1a;
     --bg-warning-max: #a2340c;
     --bg-negative-weak: #3a3a3a;
+    --fg-on-negative-weakest: #d94a3f;
     --bg-negative-normal: #d94a3f;
     --bg-negative-strong: #b32a1c;
     --bg-negative-max: #8b1200;
@@ -66,6 +72,7 @@
     --bg-positive-normal: #3ca86c;
     --bg-positive-strong: #2b7f4f;
     --bg-positive-max: #1a5035;
+    --bg-positive-weakest: #2b7f4f;
     --bg-alternative-weak: #3a3a3a;
     --bg-alternative-normal: #8156d1;
     --bg-alternative-strong: #5c2fa3;
@@ -162,10 +169,27 @@
     border: 1px solid;
 }
 
-:root.night .week:not(sl-rooster-week) {
-    background: transparent !important;
+[color=negative] {
+    --text-color: var(--fg-on-negative-weakest) !important;
+    --background-color: var(--bg-negative-weakest) !important;
+    --text-color-darker: var(--fg-on-negative-normal) !important;
+    --background-color-darker: var(--bg-negative-normal) !important;
+    --background-color-darker-hover: var(--bg-negative-strong) !important;
+    --border-color: var(--border-negative-strong) !important;
+}
+
+[color=warning] {
+    --text-color: var(--fg-on-warning-weakest) !important;
+    --background-color: var(--bg-warning-weakest) !important;
+    --text-color-darker: var(--fg-on-warning-normal) !important;
+    --background-color-darker: var(--bg-warning-normal) !important;
+    --background-color-darker-hover: var(--bg-warning-strong) !important;
+    --border-color: var(--border-warning-strong) !important;
 }
 
 :root.night .icon.svg {
     background-color: var(--bg-primary-weak) !important;
+}
+:root.night .week:not(sl-rooster-week) {
+    background: transparent !important;
 }

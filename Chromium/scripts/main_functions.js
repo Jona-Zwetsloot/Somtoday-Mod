@@ -100,1138 +100,6 @@ function onload() {
         }
     }
 
-    // Add Profiel tab to navigation
-    function addProfielTab() {
-        const tabBar = tn('sl-tab-bar', 0);
-        if (!tabBar || id('mod-profiel-tab')) return;
-        
-        // Find the last tab item to copy its structure
-        const tabItems = tabBar.querySelectorAll('sl-tab-item');
-        if (tabItems.length === 0) return;
-        
-        const lastTab = tabItems[tabItems.length - 1];
-        
-        // Clone the last tab to get the exact same structure and styling
-        const profielTab = lastTab.cloneNode(true);
-        profielTab.id = 'mod-profiel-tab';
-        profielTab.classList.remove('active');
-        
-        // Update the icon - find the i element and replace its content
-        const iconElement = profielTab.querySelector('i');
-        if (iconElement) {
-            iconElement.innerHTML = `<div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="var(--action-neutral-normal)" display="block"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`;
-        }
-        
-        // Update the text
-        const spanElement = profielTab.querySelector('span');
-        if (spanElement) {
-            spanElement.textContent = 'Profiel';
-        }
-        
-        // Remove any notification counter if cloned
-        const counter = profielTab.querySelector('hmy-notification-counter');
-        if (counter) counter.remove();
-        
-        // Insert after the last tab
-        lastTab.after(profielTab);
-        
-        // Handle click - open profiel page
-        profielTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            openProfielPage();
-        });
-        
-        // Mark as active if we're on profiel page
-        if (window.location.pathname === '/profiel' || id('mod-profiel-page')) {
-            profielTab.classList.add('active');
-            // Remove active from other tabs
-            tabItems.forEach(tab => tab.classList.remove('active'));
-        }
-    }
-    
-    // Open/Create the Profiel page
-    function openProfielPage() {
-        // Remove any existing profiel page
-        const existing = id('mod-profiel-page');
-        if (existing) {
-            existing.remove();
-            // Show main content again
-            const showElements = document.querySelectorAll('sl-home, sl-rooster, sl-studiewijzer, sl-cijfers, sl-berichten');
-            showElements.forEach(el => el.style.display = '');
-            
-            // Ensure header is visible
-            const headerElements = document.querySelectorAll('sl-header, sl-tab-bar, .tabs, .headers-container, hmy-switch-group');
-            headerElements.forEach(el => {
-                if (el) {
-                    el.style.display = '';
-                    el.style.visibility = 'visible';
-                    el.style.opacity = '1';
-                }
-            });
-            
-            // Go back
-            history.back();
-            return;
-        }
-        
-        // Hide the main content areas (but NOT the header/menu)
-        const hideElements = document.querySelectorAll('sl-home, sl-rooster, sl-studiewijzer, sl-cijfers, sl-berichten, sl-error');
-        hideElements.forEach(el => el.style.display = 'none');
-        
-        // Ensure header stays visible
-        const headerElements = document.querySelectorAll('sl-header, sl-tab-bar, .tabs, .headers-container');
-        headerElements.forEach(el => {
-            if (el) {
-                el.style.display = '';
-                el.style.zIndex = '1001';
-                el.style.position = 'relative';
-            }
-        });
-        
-        // Add styles first - using Somtoday Mod theme variables
-        if (!id('mod-profiel-styles')) {
-            const isDark = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
-            const primaryColor = get('primarycolor') || '#6366f1';
-            const secondaryColor = get('secondarycolor') || '#8b5cf6';
-            const uiBlur = get('uiblur') || 0;
-            const uiTransparency = get('ui') || 0;
-            
-            const styles = document.createElement('style');
-            styles.id = 'mod-profiel-styles';
-            styles.textContent = `
-                #mod-profiel-page {
-                    position: fixed !important;
-                    top: 64px;
-                    left: var(--safe-area-inset-left, 0);
-                    right: var(--safe-area-inset-right, 0);
-                    bottom: 0;
-                    padding: 40px 20px;
-                    background: var(--bg-neutral-none, ${isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.95)'}) !important;
-                    ${uiBlur > 0 ? `backdrop-filter: blur(${uiBlur}px); -webkit-backdrop-filter: blur(${uiBlur}px);` : ''}
-                    z-index: 999 !important;
-                    overflow-y: auto;
-                    opacity: 0;
-                    animation: modProfielFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                /* Ensure header/menu stays on top */
-                sl-header, sl-tab-bar, .tabs, .headers-container, hmy-switch-group {
-                    z-index: 1001 !important;
-                    position: relative !important;
-                }
-                @keyframes modProfielFadeIn {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .mod-profiel-container {
-                    max-width: 1000px;
-                    margin: 0 auto;
-                    animation: modProfielSlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                @keyframes modProfielSlideUp {
-                    from { opacity: 0; transform: translateY(40px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .mod-profiel-header {
-                    text-align: center;
-                    margin-bottom: 40px;
-                    animation: modProfielHeaderIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                    opacity: 0;
-                }
-                @keyframes modProfielHeaderIn {
-                    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                .mod-profiel-avatar {
-                    width: 120px;
-                    height: 120px;
-                    background: var(--bg-elevated-weakest, ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'});
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 0 auto 20px;
-                    border: 4px solid ${primaryColor};
-                    box-shadow: 0 8px 32px rgba(0,0,0,${isDark ? '0.3' : '0.1'});
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
-                    animation: modProfielAvatarPulse 2s ease-in-out infinite;
-                }
-                .mod-profiel-avatar:hover {
-                    transform: scale(1.05);
-                    box-shadow: 0 12px 48px ${primaryColor}40;
-                }
-                @keyframes modProfielAvatarPulse {
-                    0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,${isDark ? '0.3' : '0.1'}); }
-                    50% { box-shadow: 0 12px 48px ${primaryColor}60; }
-                }
-                .mod-profiel-avatar svg {
-                    color: ${primaryColor};
-                    transition: transform 0.3s;
-                }
-                .mod-profiel-avatar:hover svg {
-                    transform: rotate(360deg);
-                }
-                .mod-profiel-title {
-                    font-size: 36px;
-                    font-weight: 700;
-                    background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    margin: 0 0 8px 0;
-                    letter-spacing: -0.5px;
-                }
-                .mod-profiel-subtitle {
-                    font-size: 16px;
-                    color: var(--text-weak, ${isDark ? '#888' : '#666'}) !important;
-                    margin: 0;
-                }
-                .mod-profiel-stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 20px;
-                    margin-bottom: 32px;
-                }
-                @media (max-width: 768px) {
-                    .mod-profiel-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-                }
-                .mod-stat-card {
-                    background: linear-gradient(135deg, ${primaryColor}dd, ${secondaryColor}dd);
-                    ${uiBlur > 0 ? `backdrop-filter: blur(${uiBlur}px); -webkit-backdrop-filter: blur(${uiBlur}px);` : ''}
-                    border-radius: 16px;
-                    padding: 24px;
-                    text-align: center;
-                    border: 1px solid ${primaryColor}40;
-                    box-shadow: 0 4px 20px rgba(0,0,0,${isDark ? '0.3' : '0.1'});
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
-                    opacity: 0;
-                    animation: modProfielStatCardIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                .mod-stat-card:nth-child(1) { animation-delay: 0.1s; }
-                .mod-stat-card:nth-child(2) { animation-delay: 0.2s; }
-                .mod-stat-card:nth-child(3) { animation-delay: 0.3s; }
-                .mod-stat-card:nth-child(4) { animation-delay: 0.4s; }
-                @keyframes modProfielStatCardIn {
-                    from { opacity: 0; transform: translateY(30px) scale(0.9); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                .mod-stat-card:hover {
-                    transform: translateY(-4px) scale(1.02);
-                    box-shadow: 0 8px 32px ${primaryColor}60;
-                }
-                .mod-stat-value {
-                    font-size: 42px;
-                    font-weight: 800;
-                    color: #fff !important;
-                    line-height: 1;
-                    margin-bottom: 8px;
-                    font-variant-numeric: tabular-nums;
-                }
-                .mod-stat-label {
-                    font-size: 13px;
-                    color: rgba(255,255,255,0.9) !important;
-                    font-weight: 500;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                .mod-profiel-content {
-                    background: var(--bg-elevated-weakest, ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)'});
-                    ${uiBlur > 0 ? `backdrop-filter: blur(${uiBlur}px); -webkit-backdrop-filter: blur(${uiBlur}px);` : ''}
-                    border-radius: 20px;
-                    padding: 32px;
-                    border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
-                    box-shadow: 0 8px 32px rgba(0,0,0,${isDark ? '0.2' : '0.05'});
-                    animation: modProfielContentIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
-                    opacity: 0;
-                }
-                @keyframes modProfielContentIn {
-                    from { opacity: 0; transform: translateY(30px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .mod-profiel-section {
-                    margin-bottom: 40px;
-                }
-                .mod-profiel-section:last-child {
-                    margin-bottom: 0;
-                }
-                .mod-profiel-section h2 {
-                    font-size: 22px;
-                    font-weight: 700;
-                    color: var(--text-strong, ${isDark ? '#fff' : '#000'}) !important;
-                    margin: 0 0 20px 0;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                #mod-grades-chart-container {
-                    background: var(--bg-elevated-none, ${isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)'});
-                    border-radius: 16px;
-                    padding: 20px;
-                    border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
-                    animation: modProfielFadeIn 0.8s 0.5s forwards;
-                    opacity: 0;
-                    position: relative;
-                    overflow: visible;
-                    perspective: 1000px;
-                }
-                .mod-3d-chart {
-                    position: relative;
-                    height: 240px;
-                    display: flex;
-                    align-items: flex-end;
-                    justify-content: space-around;
-                    gap: 6px;
-                    padding: 16px 0;
-                    transform-style: preserve-3d;
-                }
-                .mod-3d-bar {
-                    position: relative;
-                    flex: 1;
-                    max-width: 40px;
-                    min-width: 24px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    transform-style: preserve-3d;
-                    animation: mod3dBarAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                    opacity: 0;
-                }
-                @keyframes mod3dBarAppear {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px) rotateX(-90deg) scale(0.5);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) rotateX(0deg) scale(1);
-                    }
-                }
-                .mod-3d-bar-front {
-                    width: 100%;
-                    height: var(--bar-height);
-                    background: linear-gradient(180deg, var(--bar-color-top), var(--bar-color-bottom));
-                    border-radius: 4px 4px 0 0;
-                    position: relative;
-                    transform: translateZ(4px);
-                    box-shadow: 
-                        0 -2px 8px rgba(0,0,0,${isDark ? '0.4' : '0.2'}),
-                        0 4px 16px rgba(0,0,0,${isDark ? '0.3' : '0.15'}),
-                        inset 0 1px 0 rgba(255,255,255,0.2);
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                .mod-3d-bar:hover .mod-3d-bar-front {
-                    transform: translateZ(6px) scaleY(1.05);
-                }
-                .mod-3d-bar-top {
-                    width: 100%;
-                    height: 4px;
-                    background: var(--bar-color-top);
-                    border-radius: 4px 4px 0 0;
-                    position: absolute;
-                    top: 0;
-                    transform: rotateX(90deg) translateZ(4px);
-                    transform-origin: top;
-                    box-shadow: 0 2px 4px rgba(0,0,0,${isDark ? '0.3' : '0.2'});
-                }
-                .mod-3d-bar-side {
-                    width: 4px;
-                    height: var(--bar-height);
-                    background: linear-gradient(180deg, var(--bar-color-side-top), var(--bar-color-side-bottom));
-                    position: absolute;
-                    right: 0;
-                    transform: rotateY(90deg) translateZ(calc(100% - 4px));
-                    transform-origin: right;
-                    border-radius: 0 4px 0 0;
-                    box-shadow: 2px 0 4px rgba(0,0,0,${isDark ? '0.3' : '0.2'});
-                }
-                .mod-3d-bar-label {
-                    margin-top: 8px;
-                    font-size: 9px;
-                    font-weight: 500;
-                    color: var(--text-weak, ${isDark ? '#888' : '#666'}) !important;
-                    text-align: center;
-                    transform: translateZ(0);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: 100%;
-                }
-                .mod-3d-bar-value {
-                    position: absolute;
-                    top: -24px;
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: var(--text-strong, ${isDark ? '#fff' : '#000'}) !important;
-                    transform: translateZ(8px);
-                    background: var(--bg-elevated-weakest, ${isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.9)'});
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,${isDark ? '0.4' : '0.2'});
-                    opacity: 0;
-                    transition: opacity 0.3s;
-                }
-                .mod-3d-bar:hover .mod-3d-bar-value {
-                    opacity: 1;
-                }
-                .mod-3d-bar-grade-good {
-                    --bar-color-top: #22c55e;
-                    --bar-color-bottom: #16a34a;
-                    --bar-color-side-top: #1ea34a;
-                    --bar-color-side-bottom: #15803d;
-                }
-                .mod-3d-bar-grade-ok {
-                    --bar-color-top: #f59e0b;
-                    --bar-color-bottom: #d97706;
-                    --bar-color-side-top: #d97706;
-                    --bar-color-side-bottom: #b45309;
-                }
-                .mod-3d-bar-grade-bad {
-                    --bar-color-top: #ef4444;
-                    --bar-color-bottom: #dc2626;
-                    --bar-color-side-top: #dc2626;
-                    --bar-color-side-bottom: #b91c1c;
-                }
-                .mod-3d-grid {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    height: 100%;
-                    pointer-events: none;
-                    opacity: 0.3;
-                }
-                .mod-3d-grid-line {
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
-                    transform: translateZ(0);
-                }
-                .mod-3d-grid-label {
-                    position: absolute;
-                    left: -40px;
-                    font-size: 10px;
-                    color: var(--text-weak, ${isDark ? '#666' : '#999'}) !important;
-                    transform: translateY(-50%);
-                }
-                #mod-subjects-list {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: 16px;
-                }
-                .mod-subject-card {
-                    background: var(--bg-elevated-weakest, ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'});
-                    ${uiBlur > 0 ? `backdrop-filter: blur(${uiBlur}px); -webkit-backdrop-filter: blur(${uiBlur}px);` : ''}
-                    border-radius: 12px;
-                    padding: 20px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
-                    opacity: 0;
-                    animation: modProfielSubjectCardIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                @keyframes modProfielSubjectCardIn {
-                    from { opacity: 0; transform: translateX(-20px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .mod-subject-card:hover {
-                    transform: translateX(4px);
-                    box-shadow: 0 4px 16px rgba(0,0,0,${isDark ? '0.3' : '0.1'});
-                    border-color: ${primaryColor}60;
-                }
-                .mod-subject-name {
-                    font-weight: 600;
-                    color: var(--text-strong, ${isDark ? '#fff' : '#000'}) !important;
-                    font-size: 15px;
-                }
-                .mod-subject-grade {
-                    font-size: 28px;
-                    font-weight: 800;
-                    padding: 8px 16px;
-                    border-radius: 10px;
-                    font-variant-numeric: tabular-nums;
-                    transition: transform 0.2s;
-                }
-                .mod-subject-grade:hover {
-                    transform: scale(1.1);
-                }
-                .mod-subject-grade.good { 
-                    background: linear-gradient(135deg, #22c55e, #16a34a); 
-                    color: #fff; 
-                    box-shadow: 0 4px 12px #22c55e40;
-                }
-                .mod-subject-grade.ok { 
-                    background: linear-gradient(135deg, #f59e0b, #d97706); 
-                    color: #fff; 
-                    box-shadow: 0 4px 12px #f59e0b40;
-                }
-                .mod-subject-grade.bad { 
-                    background: linear-gradient(135deg, #ef4444, #dc2626); 
-                    color: #fff; 
-                    box-shadow: 0 4px 12px #ef444440;
-                }
-                .mod-loading-spinner {
-                    width: 48px;
-                    height: 48px;
-                    border: 4px solid var(--bg-elevated-weak, ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'});
-                    border-top-color: ${primaryColor};
-                    border-radius: 50%;
-                    animation: modProfielSpin 1s linear infinite;
-                    margin: 30px auto;
-                }
-                @keyframes modProfielSpin { 
-                    to { transform: rotate(360deg); } 
-                }
-                #mod-subjects-loading {
-                    text-align: center;
-                    color: var(--text-weak, ${isDark ? '#888' : '#666'}) !important;
-                    padding: 40px 20px;
-                }
-                #mod-subject-stats {
-                    display: grid;
-                    gap: 12px;
-                }
-                .mod-stat-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 16px 20px;
-                    background: var(--bg-elevated-weakest, ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)'});
-                    ${uiBlur > 0 ? `backdrop-filter: blur(${uiBlur}px); -webkit-backdrop-filter: blur(${uiBlur}px);` : ''}
-                    border-radius: 10px;
-                    border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    opacity: 0;
-                    animation: modProfielStatRowIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
-                .mod-stat-row:nth-child(1) { animation-delay: 0.1s; }
-                .mod-stat-row:nth-child(2) { animation-delay: 0.2s; }
-                .mod-stat-row:nth-child(3) { animation-delay: 0.3s; }
-                .mod-stat-row:nth-child(4) { animation-delay: 0.4s; }
-                .mod-stat-row:nth-child(5) { animation-delay: 0.5s; }
-                @keyframes modProfielStatRowIn {
-                    from { opacity: 0; transform: translateX(-10px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .mod-stat-row:hover {
-                    transform: translateX(4px);
-                    box-shadow: 0 2px 8px rgba(0,0,0,${isDark ? '0.2' : '0.05'});
-                }
-                .mod-stat-row-label { 
-                    color: var(--text-weak, ${isDark ? '#aaa' : '#666'}) !important; 
-                    font-weight: 500;
-                }
-                .mod-stat-row-value { 
-                    color: var(--text-strong, ${isDark ? '#fff' : '#000'}) !important; 
-                    font-weight: 700;
-                    font-size: 18px;
-                    font-variant-numeric: tabular-nums;
-                }
-            `;
-            tn('head', 0).appendChild(styles);
-        }
-        
-        // Create profiel page container
-        const profielPage = document.createElement('div');
-        profielPage.id = 'mod-profiel-page';
-        profielPage.innerHTML = `
-            <div class="mod-profiel-container">
-                <div class="mod-profiel-header">
-                    <div class="mod-profiel-avatar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="#6366f1">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                    </div>
-                    <h1 class="mod-profiel-title">Profiel</h1>
-                    <p class="mod-profiel-subtitle">Jouw cijferoverzicht en statistieken</p>
-                </div>
-                
-                <div class="mod-profiel-stats-grid">
-                    <div class="mod-stat-card">
-                        <div class="mod-stat-value" id="mod-stat-average">--</div>
-                        <div class="mod-stat-label">Gemiddelde</div>
-                    </div>
-                    <div class="mod-stat-card">
-                        <div class="mod-stat-value" id="mod-stat-total">--</div>
-                        <div class="mod-stat-label">Totaal cijfers</div>
-                    </div>
-                    <div class="mod-stat-card">
-                        <div class="mod-stat-value" id="mod-stat-highest">--</div>
-                        <div class="mod-stat-label">Hoogste</div>
-                    </div>
-                    <div class="mod-stat-card">
-                        <div class="mod-stat-value" id="mod-stat-lowest">--</div>
-                        <div class="mod-stat-label">Laagste</div>
-                    </div>
-                </div>
-                
-                <div class="mod-profiel-content">
-                    <div class="mod-profiel-section">
-                        <h2>📊 Cijfer Overzicht</h2>
-                        <div id="mod-grades-chart-container">
-                            <div id="mod-grades-chart" class="mod-3d-chart"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="mod-profiel-section">
-                        <h2>📚 Vakken</h2>
-                        <div id="mod-subjects-loading">
-                            <div class="mod-loading-spinner"></div>
-                            <p>Cijfers laden...</p>
-                        </div>
-                        <div id="mod-subjects-list" style="display:none;"></div>
-                    </div>
-                    
-                    <div class="mod-profiel-section">
-                        <h2>📈 Statistieken per Vak</h2>
-                        <div id="mod-subject-stats"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Start loading grades data
-        setTimeout(() => loadAllGradesData(), 100);
-        
-        // Append to body
-        tn('body', 0).appendChild(profielPage);
-        
-        // Calculate actual header height and adjust profile page top
-        const headerEl = document.querySelector('sl-header');
-        const tabBar = document.querySelector('sl-tab-bar');
-        if (headerEl || tabBar) {
-            const headerHeight = (headerEl ? headerEl.offsetHeight : 0) + (tabBar ? tabBar.offsetHeight : 0);
-            if (headerHeight > 0) {
-                profielPage.style.top = headerHeight + 'px';
-            }
-        }
-        
-        // Ensure header elements stay visible (reuse the variable from earlier in function)
-        headerElements.forEach(el => {
-            if (el) {
-                el.style.display = '';
-                el.style.visibility = 'visible';
-                el.style.opacity = '1';
-                el.style.zIndex = '1001';
-            }
-        });
-        
-        // Update tab states
-        const tabItems = document.querySelectorAll('sl-tab-item');
-        tabItems.forEach(tab => tab.classList.remove('active'));
-        const profielTab = id('mod-profiel-tab');
-        if (profielTab) profielTab.classList.add('active');
-        
-        // Update URL without reload
-        history.pushState({page: 'profiel'}, '', '/profiel');
-    }
-    
-    // Handle back/forward navigation
-    window.addEventListener('popstate', function() {
-        const profielPage = id('mod-profiel-page');
-        if (profielPage) {
-            profielPage.remove();
-            // Show main content again
-            const showElements = document.querySelectorAll('sl-home, sl-rooster, sl-studiewijzer, sl-cijfers, sl-berichten');
-            showElements.forEach(el => el.style.display = '');
-            
-            // Ensure header is visible
-            const headerElements = document.querySelectorAll('sl-header, sl-tab-bar, .tabs, .headers-container, hmy-switch-group');
-            headerElements.forEach(el => {
-                if (el) {
-                    el.style.display = '';
-                    el.style.visibility = 'visible';
-                    el.style.opacity = '1';
-                }
-            });
-        }
-    });
-    
-    // Load all grades data for profile page - uses same method as Somtoday Recap
-    async function loadAllGradesData() {
-        const loadingEl = id('mod-subjects-loading');
-        const subjectsList = id('mod-subjects-list');
-        
-        try {
-            if (loadingEl) loadingEl.innerHTML = '<div class="mod-loading-spinner"></div><p>Cijferoverzicht openen...</p>';
-            
-            let subjects = [];
-            let allGrades = [];
-            let totalGradesCount = 0;
-            let totalWeight = 0;
-            
-            // Save current URL to restore later
-            const originalUrl = window.location.href;
-            
-            // Navigate to cijfers page if not already there
-            if (!window.location.pathname.includes('/cijfers')) {
-                window.history.pushState({}, '', '/cijfers/overzicht');
-            }
-            
-            // Method 1: Try to get data from already loaded cijfer-overzicht
-            let cijferOverzicht = tn('sl-cijfer-overzicht', 0);
-            
-            // If not on overzicht, click to switch to it
-            if (n(cijferOverzicht)) {
-                // Try clicking the overzicht tab (3rd switch)
-                const switches = tn('hmy-switch');
-                if (switches && switches.length >= 3) {
-                    if (loadingEl) loadingEl.innerHTML = '<div class="mod-loading-spinner"></div><p>Overzicht openen...</p>';
-                    switches[2].click();
-                    
-                    // Wait for overzicht to load
-                    for (let i = 0; i < 500; i++) {
-                        await new Promise(r => setTimeout(r, 20));
-                        cijferOverzicht = tn('sl-cijfer-overzicht', 0);
-                        if (!n(cijferOverzicht) && cn('vak-row', 0)) break;
-                    }
-                }
-            }
-            
-            // Wait a bit more for all periods to be available
-            await new Promise(r => setTimeout(r, 500));
-            
-            // Expand all periods
-            if (loadingEl) loadingEl.innerHTML = '<div class="mod-loading-spinner"></div><p>Periodes uitklappen...</p>';
-            const periodeHeaders = cn('periode-header');
-            if (periodeHeaders) {
-                for (const period of periodeHeaders) {
-                    if (!period.classList.contains('open')) {
-                        period.click();
-                    }
-                }
-            }
-            
-            // Wait for periods to expand
-            await new Promise(r => setTimeout(r, 800));
-            
-            // Now scrape all vak-rows (same as Recap does)
-            if (loadingEl) loadingEl.innerHTML = '<div class="mod-loading-spinner"></div><p>Vakken verzamelen...</p>';
-            
-            const vakRows = cn('vak-row');
-            if (vakRows && vakRows.length > 0) {
-                for (const element of vakRows) {
-                    let subject = {
-                        name: '',
-                        icon: '',
-                        average: null,
-                        grades: [],
-                        gradeCount: 0,
-                        weightCount: 0
-                    };
-                    
-                    // Get subject name
-                    const naamEl = element.getElementsByClassName('naam')[0];
-                    if (naamEl) {
-                        subject.name = naamEl.innerText.trim();
-                    }
-                    
-                    // Get subject icon
-                    const iconEl = element.querySelector('hmy-vak-icon svg');
-                    if (iconEl) {
-                        subject.icon = iconEl.outerHTML;
-                    }
-                    
-                    // Get averages (Rapport gem. or Rapportcijfer)
-                    const averageElements = element.getElementsByClassName('cijfer gemiddelde');
-                    if (averageElements.length >= 1) {
-                        let average;
-                        // Prefer the more precise average (with decimal)
-                        for (const gemiddelde of averageElements) {
-                            const text = gemiddelde.innerText;
-                            if (text.indexOf(',') !== -1 || text.indexOf('.') !== -1) {
-                                average = text.replace(',', '.');
-                            }
-                        }
-                        // Fallback to last average
-                        if (!average) {
-                            average = averageElements[averageElements.length - 1].innerText;
-                        }
-                        subject.average = isNaN(parseFloat(average)) ? null : parseFloat(average);
-                    }
-                    
-                    // Get individual grades (with weging from ariaLabel)
-                    let subjectGradeCount = 0;
-                    let subjectWeight = 0;
-                    
-                    for (const cijfer of element.getElementsByClassName('cijfer')) {
-                        if (cijfer.innerText === '' || cijfer.classList.contains('gemiddelde')) {
-                            continue;
-                        }
-                        
-                        const gradeText = cijfer.innerText.replace(',', '.');
-                        const grade = parseFloat(gradeText);
-                        const ariaLabel = cijfer.ariaLabel || '';
-                        
-                        // Extract weging from ariaLabel (format: "... weging X ...")
-                        const wegingMatch = ariaLabel.match(/weging\s+([\d.,]+)/i);
-                        const weging = wegingMatch ? parseFloat(wegingMatch[1].replace(',', '.')) : 1;
-                        
-                        if (ariaLabel && !cijfer.classList.contains('gemiddelde')) {
-                            subject.grades.push({
-                                cijfer: isNaN(grade) ? cijfer.innerText : grade,
-                                weging: weging
-                            });
-                            
-                            if (!isNaN(grade)) {
-                                allGrades.push(grade);
-                            }
-                            
-                            subjectGradeCount++;
-                            subjectWeight += weging;
-                        }
-                    }
-                    
-                    subject.gradeCount = subjectGradeCount;
-                    subject.weightCount = subjectWeight;
-                    
-                    // Only add subjects with grades or average
-                    if (subject.name && (subjectGradeCount > 0 || subject.average !== null)) {
-                        // Check for duplicates
-                        const isDuplicate = subjects.some(s => s.name === subject.name);
-                        if (!isDuplicate) {
-                            subjects.push(subject);
-                            totalGradesCount += subjectGradeCount;
-                            totalWeight += subjectWeight;
-                        }
-                    }
-                }
-            }
-            
-            // If no data found, try cache
-            if (subjects.length === 0) {
-                try {
-                    const cached = localStorage.getItem('somtoday_mod_grades_v2');
-                    if (cached) {
-                        const data = JSON.parse(cached);
-                        if (data.timestamp && Date.now() - data.timestamp < 3600000) {
-                            subjects = data.subjects || [];
-                            allGrades = data.allGrades || [];
-                            totalGradesCount = data.totalGradesCount || 0;
-                        }
-                    }
-                } catch (e) {}
-            }
-            
-            // Update stat cards - use WASM if available, fallback to JS
-            const numericGrades = allGrades.filter(g => !isNaN(g));
-            let avg, highest, lowest;
-            
-            // Try to use WASM for calculations
-            if (window.SomtodayAnalytics && typeof window.SomtodayAnalytics.init === 'function') {
-                try {
-                    await window.SomtodayAnalytics.init();
-                    if (window.SomtodayAnalytics.isReady && window.SomtodayAnalytics.isReady() && numericGrades.length > 0) {
-                        // Use WASM for weighted average if we have weights
-                        // WASM expects grade objects with: value, weight, and subject
-                        try {
-                            const gradesWithWeights = subjects
-                                .filter(s => s && s.grades && Array.isArray(s.grades))
-                                .flatMap(s => 
-                                    s.grades
-                                        .filter(g => g && typeof g === 'object' && !isNaN(g.cijfer))
-                                        .map(g => ({
-                                            value: typeof g.cijfer === 'number' ? g.cijfer : parseFloat(g.cijfer),
-                                            weight: (typeof g.weging === 'number' ? g.weging : parseFloat(g.weging)) || 1,
-                                            subject: s.name || 'Unknown',
-                                            description: g.omschrijving || g.description || ''
-                                        }))
-                                );
-                            
-                            if (gradesWithWeights.length > 0 && window.SomtodayAnalytics.calculateWeightedAverage) {
-                                try {
-                                    avg = window.SomtodayAnalytics.calculateWeightedAverage(gradesWithWeights);
-                                } catch (e) {
-                                    console.log('WASM calculateWeightedAverage failed, using JS fallback:', e);
-                                    // Fall through to JS calculation
-                                }
-                            }
-                            
-                            // If WASM didn't work, try simpler functions
-                            if (avg === undefined && numericGrades.length > 0) {
-                                // For simple average, create grade objects with subject
-                                const gradesForWasm = numericGrades.map(g => ({
-                                    value: typeof g === 'number' ? g : parseFloat(g),
-                                    weight: 1,
-                                    subject: 'All',
-                                    description: ''
-                                }));
-                                
-                                if (window.SomtodayAnalytics.calculateAverage) {
-                                    try {
-                                        avg = window.SomtodayAnalytics.calculateAverage(gradesForWasm);
-                                    } catch (e) {
-                                        console.log('WASM calculateAverage failed, using JS fallback:', e);
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.log('Error preparing WASM data, using JS fallback:', e);
-                        }
-                        
-                        if (numericGrades.length > 0) {
-                            highest = Math.max(...numericGrades);
-                            lowest = Math.min(...numericGrades);
-                        }
-                    }
-                } catch (e) {
-                    console.log('WASM calculation failed, using JS fallback:', e);
-                }
-            }
-            
-            // Fallback to JS calculations
-            if (avg === undefined) {
-                if (numericGrades.length > 0) {
-                    avg = numericGrades.reduce((a, b) => a + b, 0) / numericGrades.length;
-                    highest = Math.max(...numericGrades);
-                    lowest = Math.min(...numericGrades);
-                } else if (subjects.length > 0) {
-                    const avgs = subjects.filter(s => s.average !== null).map(s => s.average);
-                    if (avgs.length > 0) {
-                        avg = avgs.reduce((a, b) => a + b, 0) / avgs.length;
-                        highest = Math.max(...avgs);
-                        lowest = Math.min(...avgs);
-                    }
-                }
-            }
-            
-            // Animate stat cards with stagger
-            if (avg !== undefined) {
-                const avgEl = id('mod-stat-average');
-                const totalEl = id('mod-stat-total');
-                const highEl = id('mod-stat-highest');
-                const lowEl = id('mod-stat-lowest');
-                
-                // Animate numbers counting up
-                const animateValue = (el, start, end, duration) => {
-                    if (!el) return;
-                    const startTime = performance.now();
-                    const animate = (currentTime) => {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-                        const current = start + (end - start) * progress;
-                        el.textContent = typeof end === 'number' ? current.toFixed(1) : Math.round(current);
-                        if (progress < 1) requestAnimationFrame(animate);
-                        else el.textContent = typeof end === 'number' ? end.toFixed(1) : end;
-                    };
-                    requestAnimationFrame(animate);
-                };
-                
-                setTimeout(() => {
-                    if (avgEl) animateValue(avgEl, 0, avg, 800);
-                    if (totalEl) animateValue(totalEl, 0, numericGrades.length || subjects.length, 600);
-                    if (highEl) animateValue(highEl, 0, highest, 700);
-                    if (lowEl) animateValue(lowEl, 10, lowest, 700);
-                }, 500);
-            }
-            
-            // Render subjects list with stagger animations
-            if (subjectsList && subjects.length > 0) {
-                // Sort by average descending
-                subjects.sort((a, b) => (b.average || 0) - (a.average || 0));
-                
-                const isDark = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
-                const textWeak = isDark ? '#888' : '#666';
-                
-                subjectsList.innerHTML = subjects.map((s, index) => {
-                    const grade = s.average;
-                    const gradeClass = grade >= 7 ? 'good' : (grade >= 5.5 ? 'ok' : 'bad');
-                    const gradeCount = s.gradeCount || 0;
-                    const iconHtml = s.icon ? `<span style="margin-right:8px;display:inline-flex;vertical-align:middle;">${s.icon}</span>` : '';
-                    
-                    return `
-                        <div class="mod-subject-card" style="animation-delay: ${index * 0.05}s;">
-                            <div style="display:flex;align-items:center;">
-                                ${iconHtml}
-                                <div>
-                                    <span class="mod-subject-name">${s.name}</span>
-                                    <span style="font-size:11px;color:${textWeak};display:block;">${gradeCount} cijfer${gradeCount !== 1 ? 's' : ''}${s.weightCount ? ` (weging: ${s.weightCount})` : ''}</span>
-                                </div>
-                            </div>
-                            <span class="mod-subject-grade ${gradeClass}">${grade !== null ? grade.toFixed(1) : '-'}</span>
-                        </div>
-                    `;
-                }).join('');
-                subjectsList.style.display = 'grid';
-                if (loadingEl) {
-                    loadingEl.style.opacity = '0';
-                    loadingEl.style.transition = 'opacity 0.3s';
-                    setTimeout(() => {
-                        loadingEl.style.display = 'none';
-                    }, 300);
-                }
-            } else if (subjects.length === 0) {
-                if (loadingEl) {
-                    loadingEl.innerHTML = `
-                        <div style="text-align:center;color:#f59e0b;">
-                            <p>⚠️ Geen vakken gevonden</p>
-                            <p style="font-size:12px;color:#888;margin-top:8px;">
-                                Ga naar <a href="/cijfers/overzicht" style="color:#6366f1;">cijferoverzicht</a> 
-                                en kom dan terug naar Profiel.
-                            </p>
-                        </div>
-                    `;
-                }
-                return;
-            }
-            
-            // Render pass/fail stats
-            const statsEl = id('mod-subject-stats');
-            if (statsEl) {
-                const numericGrades = allGrades.filter(g => !isNaN(g));
-                if (numericGrades.length > 0) {
-                    const passing = numericGrades.filter(g => g >= 5.5).length;
-                    const failing = numericGrades.filter(g => g < 5.5).length;
-                    const excellents = numericGrades.filter(g => g >= 8).length;
-                    
-                    statsEl.innerHTML = `
-                        <div class="mod-stat-row">
-                            <span class="mod-stat-row-label">Voldoendes</span>
-                            <span class="mod-stat-row-value" style="color:#22c55e !important;">${passing}</span>
-                        </div>
-                        <div class="mod-stat-row">
-                            <span class="mod-stat-row-label">Onvoldoendes</span>
-                            <span class="mod-stat-row-value" style="color:#ef4444 !important;">${failing}</span>
-                        </div>
-                        <div class="mod-stat-row">
-                            <span class="mod-stat-row-label">8 of hoger</span>
-                            <span class="mod-stat-row-value" style="color:#6366f1 !important;">${excellents}</span>
-                        </div>
-                        <div class="mod-stat-row">
-                            <span class="mod-stat-row-label">Slagingspercentage</span>
-                            <span class="mod-stat-row-value">${((passing / numericGrades.length) * 100).toFixed(0)}%</span>
-                        </div>
-                        <div class="mod-stat-row">
-                            <span class="mod-stat-row-label">Totale weging</span>
-                            <span class="mod-stat-row-value">${totalWeight}</span>
-                        </div>
-                    `;
-                }
-            }
-            
-            // Draw chart
-            if (subjects.length > 0) {
-                const chartSubjects = subjects
-                    .filter(s => s.average !== null)
-                    .map(s => ({ name: s.name, average: s.average }));
-                drawGradesChart(chartSubjects);
-            }
-            
-            // Cache results
-            try {
-                localStorage.setItem('somtoday_mod_grades_v2', JSON.stringify({
-                    subjects, allGrades, totalGradesCount, timestamp: Date.now()
-                }));
-            } catch (e) {}
-            
-        } catch (err) {
-            console.error('Error loading grades:', err);
-            if (loadingEl) {
-                loadingEl.innerHTML = `
-                    <div style="text-align:center;color:#ef4444;">
-                        <p>❌ Fout: ${err.message}</p>
-                    </div>
-                `;
-            }
-        }
-    }
-    
-    // Draw grades chart - Beautiful dynamic 3D diagram
-    function drawGradesChart(subjects) {
-        const chartEl = id('mod-grades-chart');
-        if (!chartEl || !subjects || subjects.length === 0) return;
-        
-        const maxHeight = 200; // Max bar height in pixels
-        const threshold = 5.5;
-        
-        // Sort subjects by average descending
-        const sorted = [...subjects].sort((a, b) => (b.average || 0) - (a.average || 0));
-        
-        // Clear previous content
-        chartEl.innerHTML = '';
-        
-        // Add grid lines
-        const gridContainer = document.createElement('div');
-        gridContainer.className = 'mod-3d-grid';
-        for (let i = 0; i <= 10; i++) {
-            const gridLine = document.createElement('div');
-            gridLine.className = 'mod-3d-grid-line';
-            const yPos = (i / 10) * 100;
-            gridLine.style.bottom = `${yPos}%`;
-            
-            if (i % 2 === 0) {
-                const label = document.createElement('div');
-                label.className = 'mod-3d-grid-label';
-                label.textContent = i.toString();
-                label.style.bottom = `${yPos}%`;
-                gridLine.appendChild(label);
-            }
-            
-            gridContainer.appendChild(gridLine);
-        }
-        chartEl.appendChild(gridContainer);
-        
-        // Create 3D bars
-        sorted.forEach((subject, idx) => {
-            const grade = subject.average || 0;
-            const barHeight = (grade / 10) * maxHeight;
-            const gradeClass = grade >= 7 ? 'good' : (grade >= 5.5 ? 'ok' : 'bad');
-            const shortName = subject.name.length > 10 ? subject.name.substring(0, 10) + '...' : subject.name;
-            
-            const barContainer = document.createElement('div');
-            barContainer.className = `mod-3d-bar mod-3d-bar-grade-${gradeClass}`;
-            barContainer.style.setProperty('--bar-height', `${barHeight}px`);
-            barContainer.style.animationDelay = `${idx * 0.1}s`;
-            
-            // Front face
-            const front = document.createElement('div');
-            front.className = 'mod-3d-bar-front';
-            barContainer.appendChild(front);
-            
-            // Top face
-            const top = document.createElement('div');
-            top.className = 'mod-3d-bar-top';
-            barContainer.appendChild(top);
-            
-            // Side face
-            const side = document.createElement('div');
-            side.className = 'mod-3d-bar-side';
-            barContainer.appendChild(side);
-            
-            // Value label (shown on hover)
-            const value = document.createElement('div');
-            value.className = 'mod-3d-bar-value';
-            value.textContent = grade.toFixed(1);
-            barContainer.appendChild(value);
-            
-            // Subject label
-            const label = document.createElement('div');
-            label.className = 'mod-3d-bar-label';
-            label.textContent = shortName;
-            barContainer.appendChild(label);
-            
-            chartEl.appendChild(barContainer);
-        });
-        
-        // Add threshold indicator
-        const thresholdLine = document.createElement('div');
-        thresholdLine.style.cssText = `
-            position: absolute;
-            bottom: ${(threshold / 10) * 100}%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #ef4444, transparent);
-            opacity: 0.6;
-            pointer-events: none;
-            transform: translateZ(0);
-        `;
-        chartEl.appendChild(thresholdLine);
-    }
-
     function easterEggs() {
         if (n(id('mod-easter-eggs'))) {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk linear infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background{opacity:0.25;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
@@ -1506,15 +374,15 @@ function onload() {
             if (month + 1 <= 7) {
                 dateString += year;
             }
-            // Viewing Aug-Dec while in Jan-Jul, user is looking at previous year
+            // Viewing Jan-Jul while in Aug-Dec, user is looking at previous year
             else {
                 dateString += (year - 1).toString();
             }
         }
         else {
-            // Viewing Jan-Jul while in Aug-Dec, user is looking at next year
+            // Viewing Aug-Dec while in Jan-Jul, user is looking at previous year
             if (month + 1 <= 7) {
-                dateString += (year + 1).toString();
+                dateString += (year - 1).toString();
             }
             // Viewing Aug-Dec while in Aug-Dec, user is looking at current year
             else {
@@ -1574,7 +442,7 @@ function onload() {
                     const dateObject = ariaLabelToDate(element.classList.contains('week') ? element.nextElementSibling : element);
                     homework.push({
                         'id': (Math.random() + '' + window.performance.now()).replaceAll('.', ''),
-                        'date': dateObject.toISOString(), // Store as ISO string for reliable parsing
+                        'date': dateObject,
                         'subject': id('mod-homework-subject').value,
                         'description': id('mod-homework-description').value,
                         'done': (id('studiewijzer-afspraak-toevoegen-select').children[0].classList.contains('active') ? false : {}),
@@ -1629,24 +497,7 @@ function onload() {
                         }
                     }
                 }
-                // Robust date parsing that handles ISO strings and various formats
-                let homeworkDate;
-                try {
-                    // Try parsing as ISO string first (most reliable)
-                    if (typeof homework[i].date === 'string' && homework[i].date.includes('T')) {
-                        homeworkDate = new Date(homework[i].date);
-                    } else {
-                        homeworkDate = new Date(Date.parse(homework[i].date));
-                    }
-                    // Validate the date is valid
-                    if (isNaN(homeworkDate.getTime())) {
-                        console.warn('Invalid homework date:', homework[i].date);
-                        return; // Skip this homework item
-                    }
-                } catch (e) {
-                    console.error('Error parsing homework date:', homework[i].date, e);
-                    return; // Skip this homework item
-                }
+                let homeworkDate = new Date(Date.parse(homework[i].date));
                 const showIfOnce = currentStudiewijzerDate.getFullYear() == homeworkDate.getFullYear() && currentStudiewijzerDate.getMonth() == homeworkDate.getMonth() && currentStudiewijzerDate.getDate() == homeworkDate.getDate();
                 const showIfWeekly = homework[i].returning == '1' && currentStudiewijzerDate.getTime() >= homeworkDate.getTime() && currentStudiewijzerDate.getDay() == homeworkDate.getDay();
                 const showIfMonthly = homework[i].returning == '2' && currentStudiewijzerDate.getTime() >= homeworkDate.getTime() && currentStudiewijzerDate.getDate() == homeworkDate.getDate() && !isWeek;
@@ -1928,13 +779,6 @@ function onload() {
                         }
                         if (!isNaN(parseFloat(element.children[0].innerHTML))) {
                             countanimation(element.children[0], 0, parseFloat(element.children[0].innerHTML.replace(',', '.')), 2500, 50);
-                            let gradeValue = parseFloat(element.children[0].innerHTML.replace(',', '.'));
-                            if (gradeValue >= 8.0 && i === 0) {
-                                element.closest('sl-resultaat-item').classList.add('mod-grade-glow', 'mod-grade-excellent');
-                                celebrateGrade(gradeValue);
-                            } else if (gradeValue >= 5.5) {
-                                element.closest('sl-resultaat-item').classList.add('mod-grade-glow');
-                            }
                         }
                         element.classList.add('mod-animation-finished');
                         i++;
@@ -1942,28 +786,6 @@ function onload() {
                 }
             }
         }
-    }
-
-    let celebrationShown = {};
-    function celebrateGrade(grade) {
-        let gradeKey = grade.toString() + '-' + Date.now().toString().slice(0, -4);
-        if (celebrationShown[gradeKey]) return;
-        celebrationShown[gradeKey] = true;
-
-        startConfetti();
-        setTimeout(stopConfetti, 3000);
-
-        let message = 'Excellent!';
-        if (grade >= 9.5) message = 'Perfect!';
-        else if (grade >= 9.0) message = 'Outstanding!';
-        else if (grade >= 8.5) message = 'Fantastic!';
-
-        let toast = document.createElement('div');
-        toast.className = 'mod-celebration-toast';
-        toast.textContent = message + ' ' + grade.toFixed(1).replace('.', ',');
-        tn('body', 0).appendChild(toast);
-
-        setTimeout(() => toast.remove(), 3500);
     }
 
     // Simple count animation
@@ -1984,7 +806,7 @@ function onload() {
         }
     }
 
-    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'transparency', 'ui', 'uiblur', 'fontname', 'theme', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen'];
+    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'transparency', 'ui', 'uiblur', 'fontname', 'theme', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen', 'customcss'];
     function exportSettings() {
         let settings = {};
         for (const key of settingKeys) {
@@ -2538,7 +1360,7 @@ function onload() {
                 tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width: 767px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width:1280px){.menu-avatar{width:calc(100% - 35px) !important;overflow:hidden;justify-content:center;}}</style>');
             }
             else {
-                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){#mod-new-year{margin-top:calc(64px + var(--safe-area-inset-top));}:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(BOOL_INDEX.MENU_ALWAYS_SHOW) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
+                tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">sl-rooster-weken{margin-top:64px;}sl-registratie-overzicht{margin-top:50px;}sl-popup{position:fixed !important;top:130px !important;}hmy-popup:has(sl-leerling-menu-acties){position:fixed !important;top:65px !important;right:30px !important;left:unset !important;}#mod-top-menu{display:none;}@media (min-width: 767px) and (max-width:1279px){.berichten-lijst{height:calc(100vh - 129px) !important;}}@media (min-width: 1280px){#mod-new-year{margin-top:calc(64px + var(--safe-area-inset-top));}:root:has(sl-berichten){--safe-area-inset-top:64px !important;}body:has(sl-cijfers),body:has(sl-berichten) .tabs,body:has(sl-berichten) .main,sl-studiewijzer-weken{margin-top:64px;}.menu-avatar{position:fixed !important;top:25px;right:150px;left:unset !important;bottom:unset !important;opacity:0;}#mod-top-menu-title{color:var(--text-strong);}#mod-top-menu{display:block;border-bottom:var(--thinnest-solid-neutral-normal);background:var(--bg-neutral-none);position:' + (get('bools').charAt(BOOL_INDEX.MENU_ALWAYS_SHOW) == '1' ? 'fixed' : 'absolute') + ';top:0;left:var(--safe-area-inset-left);right:0;height:64px;z-index:50;}#mod-top-menu h2{margin:18px 24px;}#mod-profile-link:hover{filter:brightness(0.8);}#mod-profile-link{transition:0.2s filter ease;box-sizing:border-box;position:absolute;right:24px;cursor:pointer;top:0;bottom:0;height:100%;padding:15px;}#mod-logout{right:145px;}#mod-messages{right:90px;}#mod-logout,#mod-messages{cursor:pointer;position:absolute;padding:15px;top:0;}#mod-logout svg,#mod-messages svg{fill:var(--action-primary-normal);height:25px !important;margin-top:4px;transition:fill 0.2s ease;}#mod-logout:hover svg,#mod-messages:hover svg{fill:var(--action-primary-strong);}#mod-profile-link div{height:100%;aspect-ratio:1 / 1;background:var(--bg-primary-weak);overflow:hidden;border-radius:6px;}#mod-profile-link span{margin:6px 0;text-align:center;width:100%;display:block;font-weight:700;color:var(--fg-on-primary-weak);}#mod-profile-link img{width:100%;height:100%;object-fit:cover;}}</style>');
             }
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:1280px){:root{--safe-area-inset-' + (get('layout') != 3 ? 'left:120px' : 'right:120px') + ' !important;--min-content-vh:calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom)) !important;}sl-header > div:first-of-type i{--action-neutral-normal:' + menuColor + ';}#mod-logo-wrapper{width:120px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - 120px) / 2);position:relative;}#mod-logo{width:65%;height:60px;margin:20px 0;position:relative;left:50%;transform:translateX(-50%);}sl-header sl-tab-bar{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';position:absolute !important;width:100% !important;height:100% !important;display:block !important;overflow:hidden;}sl-header .item span{text-align:center;margin-top:10px;display:block;}sl-header .active .item, sl-header .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-header .item:hover i{scale:0.9;}sl-header .item i{transition:scale 0.3s ease !important;height:40px;display:block;padding-top:23px;fill:var(--action-neutral-normal) !important;}sl-header .item svg{width:100%;height:40px;}sl-header sl-tab-item, sl-header sl-tab-item .item{height:120px !important;position:relative !important;display:block !important;}sl-popup{z-index:101 !important;}sl-header{position:fixed !important;z-index:15 !important;' + (get('layout') != 3 ? 'left' : 'right') + ':0 !important;top: 0 !important;height:100% !important;border-bottom:0 !important;width:var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') !important;background:' + get('primarycolor') + ' !important;color:' + menuColor + ' !important;}sl-header > div:first-of-type{position:absolute;bottom:20px;left:17px;--bg-elevated-weakest:' + highLightColor + ';}}</style>');
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (max-width:1279px){#mod-logo-wrapper{width:100px;' + (get('layout') != 3 ? 'margin-left' : 'left') + ':calc((var(--safe-area-inset-' + (get('layout') != 3 ? 'left' : 'right') + ') - ' + ((platform == 'Android' || get('layout') != 3) ? '100px' : '115px') + ') / 2);position:relative;}sl-tab-bar hmy-notification-counter{margin-top:-60px !important;margin-left:40px !important;}:root{--safe-area-inset-' + (get('layout') != 3 ? ('left:100px !important' + (platform == 'Android' ? '' : ';--safe-area-inset-right:15px')) : 'right:' + (platform == 'Android' ? '100px' : '115px')) + ' !important;}#mod-background{width:calc(100% - var(--safe-area-inset-left) - var(--safe-area-inset-right) - 2 * ' + get('blur') + ' + 15px);}sl-tab-bar:first-of-type{position:fixed;top:0;' + (get('layout') != 3 ? 'left' : 'right') + ':0;border-top:none;width:' + (get('layout') != 3 ? 'var(--safe-area-inset-left)' : (platform == 'Android' ? 'var(--safe-area-inset-right)' : 'calc(var(--safe-area-inset-right) - 15px)')) + ' !important;height:100%;display:block !important;z-index:0;background:' + get('primarycolor') + '}sl-tab-bar:first-of-type sl-tab-item svg{width:100%;height:40px;}sl-tab-bar:first-of-type sl-tab-item span{font-size:14px;}sl-tab-bar:first-of-type sl-tab-item span{margin-top:10px;}sl-tab-bar:first-of-type sl-tab-item i{height:40px;fill:var(--action-neutral-normal) !important;transition:0.3s scale ease !important;}sl-tab-bar:first-of-type .item:hover i{scale:0.9;}sl-tab-bar:first-of-type .item{height:100%;}sl-tab-bar:first-of-type .active .item, sl-tab-bar:first-of-type .item:hover{background:' + highLightColor + ' !important;padding-top:0 !important;}sl-tab-bar:first-of-type sl-tab-item{--action-neutral-normal:' + menuColor + ';--action-primary-normal:' + menuColor + ';display:block !important;width:100%;height:120px;}sl-header > div:first-of-type{--bg-elevated-weakest:' + highLightColor + ';}#mod-logo{--action-neutral-normal: ' + menuColor + ';width:100%;height:60px;margin:20px 0;}}</style>');
@@ -2569,15 +1391,9 @@ function onload() {
         // Custom CSS - inject at the end so it overrides mod and Somtoday CSS
         if (!n(get('customcss')) && get('customcss').trim() !== '') {
             // Sanitize CSS to prevent breaking out of style tag and potential code injection
-            let sanitizedCSS = get('customcss')
-                .replace(/<\/style>/gi, '')  // Remove </style> to prevent breaking out
-                .replace(/<script[\s\S]*?<\/script>/gi, '')  // Remove any script tags
-                .replace(/javascript:/gi, '')  // Remove javascript: URLs
-                .replace(/expression\(/gi, '')  // Remove CSS expressions (IE)
-                .replace(/behavior:/gi, '')  // Remove behavior property (IE)
-                .replace(/@import/gi, '');  // Remove @import to prevent loading external CSS
-            // Insert custom CSS without a layer so it has higher priority than mod's layered CSS
-            // Unlayered CSS always wins over layered CSS regardless of specificity or source order
+            let sanitizedCSS = sanitizeString(get('customcss'))
+                .replace(/javascript:[^'"]+/gi, '')  // Remove javascript: URLs
+                .replace(/@import[^;\n]+/gi, '');  // Remove @import to prevent loading external CSS
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style mod-custom-css">' + sanitizedCSS + '</style>');
         }
     }
@@ -2678,11 +1494,7 @@ function onload() {
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
         if (get('ui') != 0 || get('backgroundtype') == 'live') {
-            let glassOpacity = Math.max(0.1, (1 - (get('ui') / 100)) * 0.6);
-            let blurStyles = get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden,sl-rooster-item,sl-sidebar-page,sl-sidebar-page > div,.content-container,sl-rooster-item-detail{backdrop-filter:blur(' + get('uiblur') + 'px);-webkit-backdrop-filter:blur(' + get('uiblur') + 'px);}';
-            let roosterStyles = 'sl-rooster-item{background:' + (darkmode ? 'rgba(255,255,255,' + glassOpacity * 0.15 + ')' : 'rgba(255,255,255,' + glassOpacity + ')') + ' !important;border:1px solid ' + (darkmode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)') + ' !important;box-shadow:0 4px 20px rgba(0,0,0,' + (darkmode ? '0.3' : '0.08') + ') !important;transition:transform 0.2s ease,box-shadow 0.2s ease !important;}sl-rooster-item:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 8px 30px rgba(0,0,0,' + (darkmode ? '0.4' : '0.12') + ') !important;}';
-            let sidebarStyles = 'sl-sidebar-page,sl-sidebar-page > div,.content-container{background:' + (darkmode ? 'rgba(255,255,255,' + glassOpacity * 0.12 + ')' : 'rgba(255,255,255,' + glassOpacity * 0.85 + ')') + ' !important;border-left:1px solid ' + (darkmode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)') + ' !important;box-shadow:-4px 0 30px rgba(0,0,0,' + (darkmode ? '0.5' : '0.15') + ') !important;}sl-rooster-item-detail{background:transparent !important;}sl-rooster-item-detail .header{background:' + (darkmode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)') + ' !important;border-bottom:1px solid ' + (darkmode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)') + ' !important;}sl-rooster-item-detail .afspraak-header,sl-rooster-item-detail .titel-container{background:transparent !important;}sl-rooster-item-detail .content{background:transparent !important;}sl-rooster-item-detail .inhoud{background:' + (darkmode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.4)') + ' !important;border-radius:12px !important;padding:12px !important;margin-top:8px !important;}sl-rooster-item-detail .blok{background:' + (darkmode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)') + ' !important;border:1px solid ' + (darkmode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.9)') + ' !important;border-radius:12px !important;}sl-rooster-item-detail .huiswerk{background:' + (darkmode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)') + ' !important;border-radius:12px !important;padding:12px !important;margin-top:8px !important;}.studiemateriaal-header-btn button{background:' + (darkmode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)') + ' !important;border:1px solid ' + (darkmode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)') + ' !important;border-radius:8px !important;}sl-rooster-item-detail hmy-tag,sl-rooster-item-detail hmy-internal-tag{background:' + (darkmode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)') + ' !important;border:1px solid ' + (darkmode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.8)') + ' !important;border-radius:6px !important;}';
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + blurStyles + roosterStyles + sidebarStyles + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
         const purple100 = toBrightnessValue(get('secondarycolor'), 41);
@@ -2723,7 +1535,7 @@ function onload() {
 
     // Get modlogo SVG
     window.logo = function (id, classname, color, style) {
-        return '<svg' + (n(id) ? '' : ' id="' + id + '"') + (n(classname) ? '' : ' class="' + classname + '"') + (n(style) ? '' : ' style="' + style + '"') + ' viewBox="0 0 190.5 207" width="190.5" height="207"><g transform="translate(-144.8 -76.5)"><g><path d="M261 107.8v.3c0 3.7 3 6.7 6.6 6.7H299a6.8 6.8 0 0 1 6.7 7V143.2c0 3.7 3 6.7 6.7 6.7h16.1a6.8 6.8 0 0 1 6.7 7V201.6c0 3.7-3 6.6-6.7 6.7h-16.1a6.8 6.8 0 0 0-6.7 7v23.1c0 3.7-3 6.7-6.7 6.7h-10.5a6.8 6.8 0 0 0-6.7 7l-.1 24.4v.3c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.7-7v-24.6c0-3.8-2.8-6.9-6.3-6.9s-6.4 3.1-6.4 7v24.8c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.6-7l.1-24.4v-.3c0-3.7-3-6.7-6.6-6.7h-10.5a6.8 6.8 0 0 1-6.7-7V215c0-3.6-3-6.6-6.7-6.7h-15.8a6.8 6.8 0 0 1-6.7-7V156.6c0-3.7 3-6.7 6.7-6.7h15.8a6.8 6.8 0 0 0 6.7-7v-21.4c0-3.6 3-6.6 6.7-6.7h31a6.8 6.8 0 0 0 6.7-7l.1-24.3v-.3c0-3.6 3-6.6 6.7-6.7h29a6.8 6.8 0 0 1 6.8 7z" fill="' + color + '" /><path d="M289.8 179.2c1.3 0 2.9.3 4.6.9 2.2.7 4 1.7 5 2.7v.2c.8.6 1.3 1.5 1.4 2.6 0 .9-.2 1.7-.6 2.3l-6.8 10.8a60.2 60.2 0 0 1-27.5 19.8c-8.5 3.2-17 4.7-24.7 4.5l-13.2-.1a1.6 1.6 0 0 1-1.7-1.5v-3.3a1.6 1.6 0 0 1 1.7-1.5h.1c7.9.3 16.3-1 24.7-4.2a56 56 0 0 0 34.3-31.4v-.3c.5-1 1.4-1.5 2.3-1.5z" fill="#000000" stroke="none" /><g class="glasses"><path d="M171.4 150.8v-9h137.2v9z" fill="#000000" stroke="none" /><path d="M175.7 155.5v-6h57.5v6z" fill="#000000" stroke="none" /><path d="M179.8 160v-9h48.9v9z" fill="#000000" stroke="none" /><path d="M184 164.5v-9h44.7v9z" fill="#000000" stroke="none" /><path d="M188.6 168.6v-7h31.7v7z" fill="#000000" stroke="none" /><path d="M245.9 155.5v-6h57.4v6z" fill="#000000" stroke="none" /><path d="M250 160v-9h48.8v9z" fill="#000000" stroke="none" /><path d="M254 164.5v-9h41v9z" fill="#000000" stroke="none" /><path d="M258.8 168.6v-7h31.6v7z" fill="#000000" stroke="none" /><path d="M184.5 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M188.8 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M197.6 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M202.1 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M254.8 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M259.1 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M268 159.2V155h4.4v4.3z" fill="#ffffff" stroke="none" /><path d="M272.4 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /></g></g></g></svg>';
+        return '<svg xmlns="http://www.w3.org/2000/svg"' + (n(id) ? '' : ' id="' + id + '"') + (n(classname) ? '' : ' class="' + classname + '"') + (n(style) ? '' : ' style="' + style + '"') + ' viewBox="0 0 190.5 207" width="190.5" height="207"><g transform="translate(-144.8 -76.5)"><g><path d="M261 107.8v.3c0 3.7 3 6.7 6.6 6.7H299a6.8 6.8 0 0 1 6.7 7V143.2c0 3.7 3 6.7 6.7 6.7h16.1a6.8 6.8 0 0 1 6.7 7V201.6c0 3.7-3 6.6-6.7 6.7h-16.1a6.8 6.8 0 0 0-6.7 7v23.1c0 3.7-3 6.7-6.7 6.7h-10.5a6.8 6.8 0 0 0-6.7 7l-.1 24.4v.3c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.7-7v-24.6c0-3.8-2.8-6.9-6.3-6.9s-6.4 3.1-6.4 7v24.8c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.6-7l.1-24.4v-.3c0-3.7-3-6.7-6.6-6.7h-10.5a6.8 6.8 0 0 1-6.7-7V215c0-3.6-3-6.6-6.7-6.7h-15.8a6.8 6.8 0 0 1-6.7-7V156.6c0-3.7 3-6.7 6.7-6.7h15.8a6.8 6.8 0 0 0 6.7-7v-21.4c0-3.6 3-6.6 6.7-6.7h31a6.8 6.8 0 0 0 6.7-7l.1-24.3v-.3c0-3.6 3-6.6 6.7-6.7h29a6.8 6.8 0 0 1 6.8 7z" fill="' + color + '" /><path d="M289.8 179.2c1.3 0 2.9.3 4.6.9 2.2.7 4 1.7 5 2.7v.2c.8.6 1.3 1.5 1.4 2.6 0 .9-.2 1.7-.6 2.3l-6.8 10.8a60.2 60.2 0 0 1-27.5 19.8c-8.5 3.2-17 4.7-24.7 4.5l-13.2-.1a1.6 1.6 0 0 1-1.7-1.5v-3.3a1.6 1.6 0 0 1 1.7-1.5h.1c7.9.3 16.3-1 24.7-4.2a56 56 0 0 0 34.3-31.4v-.3c.5-1 1.4-1.5 2.3-1.5z" fill="#000000" stroke="none" /><g class="glasses"><path d="M171.4 150.8v-9h137.2v9z" fill="#000000" stroke="none" /><path d="M175.7 155.5v-6h57.5v6z" fill="#000000" stroke="none" /><path d="M179.8 160v-9h48.9v9z" fill="#000000" stroke="none" /><path d="M184 164.5v-9h44.7v9z" fill="#000000" stroke="none" /><path d="M188.6 168.6v-7h31.7v7z" fill="#000000" stroke="none" /><path d="M245.9 155.5v-6h57.4v6z" fill="#000000" stroke="none" /><path d="M250 160v-9h48.8v9z" fill="#000000" stroke="none" /><path d="M254 164.5v-9h41v9z" fill="#000000" stroke="none" /><path d="M258.8 168.6v-7h31.6v7z" fill="#000000" stroke="none" /><path d="M184.5 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M188.8 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M197.6 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M202.1 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M254.8 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M259.1 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M268 159.2V155h4.4v4.3z" fill="#ffffff" stroke="none" /><path d="M272.4 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /></g></g></g></svg>';
     };
 
     // Construct an icon in SVG format. Only contains icons used by this mod. Icons thanks to Font Awesome: https://fontawesome.com/
@@ -2943,6 +1755,9 @@ function onload() {
                     for (const element of cn('afzenders')) {
                         if (!element.classList.contains('mod-nickname')) {
                             const text = element.innerHTML.replace(regex, '$1' + nick + '$2');
+                            if (text != element.innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element, '');
                             element.append(document.createRange().createContextualFragment(text));
                         }
@@ -2951,6 +1766,9 @@ function onload() {
                     for (const element of cn('ontvangers ellipsis')) {
                         if (!element.classList.contains('mod-nickname')) {
                             const text = element.innerHTML.replace(regex, '$1' + nick + '$2');
+                            if (text != element.innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element, '');
                             element.append(document.createRange().createContextualFragment(text));
                         }
@@ -2962,6 +1780,9 @@ function onload() {
                         if (!element.classList.contains('mod-nickname') && !element.classList.contains('ellipsis') && !element.classList.contains('input-veld') && (n(element.children[0]) || !element.children[0].classList.contains('zoekveld'))) {
                             setHTML(element, element.innerHTML.replaceAll('&nbsp;</span> <span>', ' ').replaceAll('<span>', '').replaceAll('</span><!---->', ''));
                             const text = element.innerHTML.replace(element.innerHTML.indexOf('<hmy-') != -1 ? regexWhichPreservesIcons : regex, '$1' + nick + '$2');
+                            if (text != element.innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element, '');
                             element.append(document.createRange().createContextualFragment(text));
                         }
@@ -2970,6 +1791,9 @@ function onload() {
                     for (const element of cn('van')) {
                         if (!element.classList.contains('mod-nickname')) {
                             const text = element.innerHTML.replace(element.innerHTML.indexOf('<hmy-') != -1 ? regexWhichPreservesIcons : regex, '$1' + nick + '$2');
+                            if (text != element.innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element, '');
                             element.append(document.createRange().createContextualFragment(text));
                         }
@@ -2978,25 +1802,35 @@ function onload() {
                     for (const element of cn('text text-content-smallest-semi')) {
                         if (!element.classList.contains('mod-nickname')) {
                             const text = element.innerHTML.replace(regex, '$1' + nick + '$2');
+                            if (text != element.innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element, '');
                             element.append(document.createRange().createContextualFragment(text));
                         }
                     }
                     for (const element of cn('docent')) {
-                        if (!element.classList.contains('mod-nickname') && !n(element.getElementsByTagName('span')[0])) {
+                        if (!element.classList.contains('mod-nickname') && element.getElementsByTagName('span')[0]) {
                             const text = element.getElementsByTagName('span')[0].innerHTML.replace(regex, '$1' + nick + '$2');
+                            if (text != element.getElementsByTagName('span')[0].innerHTML) {
+                                element.classList.add('mod-nickname');
+                            }
                             setHTML(element.getElementsByTagName('span')[0], '');
                             element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(text));
                         }
                     }
                     for (const element of tn('hmy-internal-tag')) {
-                        if (!element.classList.contains('mod-nickname') && !n(element.getElementsByTagName('span')[0])) {
+                        if (!element.classList.contains('mod-nickname') && element.getElementsByTagName('span')[0] && !element.getElementsByTagName('span')[0].classList.contains('mod-nickname') && element.getElementsByTagName('span')[0]) {
                             if (nickname[2] && element.innerText == nickname[2]) {
+                                element.getElementsByTagName('span')[0].classList.add('mod-nickname');
                                 setHTML(element.getElementsByTagName('span')[0], '');
                                 element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(nick));
                             }
                             else {
                                 const text = element.getElementsByTagName('span')[0].innerHTML.replace(regex, '$1' + nick + '$2');
+                                if (text != element.getElementsByTagName('span')[0].innerHTML) {
+                                    element.getElementsByTagName('span')[0].classList.add('mod-nickname');
+                                }
                                 setHTML(element.getElementsByTagName('span')[0], '');
                                 element.getElementsByTagName('span')[0].append(document.createRange().createContextualFragment(text));
                             }
@@ -3144,7 +1978,7 @@ function onload() {
         tryRemove(id('mod-logo-hat'));
         tryRemove(id('mod-logo-inserted'));
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
-            const logoHTML = '<div id="mod-logo-wrapper" class="mod-logo-container">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? getIcon('logo', 'mod-logo-float', menuColor, ' id="mod-logo"') : window.logo('mod-logo', 'mod-logo-float" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
+            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? getIcon('logo', null, menuColor, ' id="mod-logo"') : window.logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
             if (n(id('mod-logo')) && tn('sl-header', 0) && tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0]) {
                 tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0].insertAdjacentHTML('afterbegin', logoHTML);
             }
@@ -3718,84 +2552,219 @@ function onload() {
             // Show a loading message
             modMessage('Downloaden...', 'Somtoday Mod is bezig met het genereren van je afbeelding. Dit kan even duren...');
             // Construct HTML
-            let html = '<div style="width:650px;height:120px;background:#0099ff;display:block;"><svg style="padding:40px 28px;display:inline-block;" xmlns="http://www.w3.org/2000/svg" width="250" height="40" viewBox="0 0 300 49" fill="none"><path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white"/><path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white"/><path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white"/><path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white"/><path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white"/><path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white"/><path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white"/><path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white"/><path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white"/></svg><h3 style="float:right;color:#fff;font-family:Kanit,Tahoma,Arial,sans-serif;vertical-align:top;margin-top:35px;padding-right:30px;letter-spacing:1.5px;font-size:30px;">' + (n(tn('sl-vakgemiddelde-item', 0)) ? 'Mijn cijfers' : 'Laatste rapportcijfers') + '</h3></div><div style="width:600px;padding:40px 25px;background:#fff;height:' + (n(tn('sl-resultaat-item', 0)) ? Math.round(220 + number * 110).toString() : Math.round(280 + number * 134).toString()) + ';">';
+            const font = 'Kanit, Tahoma, Arial, sans-serif';
+            const headerBackground = darkmode ? '#2b3c63' : '#0099ff';
+            const headerText = n(tn('sl-vakgemiddelde-item', 0)) ? 'Mijn cijfers' : 'Laatste rapportcijfers';
+            let html = `
+                <div style="
+                    width: 1000px;
+                    height: 218px;
+                    background-color: ${headerBackground};
+                    display: flex;
+                    align-items: center;
+                    padding: 0 44px;
+                    box-sizing: border-box;
+                    font-family: ${font};
+                    font-weight: 400;
+                    margin-bottom: -42px;
+	                padding-bottom: 42px;
+                ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="368" height="60" viewBox="0 0 300 49" fill="none">
+                        <path d="M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z" fill="white" />
+                        <path d="M78.6921 18.0352C77.0176 18.0352 75.7302 18.4777 75.7302 19.5882C75.7302 20.473 76.3064 20.78 77.6298 21.1412L81.6901 22.1615C86.1105 23.3533 87.4339 25.6647 87.4339 28.7616C87.4339 33.2761 83.9048 36.2917 77.8098 36.2917C73.7495 36.2917 70.5265 35.1812 68.7079 34.2963L70.0764 28.4907C72.1921 29.6013 74.9379 30.6577 77.2787 30.6577C79.1332 30.6577 80.1506 30.3056 80.1506 29.2853C80.1506 28.5359 79.2683 28.0935 77.8548 27.7323L74.0556 26.712C70.2564 25.6466 68.4019 23.5248 68.4019 20.0216C68.4019 15.4168 72.4171 12.2748 78.8722 12.2748C81.9151 12.2748 85.6693 13.1145 87.4879 13.9542L85.5883 19.8862C83.4276 18.7305 80.8618 18.0262 78.7011 18.0262L78.6921 18.0352Z" fill="white" />
+                        <path d="M90.6208 24.2833C90.6208 17.2407 95.8785 12.0581 103.027 12.0581C110.175 12.0581 115.442 17.2407 115.442 24.2833C115.442 31.3258 110.184 36.5084 103.027 36.5084C95.8695 36.5084 90.6208 31.3258 90.6208 24.2833ZM108.329 24.2833C108.329 21.2315 106.169 18.8388 103.027 18.8388C99.8848 18.8388 97.7691 21.2315 97.7691 24.2833C97.7691 27.3351 99.8848 29.7277 103.027 29.7277C106.169 29.7277 108.329 27.3351 108.329 24.2833Z" fill="white" />
+                        <path d="M127.361 14.9744C129.036 13.295 131.377 12.2296 134.339 12.2296C138.003 12.2296 140.344 13.5117 141.541 16.1753C143.179 13.8729 145.871 12.2748 149.49 12.2748C155.45 12.2748 157.881 16.8344 157.881 22.5045V27.9129C157.881 29.0686 158.106 30.0347 159.204 30.0347C159.871 30.0347 160.708 29.7728 161.455 29.4117L161.761 35.2985C160.564 35.7861 158.313 36.2736 156.198 36.2736C152.578 36.2736 150.454 34.4588 150.454 29.6735V23.7415C150.454 20.771 149.085 19.1367 146.564 19.1367C144.62 19.1367 143.296 20.3286 142.675 21.6197V35.8403H135.257V23.7054C135.257 20.78 133.979 19.1458 131.458 19.1458C129.342 19.1458 128.01 20.3827 127.352 21.71V35.8403H119.934V12.672H127.352V14.9744H127.361Z" fill="white" />
+                        <path d="M173.951 12.6721H181.946V18.4325H173.951V26.2245C173.951 28.879 174.924 29.8541 176.643 29.8541C178.363 29.8541 179.956 29.0144 181.018 28.256L183.269 33.9262C180.973 35.3437 177.921 36.2737 174.257 36.2737C169.486 36.2737 166.533 33.3483 166.533 27.7684V18.4235H162.599V12.663H166.749L167.676 6.77618H173.951V12.663V12.6721Z" fill="white" />
+                        <path d="M185.394 24.2833C185.394 17.2407 190.651 12.0581 197.8 12.0581C204.948 12.0581 210.215 17.2407 210.215 24.2833C210.215 31.3258 204.957 36.5084 197.8 36.5084C190.642 36.5084 185.394 31.3258 185.394 24.2833ZM203.102 24.2833C203.102 21.2315 200.942 18.8388 197.8 18.8388C194.658 18.8388 192.542 21.2315 192.542 24.2833C192.542 27.3351 194.658 29.7277 197.8 29.7277C200.942 29.7277 203.102 27.3351 203.102 24.2833Z" fill="white" />
+                        <path d="M241.833 35.3076C240.68 35.7951 238.475 36.2827 236.314 36.2827C233.757 36.2827 231.894 35.3979 231.056 33.1406C229.598 35.0006 227.347 36.2827 223.944 36.2827C217.669 36.2827 213.303 31.2355 213.303 24.2381C213.303 17.2407 217.678 12.2748 223.944 12.2748C226.726 12.2748 228.977 13.2499 230.525 14.6674V4.39252H237.944V27.9129C237.944 29.1047 238.205 30.0347 239.357 30.0347C239.978 30.0347 240.725 29.7728 241.563 29.4117L241.824 35.2985L241.833 35.3076ZM230.525 28.1747V20.4279C229.373 19.3625 227.743 18.7485 226.105 18.7485C222.927 18.7485 220.847 20.8703 220.847 24.2381C220.847 27.6059 222.882 29.818 226.105 29.818C227.824 29.818 229.553 29.0234 230.525 28.1747Z" fill="white" />
+                        <path d="M270.282 30.0347C271.164 30.0347 271.83 29.7728 272.532 29.4117L272.793 35.2985C271.56 35.7861 269.48 36.2737 267.275 36.2737C264.628 36.2737 262.809 35.2534 262.017 32.951C260.468 34.811 258.038 36.2285 254.95 36.2285C248.63 36.2285 244.308 31.2716 244.308 24.3103C244.308 17.349 248.639 12.2657 254.95 12.2657C257.822 12.2657 260.027 13.1506 261.486 14.7036V12.663H268.904V27.9039C268.904 29.0596 269.165 30.0257 270.273 30.0257L270.282 30.0347ZM257.074 29.809C258.704 29.809 260.342 29.1408 261.495 28.1296V20.4189C260.568 19.4889 258.803 18.7395 257.074 18.7395C253.851 18.7395 251.862 20.9064 251.862 24.3194C251.862 27.7323 253.896 29.809 257.074 29.809Z" fill="white" />
+                        <path d="M300 12.6721L290.817 35.5243C288.341 41.8174 285.865 44.6074 280.392 44.6074C278.357 44.6074 276.286 43.858 275.089 43.0544L276.151 37.3842C277.259 37.9621 278.753 38.5851 280.257 38.5851C282.111 38.5851 282.904 37.6551 283.66 36.0118L284.056 35.0367L273.766 12.6721H281.976L287.234 27.7323L292.537 12.6721H300Z" fill="white" />
+                    </svg>
+                    <h3 style="
+                        letter-spacing: 2.2px;
+                        font-size: 44px;
+                        margin-left: auto;
+                        color: #fff;
+                        font-family: ${font};
+                        font-weight: 400;
+                    ">${headerText}</h3>
+                </div>`;
+            const containerBackground = darkmode ? '#1a1b29' : '#e7e8f0';
+            const containerHeight =
+                2 * 52 + // container padding top+bottom
+                (Math.max(number, 1) - 1) * 22 + // gap between container items
+                Math.max(number, 1) * 140; // container item height
+            html += `
+                <div style="
+                    width: 1000px;
+                    height: ${containerHeight}px;
+                    display: flex;
+                    padding: 52px 36px;
+                    flex-direction: column;
+                    gap: 22px;
+                    background-color: ${containerBackground};
+                    box-sizing: border-box;
+                	border-top-left-radius: 42px;
+                	border-top-right-radius: 42px;
+                ">`;
+            const subjectBackground = darkmode ? '#31354b' : '#fff';
+            const subjectIconBackground = darkmode ? '#414768' : '#0002';
+            const subjectColor = darkmode ? '#fff' : '#393950';
             for (let i = 0; i < number; i++) {
                 let averagePageGradeIndex = 0;
                 if (!n(tn('sl-vakgemiddelde-item', i))) {
                     averagePageGradeIndex = tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer').length - 1;
                 }
-                html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;' + (n(tn('sl-resultaat-item', 0)) ? 'height:95px;' : '') + '">' +
-                    /* Subject icon */
-                    '<svg style="background:#eaedf0;padding:10px;float:left;border-radius:50%;margin-right:12px;overflow: visible;" xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 20 20" display="block">' +
-                    (n(tn('sl-resultaat-item', 0)) ?
-                        tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML :
-                        tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML
-                    ) +
-                    '</svg>' +
-                    /* Subject name */
-                    '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
-                    (n(tn('sl-resultaat-item', 0)) ?
-                        tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML :
-                        tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML
-                    ) +
-                    '</h3>' +
-                    /* Subject grade */
-                    '<h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;color:' +
-                    (n(tn('sl-resultaat-item', 0)) ?
-                        /* Vakgemiddelden (Average page) */
-                        (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende') ?
-                            '#d32f0d' :
-                            (!n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) && tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal') ?
-                                '#a7b3be' :
-                                '#000')
-                        ) :
-                        /* Laatste cijfers (latest grades page) */
-                        (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende') ?
-                            '#d32f0d' :
-                            (!n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) && tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal') ?
-                                '#a7b3be' :
-                                '#000')
-                        )
-                    ) + ';">' +
-                    (n(tn('sl-resultaat-item', 0)) ?
-                        (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) ?
-                            '' :
-                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].innerHTML
-                        ) :
-                        tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
-                    ) +
-                    '</h3>' +
-                    (n(tn('sl-resultaat-item', 0)) ?
+                const subjectIcon = n(tn('sl-resultaat-item', 0)) ?
+                    tn('sl-vakgemiddelde-item', i).getElementsByTagName('svg')[0].innerHTML :
+                    tn('sl-resultaat-item', i).getElementsByTagName('svg')[0].innerHTML
+                    ;
+                const subjectName = n(tn('sl-resultaat-item', 0)) ?
+                    tn('sl-vakgemiddelde-item', i).getElementsByTagName('span')[0].innerHTML :
+                    tn('sl-resultaat-item', i).getElementsByClassName('titel')[0].innerHTML
+                    ;
+                let grade = (n(tn('sl-resultaat-item', 0)) ?
+                    (n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) ?
                         '' :
-                        /* Grade weight */
-                        '<p style="font-family:Kanit;float:right;font-size:24px;color:#888;margin:5px 10px;display:block;float:right;">' +
-                        tn('sl-resultaat-item', i).getElementsByClassName('weging ng-star-inserted')[0].innerHTML +
-                        '</p>' +
-                        /* Grade description */
-                        '<p style="clear:both;font-family:Kanit;font-size:26px;height:35px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0;display:block;">' +
-                        tn('sl-resultaat-item', i).getElementsByClassName('subtitel ng-star-inserted')[0].innerHTML +
-                        '</p>'
-                    ) +
-                    '</div>';
+                        tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].innerHTML
+                    ) :
+                    tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].innerHTML
+                );
+                const fadedColor = darkmode ? '#a2a2db' : '#6f6f9b';
+                const gradeWeight = tn('sl-resultaat-item', i)?.getElementsByClassName('weging ng-star-inserted')[0]?.innerHTML ?? null;
+                const gradeWeightHTML = gradeWeight ?
+                    `<p style="
+                    font-size: 32px;
+                    color: ${fadedColor};
+                    font-family: ${font};
+                    font-weight: 400;
+                ">${gradeWeight}</p>` : '';
+                const gradeDescription = tn('sl-resultaat-item', i)?.getElementsByClassName('subtitel ng-star-inserted')[0]?.innerHTML ?? null;
+                const gradeDescriptionHTML = gradeDescription ?
+                    `<p style="
+                    margin: 0;
+                    color: ${fadedColor};
+                    font-family: ${font};
+                    font-weight: 400;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    min-width: 0;
+                    font-size: 24px;
+                ">${gradeDescription}</p>` : '';
+                const red =
+                    (!n(tn('sl-resultaat-item', i)) &&
+                        !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende')) ||
+                    (!n(tn('sl-vakgemiddelde-item', i)) &&
+                        !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende'));
+                const green =
+                    (!n(tn('sl-resultaat-item', i)) &&
+                        !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('ruimvoldoende')) ||
+                    (!n(tn('sl-vakgemiddelde-item', i)) &&
+                        !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('ruimvoldoende'));
+                let grey =
+                    (!n(tn('sl-resultaat-item', i)) &&
+                        !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal')) ||
+                    (!n(tn('sl-vakgemiddelde-item', i)) &&
+                        !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal'));
+                if (!grade || grade.replace(/\s/g, '') == '') {
+                    grade = '-';
+                    grey = true;
+                }
+                let gradeColor = red ? (darkmode ? '#f08080' : '#ca1a1a') : (green ? (darkmode ? '#80f0a2' : '#22a816') : (grey ? (darkmode ? '#a1a5c2' : '#8d90aa') : subjectColor));
+                html += `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        height: 140px;
+                        box-sizing: border-box;
+                        background-color: ${subjectBackground};
+                        border-radius: 35px;
+                        padding: 0 44px;
+                        gap: 22px;
+                        corner-shape: squircle;
+                    ">
+                        <svg style="
+                            padding: 18px;
+                            border-radius: 50%;
+                            background-color: ${subjectIconBackground};
+                            height: 36px;
+                            width: 36px;
+                            flex-shrink: 0;
+                            overflow: visible;
+                        " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">${subjectIcon}</svg>
+                        <div style="
+                            flex-shrink: 1;
+                            flex-grow: 1;
+                            min-width: 0;
+                        ">
+                            <h3 style="        
+                                color: ${subjectColor};
+                                font-size: 42px;
+                                overflow: hidden;
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                font-family: ${font};
+                                font-weight: 400;
+                                min-width: 0;
+                                margin: 0;
+                            ">${subjectName}</h3>
+                            ${gradeDescriptionHTML}
+                        </div>
+                        ${gradeWeightHTML}
+                        <p style="
+                            color: ${gradeColor};
+                            font-size: 52px;
+                            font-weight: 600;
+                            margin-left: auto;
+                            flex-shrink: 0;
+                            font-family: ${font};
+                            font-weight: 400;
+                        ">${grade}</p>
+                    </div>`;
             }
             if (n(tn('sl-resultaat-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
                 /* Year average */
-                html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);background:#f3f5f6;border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;height:95px;"><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">Totaalgemiddelden</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;">' + cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML + '</h3></div>';
+                //html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);background:#f3f5f6;border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;height:95px;"><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">Totaalgemiddelden</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;">' + cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML + '</h3></div>';
             }
             else if (n(tn('sl-resultaat-item', 0)) && n(tn('sl-vakgemiddelde-item', 0))) {
-                html += '<h3 style="font-family:KanitBold;font-size:30px;margin:0;">Er zijn geen cijfers voor deze periode</h3>';
+                html += `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 140px;
+                        box-sizing: border-box;
+                        background-color: ${subjectBackground};
+                        border-radius: 35px;
+                        padding: 0 44px;
+                        gap: 22px;
+                        corner-shape: squircle;
+                    ">
+                        <h3 style="        
+                            color: ${subjectColor};
+                            font-size: 42px;
+                            font-family: ${font};
+                            font-weight: 400;
+                            ">Er zijn geen cijfers voor deze periode</h3>
+                    </div>`;
             }
-            html += '</div>';
+            html += `</div>`;
+            const totalHeight = containerHeight + 176; // add header height
             // Insert canvas
-            tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-grade-canvas" width="650" height="' + (n(tn('sl-resultaat-item', 0)) ? Math.round(300 + number * 110).toString() : Math.round(280 + number * 134).toString()) + '" style="display:none;"></canvas>');
+            tn('body', 0).insertAdjacentHTML('beforeend', `<canvas id="mod-grade-canvas" width="1000" height="${totalHeight}" style="display:none;"></canvas>`);
             const canvas = id('mod-grade-canvas');
             const ctx = canvas.getContext('2d'); !n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0));
             // Use data urls for font in SVG
-            const kanitregular = await getFontBase64('Kanit-ExtraLight');
-            const kanitbold = await getFontBase64('Kanit-SemiBold');
+            const kanit = await getFontBase64('Kanit-ExtraLight');
             // Add SVG with HTML to the canvas
-            var img = new Image();
-            const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '"><defs><style type="text/css">@font-face{font-family:KanitBold;src:url(\'' + kanitbold + '\')}@font-face{font-family:Kanit;src:url(\'' + kanitregular + '\')}</style></defs><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' + html + '</div></foreignObject></svg>';
+            const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '"><defs><style type="text/css">@font-face{font-family:Kanit;src:url(\'' + kanit + '\')}</style></defs><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' + html + '</div></foreignObject></svg>';
             const svgObjectUrl = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svg);
             const tempImg = new Image();
             tempImg.addEventListener('load', function () {
@@ -3939,8 +2908,8 @@ function onload() {
                     let letterbeoordelingen = parseJSON(get('letterbeoordelingen'));
                     const letter = element.getElementsByClassName('cijfer')[0].children[0].innerHTML.replace(',', '.');
                     if (letterbeoordelingen == null || letterbeoordelingen[letter] == null) {
-                        // Letter value is not set, ask user to define it
-                        showLetterbeoordelingenMessage(letter);
+                        // Letter value is not set, user should set it in modsettings if they want to count it
+                        continue;
                     }
                     else if (isNaN(letterbeoordelingen[letter])) {
                         // Letter should be ignored if set to "-" (or if non-numeric in general)
@@ -4354,6 +3323,28 @@ function onload() {
             </div>
         `);
 
+        const canvas = id('grade-defender-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        let lives = 5;
+        let coins = savedData.coins;
+        let coinsAtStart = coins;
+        let combo = 0;
+        let gameRunning = true;
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let powerups = [];
+        let playerX = canvas.width / 2;
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let lastShot = 0;
+        let currentWeapon = savedData.currentWeapon;
+        let shake = 0;
+
         const weapons = {
             basic: { name: 'Basic', cost: 0, damage: 1, speed: 10, cooldown: 200, color: '#0099ff' },
             rapid: { name: 'Rapid Fire', cost: 100, damage: 1, speed: 12, cooldown: 100, color: '#ff9900' },
@@ -4370,36 +3361,15 @@ function onload() {
                 <div class="shop-item ${unlocked ? 'unlocked' : ''}">
                     <h4>${w.name}</h4>
                     <p>💰 ${w.cost} | ⚡ DMG: ${w.damage} | 🚀 Speed: ${w.speed}</p>
-                    <button data-weapon="${key}" ${unlocked ? 'disabled' : ''}>${unlocked ? 'Owned' : 'Buy'}</button>
+                    <button data-weapon="${key}">${unlocked ? (key == currentWeapon ? 'Equipped' : 'Owned') : 'Buy'}</button>
                 </div>
             `);
         });
 
-        const canvas = id('grade-defender-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let score = 0;
-        let lives = 5;
-        let coins = savedData.coins;
-        let combo = 0;
-        let gameRunning = true;
-        let enemies = [];
-        let projectiles = [];
-        let particles = [];
-        let powerups = [];
-        let playerX = canvas.width / 2;
-        let lastTime = 0;
-        let spawnTimer = 0;
-        let lastShot = 0;
-        let currentWeapon = savedData.currentWeapon;
-        let shake = 0;
-
         // Create player logo image
         const logoImg = new Image();
         // Use the logo function to get SVG and encode it for data URL
-        const logoSvg = window.logo(null, 'mod-logo-float', 'var(--action-neutral-normal)');
+        const logoSvg = window.logo(null, null, '#fff');
         // Need to parse the SVG string to extraction proper dimensions if needed, but for now wrap in base64
         logoImg.src = 'data:image/svg+xml;base64,' + btoa(logoSvg);
 
@@ -4455,6 +3425,10 @@ function onload() {
             }
         }
 
+        let pressedKeys = {};
+        document.addEventListener('keyup', function (e) { pressedKeys[e.key] = false; });
+        document.addEventListener('keydown', function (e) { if (e.key == 40) { e.preventDefault(); } pressedKeys[e.key] = true; });
+
         canvas.addEventListener('click', shoot);
         canvas.addEventListener('touchstart', shoot);
 
@@ -4474,39 +3448,64 @@ function onload() {
             score = 0;
             lives = 5;
             combo = 0;
+            coinsAtStart = coins;
+            id('gd-score').innerText = score;
+            id('gd-lives').innerText = lives;
+            id('gd-combo').innerText = combo;
             enemies = [];
             projectiles = [];
             particles = [];
             powerups = [];
             gameRunning = true;
+            id('grade-defender-shop-btn').classList.add('active');
             id('grade-defender-gameover').classList.remove('active');
-            lastTime = 0;
+            lastTime = window.performance.now();
             requestAnimationFrame(gameLoop);
         });
 
         id('grade-defender-shop-btn').addEventListener('click', () => {
+            gameRunning = id('grade-defender-shop').classList.contains('active');
             id('grade-defender-shop').classList.toggle('active');
+            lastTime = window.performance.now();
+            requestAnimationFrame(gameLoop);
         });
 
         id('shop-close').addEventListener('click', () => {
+            gameRunning = true;
             id('grade-defender-shop').classList.remove('active');
+            lastTime = window.performance.now();
+            requestAnimationFrame(gameLoop);
         });
 
         shopItems.addEventListener('click', (e) => {
+            const weaponKey = e.target.dataset.weapon;
+            const weapon = weapons[weaponKey];
             if (e.target.tagName === 'BUTTON') {
-                const weaponKey = e.target.dataset.weapon;
-                const weapon = weapons[weaponKey];
-                if (coins >= weapon.cost && !savedData.unlockedWeapons.includes(weaponKey)) {
-                    coins -= weapon.cost;
-                    savedData.unlockedWeapons.push(weaponKey);
+                let owned = e.target.parentElement.classList.contains('unlocked') && savedData.unlockedWeapons.includes(weaponKey);
+
+                if (!owned) {
+                    // Purchase item if user has enough coins
+                    if (coins >= weapon.cost) {
+                        owned = true;
+                        coins -= weapon.cost;
+                        savedData.unlockedWeapons.push(weaponKey);
+                        e.target.parentElement.classList.add('unlocked');
+                        id('gd-coins').textContent = coins;
+                        id('gd-weapon').textContent = weapon.name;
+                    }
+                }
+
+                // If the user has now purchased the item, or already owned it, equip it too
+                if (owned) {
+                    for (const item of id('grade-defender-shop').getElementsByClassName('shop-item')) {
+                        if (item.classList.contains('unlocked')) {
+                            item.getElementsByTagName('button')[0].textContent = 'Owned';
+                        }
+                    }
                     currentWeapon = weaponKey;
-                    e.target.disabled = true;
-                    e.target.textContent = 'Owned';
-                    e.target.parentElement.classList.add('unlocked');
-                    id('gd-coins').textContent = coins;
-                    id('gd-weapon').textContent = weapon.name;
+                    e.target.textContent = 'Equipped';
+
                     saveData();
-                    createParticles(canvas.width / 2, canvas.height / 2, '#ffd700', 50);
                 }
             }
         });
@@ -4525,8 +3524,14 @@ function onload() {
             }
         }
 
+        lastTime = window.performance.now();
         function gameLoop(timestamp) {
             if (!gameRunning) return;
+
+            if (pressedKeys[' ']) {
+                shoot();
+            }
+
             const dt = timestamp - lastTime;
             lastTime = timestamp;
 
@@ -4536,10 +3541,7 @@ function onload() {
                 shake *= 0.9;
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Use clearRect for transparency if needed, or fill
-            // Gradient background is handled by CSS now for performance and style (radial gradient)
-            // But we need to clear previous frame
-
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
 
             spawnTimer += dt;
@@ -4553,17 +3555,19 @@ function onload() {
                     worth = 50;
                 } else if (type > 0.7) {
                     text = (Math.floor(Math.random() * 45) + 55) / 10;
+                    text = text.toFixed(1);
                     isBad = false;
                     worth = 5;
                 } else {
                     text = (Math.floor(Math.random() * 40) + 10) / 10;
+                    text = text.toFixed(1);
                     isBad = true;
                     worth = 10;
                 }
                 enemies.push({
                     x: Math.random() * (canvas.width - 50) + 25,
                     y: -50,
-                    text: text.toString(),
+                    text: text,
                     isBad,
                     worth,
                     health: isBad ? 1 : 1,
@@ -4657,9 +3661,11 @@ function onload() {
                             const coinsEarned = Math.floor(score / 10);
                             coins += coinsEarned;
                             savedData.coins = coins;
+                            id('grade-defender-shop-btn').classList.remove('active');
                             id('grade-defender-gameover').classList.add('active');
                             id('gd-final-score').innerText = Math.floor(score);
-                            id('gd-coins-earned').innerText = coinsEarned;
+                            id('gd-coins-earned').innerText = coins - coinsAtStart;
+                            id('gd-coins').innerText = coins;
                             id('gd-high-score').innerText = Math.max(score, savedData.highScore);
                             saveData();
                         }
@@ -4768,8 +3774,10 @@ function onload() {
 
                 tn('sl-vakresultaten', 0).insertAdjacentHTML(
                     'beforeend',
+                    '<div id="mod-cijferanalyse">' +
                     (get('bools').charAt(BOOL_INDEX.GRADE_ANALYSIS) == '1' ? '<h3 style="margin-top: 40px;">Cijferanalyse</h3>' +
                         '<div id="mod-grade-suggestions" style="padding: 15px; margin: 15px 0; background: var(--bg-neutral-none); border-radius: 8px; border: 1px solid var(--border-neutral-weak);">Even geduld, je cijfers worden geanalyseerd...</div>' : '') +
+                    '</div>' +
                     '<div id="mod-grades-graphs" data-exams="' + (examPage ? 'true' : 'false') + '">' +
                     '<h3>Mijn ' + (examPage ? 'examen' : '') + 'cijfers</h3><div><canvas id="mod-chart-1"></canvas></div>' +
                     '<h3>Mijn ' + (examPage ? 'examen' : '') + 'gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div>' +
@@ -6159,6 +5167,7 @@ function onload() {
     // MODSETTINGS
 
     // Open modsettings
+    let themeCount = 0;
     function openSettings() {
         tryRemove(id('mod-setting-panel'));
         // Check if account modal is opened
@@ -6182,6 +5191,9 @@ function onload() {
                     }
                 }
             }, 10);
+            if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
+                tn('sl-account-modal', 0).insertAdjacentHTML('beforeend', '<div class="content" style="padding: 20px 40px;"></div>');
+            }
             if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
                 tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = true;
             }
@@ -6203,40 +5215,106 @@ function onload() {
             else {
                 execute([insertModSettingLink]);
             }
-            let nicknames = '<h3>Nicknames</h3><p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p><p>Vul de docentnaam precies in als op de berichtenpagina ("Dhr. E.X. Ample"). Vul bij de afkorting de docentafkorting in die in het rooster staat als je op een les klikt (optioneel). Vul tenslotte in welke nickname je deze docent wil geven.</p><div id="nickname-wrapper">';
+
+
+            // Nicknames
+            let nicknames = `
+            <h3>Nicknames</h3>
+            <p>Verander de naam van docenten in Somtoday. HTML is ondersteund.</p>
+            <p>Vul de docentnaam precies in als op de berichtenpagina ("Dhr. E.X. Ample"). Vul bij de afkorting de docentafkorting in die in het rooster staat als je op een les klikt (optioneel). Vul tenslotte in welke nickname je deze docent wil geven.</p>
+            <div id="nickname-wrapper">`;
             let nicknameArray = parseJSON(get('nicknames'));
-            if (nicknameArray == null) {
-                set('nicknames', '[]');
+            if ((nicknameArray instanceof Array) == false) {
                 nicknameArray = [];
+                set('nicknames', '[]');
             }
+            nicknameArray.push(['', '', '']);
             for (const nickname of nicknameArray) {
                 if (nickname.length == 2 || nickname.length == 3) {
-                    nicknames += '<div><input type="text" placeholder="Docentnaam" value="' + nickname[0].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"><input type="text" placeholder="Afkorting" value="' + (nickname[2] ? nickname[2].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') : '') + '"><input type="text" placeholder="Nickname" value="' + nickname[1].replaceAll('&', '&amp;').replaceAll('>', '&gt;').replaceAll('<', '&lt;').replaceAll('"', '&quot;') + '"></div>';
+                    const teacherName = sanitizeString(nickname[0]);
+                    const teacherAbbreviation = sanitizeString(nickname[2] ?? '');
+                    const teacherNickname = sanitizeString(nickname[1]);
+                    nicknames += `
+                    <div>
+                        <input type="text" placeholder="Docentnaam" value="${teacherName}">
+                        <input type="text" placeholder="Afkorting" value="${teacherAbbreviation}">
+                        <input type="text" placeholder="Nickname" value="${teacherNickname}">
+                    </div>`;
                 }
             }
-            let backgroundHTML = '';
-            let numberOfBackgrounds = 0;
-            while (!n(get('background' + numberOfBackgrounds))) {
-                backgroundHTML += '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + get('background' + numberOfBackgrounds) + '">';
-                numberOfBackgrounds++;
-            }
-            nicknames += '<div><input type="text" placeholder="Docentnaam"><input type="text" placeholder="Afkorting"><input type="text" placeholder="Nickname"></div></div><div class="br"></div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').insertAdjacentHTML(\'beforeend\', \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'><input type=\\\'text\\\' placeholder=\\\'Afkorting\\\'><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'></div>\');">Nickname toevoegen</div><div tabindex="0" class="mod-button" onclick="document.getElementById(\'nickname-wrapper\').innerHTML = \'<div><input type=\\\'text\\\' placeholder=\\\'Docentnaam\\\'><input type=\\\'text\\\' placeholder=\\\'Afkorting\\\'><input type=\\\'text\\\' placeholder=\\\'Nickname\\\'></div>\';">Reset</div>';
-            const updatechecker = (!isExtension) ? '<a id="mod-update-checker" class="mod-setting-button" tabindex="0"><span>' + getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)') + 'Check updates</span></a>' : '';
-            const updateinfo = (!isExtension) ? '' : 'Je browser controleert automatisch op updates.';
+            nicknames += `
+            </div>
+            <div class="br"></div>
+            <div tabindex="0" class="mod-button" onclick="
+                document.getElementById('nickname-wrapper').insertAdjacentHTML('beforeend', \`
+                <div>
+                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                </div>\`);
+            ">Nickname toevoegen</div>
+            <div tabindex="0" class="mod-button" onclick="
+                document.getElementById('nickname-wrapper').innerHTML = \`
+                <div>
+                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                </div>\`;
+            ">Reset</div>`;
 
-            let settingsContent = getSettingsFile(get('settings_type'));
+
+            // Backgrounds
+            let slideshow = '';
+            let i = 0;
+            let background = get(`background${i}`);
+            while (background && typeof background == 'string') {
+                slideshow += `
+                <img tabindex="0" onclick="
+                    document.getElementById('mod-background-wrapper').classList.add('mod-modified');
+                    this.remove();
+                " src="${background}">`;
+                i++;
+                background = get(`background${i}`);
+            }
+
+            // Update details for multiple versions
+            const updatechecker = `
+            <a id="mod-update-checker" class="mod-setting-button" tabindex="0">
+                <span>${getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)')}Check updates</span>
+            </a>`;
+            const updateinfo = 'Je browser controleert automatisch op updates.';
+
+            // Credit contributors
             let contributorContent = '';
             for (const key of Object.keys(contributors)) {
-                contributorContent += '<a href="https://github.com/' + sanitizeString(key) + '/" target="_blank"><img src="' + sanitizeString(contributors[key]) + '"><p>' + sanitizeString(key) + '</p></a>';
+                contributorContent += `
+                <a href="https://github.com/${sanitizeString(key)}/" target="_blank">
+                    <img src="${sanitizeString(contributors[key])}">
+                    <p>${sanitizeString(key)}</p>
+                </a>`;
             }
 
+            // Define some constants used in the replacements we'll do later
+            const openDyslexicEnabled = tn('span', 0) ? (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') != -1) : false;
+            const avatarHidden = !n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden');
+            const weergave = '<i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>';
+            const ngDetected = /(_ngcontent|_nghost|ng-tns-c\d+|ng-c\d+)/.test(get('customcss') ?? '');
+            const night = document.getElementsByTagName('html')[0].classList.contains('night');
+
+            // Fetch settings template HTML
+            let settingsContent = getSettingsFile();
+            if (n(settingsContent) || typeof settingsContent != 'string') {
+                settingsContent = '<h3 style="margin-top: 200px;">Error</h3><p style="margin-bottom: 200px;">Could not generate the settings HTML at this moment. Try again later.</h3>';
+            }
+
+            // Replace keys in replacement with real content
             const replacements = {
                 '{{icon_floppy_disk}}': getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
                 '{{icon_rotate_left}}': getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
                 '{{icon_circle_info}}': getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
                 '{{icon_circle_exclamation}}': getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
                 '{{icon_upload}}': getIcon('upload', null, 'var(--fg-on-primary-weak)'),
-                '{{updatechecker}}': updatechecker,
+                '{{updatechecker}}': isExtension ? '' : updatechecker,
                 '{{addSetting_primarycolor}}': addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2'),
                 '{{addSetting_secondarycolor}}': addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2'),
                 '{{backgroundtype_image_active}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'active' : '',
@@ -6260,28 +5338,31 @@ function onload() {
                 '{{addSlider_blur}}': addSlider('Blur', 'blur', 0, 200, 'px', 0),
                 '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*'),
                 '{{display_bg_slideshow}}': get('backgroundtype') == 'slideshow' ? 'block' : 'none',
-                '{{backgroundHTML}}': backgroundHTML,
+                '{{slideshow}}': slideshow,
                 '{{display_bg_color}}': get('backgroundtype') == 'color' ? 'block' : 'none',
                 '{{display_bg_live}}': get('backgroundtype') == 'live' ? 'block' : 'none',
                 '{{addSetting_backgroundcolor}}': addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff'),
-                '{{addSetting_ui_transparency}}': addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
-                '{{addSetting_ui_blur}}': addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur'),
+                '{{addSetting_ui_transparency}}': night ? '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Somtoday Mod Night mode ondersteunt momenteel geen UI transparantie en/of blur.</div>' : addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
+                '{{addSetting_ui_blur}}': night ? '' : addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur'),
                 '{{theme_wrapper}}': '',
                 '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
                 '{{layout_2}}': '<div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div>',
                 '{{layout_3}}': '<div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div>',
                 '{{layout_4}}': '<div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div>',
                 '{{layout_5}}': '<div tabindex="0" class="layout-container' + (get('layout') == 5 ? ' layout-selected' : '') + '" id="layout-5"><div style="width:16%;height:92%;top:4%;left:3%;"></div><div style="width:75%;height:19%;right:3%;top:4%;"></div><div style="width:75%;height:69%;right:3%;top:27%;"></div><h3>Menu & sidebar</h3></div>',
-                '{{menu_settings}}': addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) + addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) + addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false),
+                '{{menu_settings}}':
+                    addSetting('Laat menu altijd zien', 'Toon de bovenste menubalk altijd. Als dit uitstaat, verdwijnt deze als je naar beneden scrolt.', 'bools00', 'checkbox', true) +
+                    addSetting('Paginanaam in menu', 'Laat een tekst met de paginanaam zien in het menu.', 'bools01', 'checkbox', true) +
+                    addSetting('Verberg bericht teller', 'Verberg het tellertje dat het aantal ongelezen berichten aangeeft.', 'bools02', 'checkbox', false),
                 '{{nicknames}}': nicknames,
                 '{{username_wrapper}}': '<h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div id="username-wrapper"><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div></div>',
                 '{{font_settings}}': `
                     <h3>Lettertype</h3>` +
-                    (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') == -1 ? '' : '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>') + `
+                    (openDyslexicEnabled ? '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>' : '') + `
                     <div class="mod-custom-select notranslate">
                         <select id="mod-font-select" title="Selecteer een lettertype">
                             <option selected disabled hidden>
-                                ${n(get('customfontname')) ? get('fontname') : get('customfontname').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}
+                                ${n(get('customfontname')) ? get('fontname') : sanitizeString(get('customfontname'))}
                             </option>
                             <option>${fonts.join('</option><option>')}</option>
                         </select>
@@ -6298,7 +5379,7 @@ function onload() {
                         </div>
                     </div>
                     <div class="br"></div><div class="br"></div><div class="br"></div>`,
-                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Upload je eigen profielafbeelding in plaats van je schoolfoto.' + ((!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden')) ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b><i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
+                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Gebruik een eigen profielafbeelding in plaats van je schoolfoto.' + (avatarHidden ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
                 '{{grade_reveal_setting}}': '<div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>',
                 '{{letterbeoordelingen_setting}}': '<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>',
                 '{{extra_settings}}': addSetting('Analyse op cijferpagina', 'Laat een korte analyse zien op de cijfer-pagina van een vak.', 'bools18', 'checkbox', true) +
@@ -6316,8 +5397,11 @@ function onload() {
                     addSetting('Selecteren', 'Maak alle tekst selecteerbaar.', 'bools13', 'checkbox', false) +
                     addSetting('Somtoday Recap', 'Laat aan het einde van het schooljaar een recap-knop zien (vanaf 26 juni).', 'bools12', 'checkbox', true) +
                     addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
-                '{{customcss_setting}}': addSetting('Aangepaste CSS', 'Voer hier handmatige CSS in die de mod en Somtoday CSS overschrijft. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld:\nbody {\n    background: red;\n}\n*/', '15'),
-                '{{browser_settings}}': (platform == 'Android' ? '' : '<h3 class="category" data-category="browser" tabindex="0">Browser</h3><div id="category-browser">' + addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' + addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300') + '</div>'),
+                '{{browser_settings}}': (platform == 'Android' ? '' :
+                    addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' +
+                    addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<p>', 'icon', 'file', null, 'image/*', '300')
+                ) + '<div class="br"></div><div class="br"></div>' +
+                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red !important;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
                 '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
@@ -6325,17 +5409,18 @@ function onload() {
                 '{{somtoday_version}}': (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version_name + ' van Somtoday Mod',
                 '{{platform}}': 'Somtoday ' + platform,
                 '{{contributors_list}}': contributorContent,
-                '{{updateinfo}}': updateinfo,
+                '{{updateinfo}}': isExtension ? updateinfo : '',
                 '{{export_import_buttons}}': (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json">')
             };
-
-
             for (const key in replacements) {
                 settingsContent = settingsContent.replaceAll(key, replacements[key]);
             }
 
+            // Insert the HTML
             tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', settingsContent);
-            if (platform != 'Android') {
+
+            // Import/export settings, which does not work on Android (can't download files there in a WebView at the moment)
+            if (id('import-settings') && id('export-settings') && id('import-settings-json')) {
                 id('export-settings').addEventListener('click', exportSettings);
                 id('import-settings').addEventListener('click', function () {
                     modMessage('Instellingen importeren?', 'Wanneer je Mod-instellingen importeert worden je huidige instellingen overschreven. Importeer alleen instellingsbestanden die je vertrouwt of zelf hebt ge&euml;xporteerd.', 'Ja', 'Nee');
@@ -6347,7 +5432,9 @@ function onload() {
                 });
                 id('import-settings-json').addEventListener('input', importSettings);
             }
-            if (!n(id('mod-font-file'))) {
+
+            // Upload your own custom font file, like Wingdings
+            if (id('mod-font-file')) {
                 id('mod-font-file').addEventListener('input', function () {
                     if (this.files.length != 0) {
                         tryRemove(id('mod-font-preview'));
@@ -6369,42 +5456,177 @@ function onload() {
                     }
                 });
             }
+            if (id('customcss')) {
+                // Insert tab instead of moving to the next element
+                id('customcss').addEventListener('keydown', function (e) {
+                    if (e.key === 'Tab') {
+                        e.preventDefault(); e.preventDefault();
+
+                        // execCommand doesn't mess with Ctrl Z history
+                        if (!document.execCommand('insertText', false, '    ')) {
+                            // Fallback, execCommand is technically deprecated and could be removed sooner or later
+                            const start = id('customcss').selectionStart;
+                            const end = id('customcss').selectionEnd;
+
+                            id('customcss').value = id('customcss').value.substring(0, start) +
+                                '    ' +
+                                id('customcss').value.substring(end);
+
+                            id('customcss').selectionStart = id('customcss').selectionEnd = start + 4;
+                        }
+
+                    }
+                });
+
+                // Live input checking
+                id('customcss').addEventListener('input', function (e) {
+                    const content = e.target.value;
+
+                    // Angular hash check
+                    if (/(_ngcontent|_nghost|ng-tns-c\d+|ng-c\d+)/.test(content)) {
+                        id('angular-hash-warning').style.display = 'block';
+                    } else {
+                        id('angular-hash-warning').style.display = 'none';
+                    }
+
+                    // Live sanitization to prevent surprises after save
+                    if (content.indexOf('javascript:') != -1 || content.indexOf('@import') != -1) {
+                        e.target.value = e.target.value.replace(/javascript:[^'"]*/gi, '').replace(/@import[^;\n]*/gi, '');
+                    }
+                });
+            }
+
             // Add themes
             // Background images thanks to Pexels: https://www.pexels.com
-            addTheme('Standaard', '', '0067c2', 'e69b22', 20, false);
-            addTheme('Bergen', '618833', '3b4117', '3b4117', 40, false);
-            addTheme('Eiland', '994605', '2a83b1', '2a83b1', 25, false);
-            addTheme('Zee', '756856', '173559', '173559', 25, false);
-            addTheme('Bergmeer', '1284296', '4a6a2f', '4a6a2f', 30, false);
-            addTheme('Rivieruitzicht', '822528', '526949', '526949', 40, false);
-            addTheme('Ruimte', '110854', '0d0047', '0d0047', 50, true);
-            addTheme('Bergen en ruimte', '1624504', '6489a0', '6489a0', 50, true);
-            addTheme('Stad', '2246476', '18202d', '18202d', 25, true);
-            addTheme('Weg', '1820563', 'de3c22', 'de3c22', 65, true);
-            addTheme('Biljard', '6253916', '27f56c', '13bd4c', 65, true);
-            addTheme('Kirby', '28920045', 'fd4ff4', 'fd4ff4', 50, true);
-            addTheme('Weg 2.0', '34535324', 'EE8317', 'EE8317', 50, true);
-            addTheme('Ski`s', '257961', 'F71111', 'F71111', 50, true);
-            addTheme('Schaken', '277124', 'E8E8E8', '514642', 50, true);
-            addTheme('Kerstmis', '34539169', '11F711', 'F71111', 50, true);
-            const isbackgroundvideo = get('isbackgroundvideo') && get('isbackgroundvideo') != 'false';
-            id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
-            id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
-            id('mod-background-preview-image').style.display = !isbackgroundvideo ? 'block' : 'none';
-            id('mod-background-preview-video').style.display = isbackgroundvideo ? 'block' : 'none';
-            id('addbackground').addEventListener('input', function () {
-                const files = this.files;
-                for (var i = 0; i < files.length; i++) {
-                    if (this.accept != 'image/*' || files[i]['type'].indexOf('image') != -1) {
+            themeCount = 0; // used for "Meer bekijken" logic, gets incremented with each addTheme()
+            addTheme('Standaard', '', '#0067c2', '#e69b22');
+            addTheme('Bergen', '618833', '#3b4117', '#3b4117');
+            addTheme('Eiland', '994605', '#2a83b1', '#2a83b1');
+            addTheme('Zee', '756856', '#173559', '#173559');
+            addTheme('Bergmeer', '1284296', '#4a6a2f', '#4a6a2f');
+            addTheme('Rivieruitzicht', '822528', '#526949', '#526949');
+            addTheme('Ruimte', '110854', '#0d0047', '#0d0047');
+            addTheme('Bergen en ruimte', '1624504', '#6489a0', '#6489a0');
+            addTheme('Stad', '2246476', '#18202d', '#18202d');
+            addTheme('Weg', '1820563', '#de3c22', '#de3c22');
+            addTheme('Woestijn', '847402', '#ac7a0d', '#ac7a0d');
+            addTheme('Kronkelweg', '34535324', '#ee8317', '#ee8317');
+            addTheme('Kat', '730896', '#2b2d36', '#ffffff');
+            addTheme('Honden', '215957', '#ee8317', '#ee8317');
+            addTheme('Gamen', '539986', '#1100ffff', '#ffffff');
+            addTheme('Biljard', '6253916', '#27f56c', '#13bd4c');
+            addTheme('Arcade', '28920045', '#fd4ff4', '#fd4ff4');
+            addTheme('Ski\'s', '257961', '#f71111', '#f71111');
+            addTheme('Schaken', '277124', '#e8e8e8', '#514642');
+            addTheme('Kerstmis', '1708601', '#0dac0d', '#a50c0c');
+
+
+            // Backgrounds section event listeners
+            if (id('mod-background-preview-image') && id('mod-background-preview-video')) {
+                const isbackgroundvideo = get('isbackgroundvideo') && get('isbackgroundvideo') != 'false';
+                id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
+                id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
+                id('mod-background-preview-image').style.display = !isbackgroundvideo ? 'block' : 'none';
+                id('mod-background-preview-video').style.display = isbackgroundvideo ? 'block' : 'none';
+            }
+            if (id('addbackground')) {
+                id('addbackground').addEventListener('input', function () {
+                    const files = this.files;
+                    for (var i = 0; i < files.length; i++) {
+                        if (this.accept != 'image/*' || files[i]['type'].indexOf('image') != -1) {
+                            let reader = new FileReader();
+                            reader.readAsDataURL(this.files[i]);
+                            reader.onload = function () {
+                                id('mod-background-wrapper').classList.add('mod-modified');
+                                id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                            };
+                        }
+                    }
+                });
+            }
+            if (id('background')) {
+                id('background').addEventListener('input', function () {
+                    if (this.files[0] != null) {
+                        const isVideo = this.files[0].type.indexOf('video') != -1;
                         let reader = new FileReader();
-                        reader.readAsDataURL(this.files[i]);
+                        reader.readAsDataURL(this.files[0]);
+                        id('mod-background-preview-image').style.display = !isVideo ? 'block' : 'none';
+                        id('mod-background-preview-video').style.display = isVideo ? 'block' : 'none';
+                        id('mod-filters').style.display = 'block';
                         reader.onload = function () {
-                            id('mod-background-wrapper').classList.add('mod-modified');
-                            id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                            if (isVideo) {
+                                id('mod-background-preview-video').src = reader.result;
+                            }
+                            else {
+                                id('mod-background-preview-image').src = reader.result;
+                            }
                         };
                     }
-                }
-            });
+                    else {
+                        id('mod-filters').style.display = 'none';
+                    }
+                });
+            }
+            if (id('mod-reset-filters')) {
+                id('mod-reset-filters').addEventListener('click', function () {
+                    id('brightness').value = 100;
+                    id('brightness').dispatchEvent(new Event('input'));
+                    id('contrast').value = 100;
+                    id('contrast').dispatchEvent(new Event('input'));
+                    id('saturate').value = 100;
+                    id('saturate').dispatchEvent(new Event('input'));
+                    id('opacity').value = 100;
+                    id('opacity').dispatchEvent(new Event('input'));
+                    id('huerotate').value = 0;
+                    id('huerotate').dispatchEvent(new Event('input'));
+                    id('grayscale').value = 0;
+                    id('grayscale').dispatchEvent(new Event('input'));
+                    id('sepia').value = 0;
+                    id('sepia').dispatchEvent(new Event('input'));
+                    id('invert').value = 0;
+                    id('invert').dispatchEvent(new Event('input'));
+                    id('blur').value = 0;
+                    id('blur').dispatchEvent(new Event('input'));
+                    id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
+                    id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
+                });
+            }
+            if (id('type-image') && id('type-slideshow') && id('type-color') && id('type-live')) {
+                id('type-image').addEventListener('click', function () {
+                    this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                    this.classList.add('active');
+                    show(id('mod-bg-image'));
+                    hide(id('mod-bg-slideshow'));
+                    hide(id('mod-bg-color'));
+                    hide(id('mod-bg-live'));
+                });
+                id('type-slideshow').addEventListener('click', function () {
+                    this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                    this.classList.add('active');
+                    hide(id('mod-bg-image'));
+                    show(id('mod-bg-slideshow'));
+                    hide(id('mod-bg-color'));
+                    hide(id('mod-bg-live'));
+                });
+                id('type-color').addEventListener('click', function () {
+                    this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                    this.classList.add('active');
+                    hide(id('mod-bg-image'));
+                    hide(id('mod-bg-slideshow'));
+                    show(id('mod-bg-color'));
+                    hide(id('mod-bg-live'));
+                });
+                id('type-live').addEventListener('click', function () {
+                    this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
+                    this.classList.add('active');
+                    hide(id('mod-bg-image'));
+                    hide(id('mod-bg-slideshow'));
+                    hide(id('mod-bg-color'));
+                    show(id('mod-bg-live'));
+                });
+            }
+
+            // Multiple choice select
             for (const element of cn('mod-multi-choice')) {
                 for (const child of element.children) {
                     child.addEventListener('click', function () {
@@ -6413,7 +5635,11 @@ function onload() {
                     });
                 }
             }
+            // Filter sliders
             for (const element of cn('mod-slider')) {
+                if (!element.getElementsByTagName('input')[0]) {
+                    continue;
+                }
                 element.getElementsByTagName('input')[0].addEventListener('input', function () {
                     this.classList.add('mod-modified');
                     this.parentElement.children[2].innerHTML = this.value + this.dataset.unit;
@@ -6421,116 +5647,7 @@ function onload() {
                     id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
                 });
             }
-            id('background').addEventListener('input', function () {
-                if (this.files[0] != null) {
-                    const isVideo = this.files[0].type.indexOf('video') != -1;
-                    let reader = new FileReader();
-                    reader.readAsDataURL(this.files[0]);
-                    id('mod-background-preview-image').style.display = !isVideo ? 'block' : 'none';
-                    id('mod-background-preview-video').style.display = isVideo ? 'block' : 'none';
-                    id('mod-filters').style.display = 'block';
-                    reader.onload = function () {
-                        if (isVideo) {
-                            id('mod-background-preview-video').src = reader.result;
-                        }
-                        else {
-                            id('mod-background-preview-image').src = reader.result;
-                        }
-                    };
-                }
-                else {
-                    id('mod-filters').style.display = 'none';
-                }
-            });
-            id('mod-reset-filters').addEventListener('click', function () {
-                id('brightness').value = 100;
-                id('brightness').dispatchEvent(new Event('input'));
-                id('contrast').value = 100;
-                id('contrast').dispatchEvent(new Event('input'));
-                id('saturate').value = 100;
-                id('saturate').dispatchEvent(new Event('input'));
-                id('opacity').value = 100;
-                id('opacity').dispatchEvent(new Event('input'));
-                id('huerotate').value = 0;
-                id('huerotate').dispatchEvent(new Event('input'));
-                id('grayscale').value = 0;
-                id('grayscale').dispatchEvent(new Event('input'));
-                id('sepia').value = 0;
-                id('sepia').dispatchEvent(new Event('input'));
-                id('invert').value = 0;
-                id('invert').dispatchEvent(new Event('input'));
-                id('blur').value = 0;
-                id('blur').dispatchEvent(new Event('input'));
-                id('mod-background-preview-image').style.setProperty('filter', getBackgroundFilters(false));
-                id('mod-background-preview-video').style.setProperty('filter', getBackgroundFilters(false));
-            });
-            id('type-image').addEventListener('click', function () {
-                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-                this.classList.add('active');
-                show(id('mod-bg-image'));
-                hide(id('mod-bg-slideshow'));
-                hide(id('mod-bg-color'));
-                hide(id('mod-bg-live'));
-            });
-            id('type-live').addEventListener('click', function () {
-                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-                this.classList.add('active');
-                hide(id('mod-bg-image'));
-                hide(id('mod-bg-slideshow'));
-                hide(id('mod-bg-color'));
-                show(id('mod-bg-live'));
-            });
-            id('type-slideshow').addEventListener('click', function () {
-                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-                this.classList.add('active');
-                hide(id('mod-bg-image'));
-                show(id('mod-bg-slideshow'));
-                hide(id('mod-bg-color'));
-                hide(id('mod-bg-live'));
-            });
-            id('type-color').addEventListener('click', function () {
-                this.parentElement.getElementsByClassName('active')[0].classList.remove('active');
-                this.classList.add('active');
-                hide(id('mod-bg-image'));
-                hide(id('mod-bg-slideshow'));
-                show(id('mod-bg-color'));
-                hide(id('mod-bg-live'));
-            });
-            // Make section collapsing work
-            let number = 0;
-            if (n(get('category'))) {
-                set('category', '111111111');
-            }
-            const categories = get('category');
-            for (const element of cn('mod-setting-button')) {
-                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
-            }
-            for (const element of id('mod-setting-panel').getElementsByClassName('category')) {
-                const index = number;
-                id('category-' + element.dataset.category).style.display = categories.charAt(index) == '1' ? 'block' : 'none';
-                if (categories.charAt(index) == '1') {
-                    element.classList.remove('collapsed');
-                }
-                else {
-                    element.classList.add('collapsed');
-                }
-                element.addEventListener('click', function () {
-                    // Collapsed: whether the category was collapsed before toggling
-                    // So if collapsed == true, then the category should be shown
-                    const collapsed = id('category-' + element.dataset.category).style.display == 'none';
-                    set('category', get('category').replaceAt(index, collapsed ? '1' : '0'));
-                    if (collapsed) {
-                        element.classList.remove('collapsed');
-                    }
-                    else {
-                        element.classList.add('collapsed');
-                    }
-                    id('category-' + element.dataset.category).style.display = collapsed ? 'block' : 'none';
-                });
-                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
-                number++;
-            }
-            // Drag and drop
+            // Drag and drop on file inputs
             for (const element of cn('mod-file-label')) {
                 element.addEventListener('drop', function (event) {
                     // Prevent default behavior (Prevent file from being opened)
@@ -6576,70 +5693,7 @@ function onload() {
                     element.children[1].innerHTML = 'Kies een bestand';
                 });
             }
-            // Add event listeners to make layout boxes work
-            for (const element of cn('layout-container')) {
-                element.addEventListener('click', function () {
-                    for (const element of cn('layout-selected')) {
-                        element.classList.remove('layout-selected');
-                    }
-                    element.classList.add('layout-selected');
-                });
-            }
-            // Make save button, reset button (and updatechecker for the Userscript-version) work
-            id('save').addEventListener('click', function () {
-                execute([save]);
-            });
-            id('reset').addEventListener('click', function () {
-                modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
-                id('mod-message-action1').addEventListener('click', function () {
-                    execute([reset, setBackground, style, pageUpdate]);
-                    if (!n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
-                        tryRemove(id('mod-grades-graphs'));
-                        tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
-                        setTimeout(gradeGraphs, 500);
-                    }
-                    closeModMessage();
-                });
-                id('mod-message-action2').addEventListener('click', closeModMessage);
-            });
-            if (!isExtension) {
-                id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
-            }
-            id('mod-play-defender').addEventListener('click', function () {
-                tn('sl-root', 0).inert = false;
-                setTimeout(gradeDefenderGame, 200);
-            });
-            // Make random background button work
-            // Random background images thanks to Lorem Picsum: https://picsum.photos
-            id('mod-random-background').addEventListener('click', function () {
-                id('mod-random-background').classList.toggle('mod-active');
-                if (!n(id('mod-random-background').previousElementSibling)) {
-                    if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
-                        id('mod-random-background').previousElementSibling.classList.remove('mod-active');
-                    }
-                    if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
-                        id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
-                        setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
-                        id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
-                    }
-                }
-            });
-            // Live Wallpaper Randomize
-            id('mod-live-randomize').addEventListener('click', function () {
-                set('live_seed', Math.random() * 100);
-                startLiveWallpaper();
-            });
-            // Add script to make the font select element work
-            if (!n(id('mod-font-select-script'))) {
-                tryRemove(id('mod-font-select-script'));
-            }
-            if (id('mod-change-letterbeoordelingen')) {
-                id('mod-change-letterbeoordelingen').addEventListener('click', function () {
-                    showLetterbeoordelingenMessage();
-                });
-            }
-            id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.setAttribute("tabindex", "0"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.setAttribute("tabindex", "0"); c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("mod-font-select").classList.add("mod-modified"); if (document.getElementById("mod-font-preview")) { document.getElementById("mod-font-preview").remove(); } document.getElementById("mod-font-file").value = ""; let event = new Event("input", { bubbles: false }); document.getElementById("mod-font-file").dispatchEvent(event); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
-            // Add event listeners to make file reset buttons work
+            // File reset buttons
             for (const element of cn('mod-file-reset')) {
                 element.addEventListener('click', function () {
                     element.classList.toggle('mod-active');
@@ -6661,6 +5715,118 @@ function onload() {
                     }
                 });
             }
+
+            // Section collapsing
+            let number = 0;
+            if (n(get('category'))) {
+                set('category', '1'.repeat(20));
+            }
+            const categories = get('category');
+            for (const element of cn('mod-setting-button')) {
+                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
+            }
+            for (const element of id('mod-setting-panel').getElementsByClassName('category')) {
+                const index = number;
+                id('category-' + element.dataset.category).style.display = categories.charAt(index) == '1' ? 'block' : 'none';
+                if (categories.charAt(index) == '1') {
+                    element.classList.remove('collapsed');
+                }
+                else {
+                    element.classList.add('collapsed');
+                }
+                element.addEventListener('click', function () {
+                    // Collapsed: whether the category was collapsed before toggling
+                    // So if collapsed == true, then the category should be shown
+                    const collapsed = id('category-' + element.dataset.category).style.display == 'none';
+                    set('category', get('category').replaceAt(index, collapsed ? '1' : '0'));
+                    if (collapsed) {
+                        element.classList.remove('collapsed');
+                    }
+                    else {
+                        element.classList.add('collapsed');
+                    }
+                    id('category-' + element.dataset.category).style.display = collapsed ? 'block' : 'none';
+                });
+                element.addEventListener('keyup', (event) => { if (event.keyCode === 13) { element.click(); } }, { once: true });
+                number++;
+            }
+
+            // Add event listeners to make layout boxes work
+            for (const element of cn('layout-container')) {
+                element.addEventListener('click', function () {
+                    for (const element of cn('layout-selected')) {
+                        element.classList.remove('layout-selected');
+                    }
+                    element.classList.add('layout-selected');
+                });
+            }
+
+            // Make save button, reset button (and updatechecker for the Userscript-version) work
+            if (id('save')) {
+                id('save').addEventListener('click', function () {
+                    execute([save]);
+                });
+            }
+            if (id('reset')) {
+                id('reset').addEventListener('click', function () {
+                    modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
+                    id('mod-message-action1').addEventListener('click', function () {
+                        execute([reset, setBackground, style, pageUpdate]);
+                        if (!n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
+                            tryRemove(id('mod-grades-graphs'));
+                            tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
+                            setTimeout(gradeGraphs, 500);
+                        }
+                        closeModMessage();
+                    });
+                    id('mod-message-action2').addEventListener('click', closeModMessage);
+                });
+            }
+            if (id('mod-update-checker')) {
+                id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
+            }
+            if (id('mod-play-defender')) {
+                id('mod-play-defender').addEventListener('click', function () {
+                    tn('sl-root', 0).inert = false;
+                    setTimeout(gradeDefenderGame, 200);
+                });
+            }
+            // Make random background button work
+            // Random background images thanks to Lorem Picsum: https://picsum.photos
+            if (id('mod-random-background')) {
+                id('mod-random-background').addEventListener('click', function () {
+                    id('mod-random-background').classList.toggle('mod-active');
+                    if (!n(id('mod-random-background').previousElementSibling)) {
+                        if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
+                            id('mod-random-background').previousElementSibling.classList.remove('mod-active');
+                        }
+                        if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
+                            id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
+                            setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
+                            id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
+                        }
+                    }
+                });
+            }
+            // Live wallpaper randomize
+            if (id('mod-live-randomize')) {
+                id('mod-live-randomize').addEventListener('click', function () {
+                    set('backgroundtype', 'live');
+                    set('live_seed', Math.random() * 100);
+                    startLiveWallpaper();
+                });
+            }
+            // Letterbeoordelingen
+            if (id('mod-change-letterbeoordelingen')) {
+                id('mod-change-letterbeoordelingen').addEventListener('click', function () {
+                    showLetterbeoordelingenMessage();
+                });
+            }
+            // Add script to make the font select element work
+            if (id('mod-font-select-script')) {
+                tryRemove(id('mod-font-select-script'));
+            }
+            id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.setAttribute("tabindex", "0"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.setAttribute("tabindex", "0"); c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("mod-font-select").classList.add("mod-modified"); if (document.getElementById("mod-font-preview")) { document.getElementById("mod-font-preview").remove(); } document.getElementById("mod-font-file").value = ""; let event = new Event("input", { bubbles: false }); document.getElementById("mod-font-file").dispatchEvent(event); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
         }
     }
 
@@ -6779,7 +5945,7 @@ function onload() {
         for (const element of cn('mod-custom-setting')) {
             if (element.type == 'checkbox' && element.id.indexOf('bools') != -1) {
                 set('bools', get('bools').replaceAt(parseInt(element.id.charAt(5) + element.id.charAt(6)), element.checked ? '1' : '0'));
-            } else if (element.type == 'checkbox' || element.type == 'range' || element.type == 'text' || element.type == 'password' || element.type == 'number' || element.type == 'color' || element.tagName.toLowerCase() == 'textarea') {
+            } else if (element.type == 'checkbox' || element.type == 'range' || element.type == 'text' || element.type == 'password' || element.type == 'number' || element.type == 'color' || element.tagName == 'TEXTAREA') {
                 set(element.id, element.value);
             } else if (element.type == 'file') {
                 if (element.files.length != 0) {
@@ -6856,12 +6022,12 @@ function onload() {
         const selectedtheme = cn('theme-selected', 0);
         if (!n(selectedtheme)) {
             if (id('primarycolor').classList.contains('mod-modified') == false) {
-                set('primarycolor', '#' + selectedtheme.dataset.color);
+                set('primarycolor', selectedtheme.dataset.color);
             }
             if (id('secondarycolor').classList.contains('mod-modified') == false) {
-                set('secondarycolor', '#' + selectedtheme.dataset.secondaryColor);
+                set('secondarycolor', selectedtheme.dataset.secondaryColor);
             }
-            set('theme', selectedtheme.dataset.name);
+            set('preset', selectedtheme.dataset.name);
             if (selectedtheme.id != 'Standaard') {
                 toDataURL(selectedtheme.dataset.url, function (dataUrl) {
                     set('background', dataUrl);
@@ -6954,7 +6120,8 @@ function onload() {
         set('ui', 0);
         set('uiblur', 0);
         set('fontname', 'Open Sans');
-        set('theme', 'Standaard');
+        set('theme', 'light');
+        set('preset', 'Standaard');
         set('layout', 1);
         set('profilepic', '');
         set('username', '');
@@ -7059,13 +6226,28 @@ function onload() {
         } else if (type == 'file') {
             code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
         } else if (type == 'textarea') {
-            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--bg-primary-weak);border-radius:6px;background:var(--bg-neutral-none);color:var(--fg-on-primary-weak);resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>';
+            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;height:128px;font-family:monospace !important;font-size:12px;padding:10px;resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>';
         }
         return code;
     }
 
     // Add a theme to the modsettings. Can only be called at the modsettings page.
-    function addTheme(name, url, primaryColor, secondaryColor, transparency) {
+    function addTheme(name, url, primaryColor, secondaryColor) {
+        if (n(id('theme-wrapper'))) {
+            return;
+        }
+
+        if (themeCount % 10 == 0) {
+            if (themeCount == 0) {
+                id('theme-wrapper').insertAdjacentHTML('beforeend', `<div></div>`);
+            }
+            else {
+                id('theme-wrapper').insertAdjacentHTML('beforeend', '<div tabindex="0" class="mod-button" onclick="this.nextElementSibling.removeAttribute(\'style\'); this.remove();">Meer bekijken</div>');
+                id('theme-wrapper').insertAdjacentHTML('beforeend', `<div style="display: none"></div>`);
+            }
+        }
+        themeCount++;
+
         // URL can be a URL to an image, but also a Pexels ID.
         let smallimg = url;
         let bigimg = url;
@@ -7074,18 +6256,26 @@ function onload() {
             bigimg = 'https://images.pexels.com/photos/' + url + '/pexels-photo-' + url + '.jpeg?auto=compress&cs=tinysrgb&w=1600';
         }
         let themeclass = '';
-        if (get('theme') == name) {
-            if (get('primarycolor') == '#' + primaryColor) {
+        if (get('preset') == name) {
+            if (get('primarycolor') == primaryColor) {
                 themeclass = ' theme-selected-set';
             } else {
                 set('theme', '');
             }
         }
         // Set empty image as theme background if no url is given
-        if (url == '') {
+        if (!url) {
             smallimg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
-        id('theme-wrapper').insertAdjacentHTML('beforeend', '<div tabindex="0" class="theme' + themeclass + '" id="' + name + '" data-name="' + name + '" data-url="' + bigimg + '" data-color="' + primaryColor + '" data-secondary-color="' + secondaryColor + '" data-transparency="' + transparency + '"><img src="' + smallimg + '" alt="Achtergrondafbeelding: ' + name + '" loading="lazy"/><h3><div style="background:#' + primaryColor + ';" title="#' + primaryColor + '"></div>' + name + '</h3></div>');
+        id('theme-wrapper').children[id('theme-wrapper').childElementCount - 1].insertAdjacentHTML('beforeend', `
+            <div tabindex="0" class="theme${themeclass}" id="${name}" data-name="${name}" data-url="${bigimg}" data-color="${primaryColor}" data-secondary-color="${secondaryColor}">
+                <img src="${smallimg}" alt="Achtergrondafbeelding: ${name}" loading="lazy">
+                <h3>
+                    <div style="background:${primaryColor};" title="${primaryColor}"></div>
+                    ${name}
+                </h3>
+            </div>
+        `);
         id(name).addEventListener('click', function () {
             for (const element of cn('theme')) {
                 element.classList.remove('theme-selected-set');
@@ -7191,7 +6381,7 @@ function onload() {
         }
         darkmode = tn('html', 0).classList.contains('dark') || tn('html', 0).classList.contains('night');
         busy = true;
-        execute([gradeReveal, userName, teacherNicknames, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify, newYearCountdown, topMenu, easterEggs, editGrades, browserSettings, initTheme, addProfielTab]);
+        execute([gradeReveal, userName, teacherNicknames, insertModSettingLink, insertGradeDownloadButton, subjectGradesPage, somtodayRecap, rosterSimplify, newYearCountdown, topMenu, easterEggs, editGrades, browserSettings, initTheme]);
         if (updateStyle) {
             execute([updateCssVariables]);
         }

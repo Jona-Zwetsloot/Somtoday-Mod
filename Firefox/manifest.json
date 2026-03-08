@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extName__",
-  "version": "5.3",
+  "version": "5.4",
   "manifest_version": 3,
   "description": "__MSG_extDescription__",
   "default_locale": "nl",
@@ -19,8 +19,6 @@
         "scripts/minigame.js",
         "scripts/fireworks.js",
         "scripts/chart.js",
-        "scripts/wasm_analytics.js",
-        "scripts/analytics_ui.js",
         "scripts/main_functions.js",
         "scripts/execute_after_page_load.js"
       ],
@@ -72,9 +70,7 @@
         "settings_content/familiar.html",
         "fonts/Kanit-SemiBold.ttf",
         "fonts/Kanit-ExtraLight.ttf",
-        "images/dark-mode.svg",
-        "wasm/pkg/somtoday_analytics_bg.wasm",
-        "wasm/pkg/somtoday_analytics.js"
+        "images/dark-mode.svg"
       ],
       "matches": [
         "*://*.somtoday.nl/*"

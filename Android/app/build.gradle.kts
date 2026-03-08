@@ -1,11 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.compose.compiler)
 }
-
-var geckoviewChannel = "geckoview"
-var geckoviewVersion = "146.0.20251217121356"
 
 android {
     namespace = "com.jonazwetsloot.somtodaymod"
@@ -13,24 +9,36 @@ android {
 
     defaultConfig {
         applicationId = "com.jonazwetsloot.somtodaymod"
-        minSdk = 26
+        minSdk = 21
         targetSdk = 36
-        versionCode = 53
-        versionName = "5.3"
+        versionCode = 54
+        versionName = "5.4"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "1.8"
     }
-
     buildFeatures {
-        compose = false
+        compose = true
     }
-
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -39,7 +47,7 @@ android {
 }
 
 dependencies {
-    implementation("org.mozilla.geckoview:geckoview:${geckoviewVersion}")
+    implementation("androidx.webkit:webkit:1.12.1")
     implementation("com.google.android.material:material:1.13.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
