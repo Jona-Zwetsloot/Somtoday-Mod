@@ -149,6 +149,10 @@ function gradeDefenderGame() {
         id('grade-defender-shop').remove();
         id('grade-defender-gameover').remove();
         tn('html', 0).style.overflowY = 'scroll';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('mod-play');
+        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
     });
 
     id('grade-defender-restart').addEventListener('click', () => {

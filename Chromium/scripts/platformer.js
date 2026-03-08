@@ -12,10 +12,11 @@ async function startPlatformerGame() {
         return;
     }
 
-    tn('body', 0).classList.add('mod-game-playing');
-
-    const DEBUG_MODE = true; // IMPORTANT: Disable for release
+    const DEBUG_MODE = true; // DISABLE THIS IN PRODUCTION
     let debugVisible = false;
+
+    const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
+    consoleHunter();
 
     let CODE_UUID = get('platformer-uuid');
     if (!CODE_UUID) {
@@ -24,7 +25,75 @@ async function startPlatformerGame() {
     }
 
     tn('body', 0).insertAdjacentHTML('beforeend', `
-<div id="mod-game">
+<div id="mod-menu">
+  <div class="mod-menu-overlay">
+    <div class="mod-menu-panel">
+      <div id="mod-screen-main" class="mod-screen">
+        <button class="mod-menu-close-x" id="mod-menu-close">✕</button>
+        <div class="mod-menu-logo">
+            <img draggable="false" src="${chrome.runtime.getURL('images/platformerv2/logo.svg')}">
+        </div>
+        <div class="mod-menu-coins-display">
+          <span class="mod-menu-coin-icon">🪙</span>
+          <span id="mod-menu-total-coins">0</span>
+        </div>
+        <div class="mod-menu-play-area">
+          <div class="mod-menu-side-btn" id="mod-menu-codes">
+            <div class="mod-menu-side-btn-circle">🔑</div>
+            <span class="mod-menu-side-btn-label">Codes</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <button class="mod-menu-play-circle" id="mod-menu-play">
+              <span class="mod-menu-play-icon">▶</span>
+            </button>
+            <div class="mod-menu-play-label">SPELEN</div>
+          </div>
+          <div class="mod-menu-side-btn" id="mod-menu-shop">
+            <div class="mod-menu-side-btn-circle">🛒</div>
+            <span class="mod-menu-side-btn-label">Shop</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="mod-screen-levels" class="mod-screen mod-screen-hidden">
+        <div class="mod-menu-header">
+          <button class="mod-menu-back" id="mod-levels-back">← Terug</button>
+          <div class="mod-menu-header-title">Selecteer Level</div>
+          <div class="mod-menu-coins-sm">
+            <span>🪙</span>
+            <span id="mod-levels-coins">0</span>
+          </div>
+        </div>
+        <div class="mod-level-grid" id="mod-level-grid"></div>
+      </div>
+
+      <div id="mod-screen-codes" class="mod-screen mod-screen-hidden">
+        <div class="mod-menu-header">
+          <button class="mod-menu-back" id="mod-codes-back">← Terug</button>
+          <div class="mod-menu-header-title">Voer Code In</div>
+          <div class="mod-menu-coins-sm">
+            <span>🪙</span>
+            <span id="mod-codes-coins">0</span>
+          </div>
+        </div>
+        <div class="mod-codes-body">
+          <div class="mod-codes-icon">🔐</div>
+          <p class="mod-codes-desc">Voer een code in om speciale beloningen te ontvangen</p>
+          <div class="mod-codes-input-wrap">
+            <input type="text" class="mod-codes-input" id="mod-codes-input" placeholder="CODE123" maxlength="20">
+            <button class="mod-codes-submit" id="mod-codes-submit">Verzenden</button>
+          </div>
+          <div class="mod-codes-status" id="mod-codes-status"></div>
+          <div class="mod-codes-history" id="mod-codes-history" style="display:none;">
+            <div class="mod-codes-history-title">Munten van codes</div>
+            <div class="mod-codes-history-val" id="mod-codes-history-val">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="mod-game" style="display:none;">
 <canvas id="mod-canvas"></canvas>
 <div id="mod-hud">
 <span id="mod-playtime"></span>
@@ -40,8 +109,120 @@ async function startPlatformerGame() {
 </div>
 </div>`);
 
+    function showScreen(screenId) {
+        ['mod-screen-main', 'mod-screen-levels', 'mod-screen-codes'].forEach(sid => {
+            const el = document.getElementById(sid);
+            if (el) el.classList.toggle('mod-screen-hidden', sid !== screenId);
+        });
+    }
+
+    function updateMenuCoins() {
+        const totalCoins = parseInt(get('platformer-total-coins') || '0');
+        const codeCoins = parseInt(get('platformer-code-coins') || '0');
+        const total = totalCoins + codeCoins;
+        document.getElementById('mod-menu-total-coins').textContent = total;
+        document.getElementById('mod-levels-coins').textContent = total;
+        document.getElementById('mod-codes-coins').textContent = total;
+        if (codeCoins > 0) {
+            document.getElementById('mod-codes-history').style.display = 'block';
+            document.getElementById('mod-codes-history-val').textContent = codeCoins;
+        }
+    }
+
+    function getLevelBestTime(levelIdx) {
+        const data = get(`platformer-besttime-${levelIdx}`);
+        return data ? parseFloat(data) : null;
+    }
+
+    function setLevelBestTime(levelIdx, time) {
+        const prev = getLevelBestTime(levelIdx);
+        if (prev === null || time < prev) {
+            set(`platformer-besttime-${levelIdx}`, time.toFixed(2));
+        }
+    }
+
+    function getCompletedLevels() {
+        const data = get('platformer-progress');
+        return data ? JSON.parse(data) : {};
+    }
+
+    function markLevelCompleted(levelIdx, coins) {
+        const progress = getCompletedLevels();
+        if (!progress[levelIdx] || progress[levelIdx].coins < coins) {
+            progress[levelIdx] = { completed: true, coins };
+            set('platformer-progress', JSON.stringify(progress));
+        }
+    }
+
+    function getLevelCoins(levelIdx) {
+        const progress = getCompletedLevels();
+        return progress[levelIdx]?.coins || 0;
+    }
+
+    function getTotalCoinsEarned() {
+        const progress = getCompletedLevels();
+        return Object.values(progress).reduce((sum, p) => sum + (p.coins || 0), 0);
+    }
+
+    function startGame(startLevelIdx = 0) {
+        gameAlive = true;
+        document.getElementById('mod-menu').style.display = 'none';
+        document.getElementById('mod-game').style.display = 'block';
+        tn('body', 0).classList.add('mod-game-playing');
+
+        resizeCanvas();
+        updateMobileVis();
+
+        elapsed = 0;
+        timing = true;
+        sessionCoins = 0;
+        sessionTotalCoins = 0;
+        loadLvl(startLevelIdx);
+
+        lastTs = null;
+        requestAnimationFrame(loop);
+    }
+
+    document.getElementById('mod-menu-play').addEventListener('click', () => {
+        showScreen('mod-screen-levels');
+        populateLevelGrid();
+    });
+
+    document.getElementById('mod-menu-codes').addEventListener('click', () => {
+        showScreen('mod-screen-codes');
+    });
+
+    document.getElementById('mod-menu-close').addEventListener('click', () => {
+        closeEntirePlatformer();
+    });
+
+    document.getElementById('mod-menu-shop').addEventListener('click', () => {
+        const overlay = document.createElement('div');
+        overlay.className = 'mod-coming-soon-overlay';
+        overlay.id = 'mod-coming-soon';
+        overlay.innerHTML = `
+          <div class="mod-coming-soon-box">
+            <div class="mod-cs-icon">🛒</div>
+            <h3>Shop</h3>
+            <p>Binnenkort beschikbaar!</p>
+            <button class="mod-coming-soon-close" id="mod-cs-close">Sluiten</button>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        document.getElementById('mod-cs-close').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    });
+
+    document.getElementById('mod-levels-back').addEventListener('click', () => {
+        showScreen('mod-screen-main');
+    });
+
+    document.getElementById('mod-codes-back').addEventListener('click', () => {
+        showScreen('mod-screen-main');
+    });
+
     const canvas = id('mod-canvas');
-    const ctx    = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     const MAX_CANVAS_WIDTH = 2600;
 
     function resizeCanvas() {
@@ -57,18 +238,20 @@ async function startPlatformerGame() {
         canvas.style.height = window.innerHeight + 'px';
         try { if (lvl) lvl._bgBaked = null; } catch(e) {}
     }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
 
     function isMobile() {
         return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
     }
+
     function updateMobileVis() {
         id('mod-mobile-controls').style.display = isMobile() ? 'flex' : 'none';
         id('mod-pause-btn').style.display = isMobile() ? 'inline-block' : 'none';
     }
-    updateMobileVis();
-    window.addEventListener('resize', updateMobileVis);
+
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        updateMobileVis();
+    });
 
     let musicAudio = null;
     let musicFading = null;
@@ -99,7 +282,7 @@ async function startPlatformerGame() {
         if (src) {
             try {
                 inAudio = new Audio(getAudioUrl(src));
-                inAudio.loop   = true;
+                inAudio.loop = true;
                 inAudio.volume = 0;
                 inAudio.play().catch(() => {});
             } catch(e) {}
@@ -112,7 +295,7 @@ async function startPlatformerGame() {
         musicFading.timer += dt;
         const t = Math.min(1, musicFading.timer / musicFading.duration);
         if (musicFading.outAudio) musicFading.outAudio.volume = musicVolume * (1 - t);
-        if (musicFading.inAudio)  musicFading.inAudio.volume  = musicVolume * t;
+        if (musicFading.inAudio) musicFading.inAudio.volume = musicVolume * t;
         if (t >= 1) {
             _killAudio(musicFading.outAudio);
             musicAudio = musicFading.inAudio;
@@ -128,7 +311,7 @@ async function startPlatformerGame() {
         if (!src) return;
         try {
             musicAudio = new Audio(getAudioUrl(src));
-            musicAudio.loop   = true;
+            musicAudio.loop = true;
             musicAudio.volume = musicVolume;
             musicAudio.play().catch(() => {});
         } catch(e) {}
@@ -158,7 +341,7 @@ async function startPlatformerGame() {
     }
 
     function parseLvl(doc, idx) {
-        const el     = doc.querySelector('level');
+        const el = doc.querySelector('level');
         const descEl = el.querySelector('description');
         const lvl = {
             index: idx,
@@ -181,16 +364,16 @@ async function startPlatformerGame() {
             despawnTriggers: [],
             drawOrder: [],
             playAgainText: 'Opnieuw spelen',
-            closeGameText: 'Sluiten',
+            closeGameText: 'Menu',
             bgColor: el.getAttribute('bgColor') || null,
             bgColor2: el.getAttribute('bgColor2') || null,
             bgTexture: el.getAttribute('bgTexture') || null,
             bgTextureMode: el.getAttribute('bgTextureMode') || 'tile',
             bgTextureAlpha: parseFloat(el.getAttribute('bgTextureAlpha') ?? 1),
             _bgTexEntry: null,
-            _bgBaked:    null,
-            _bgBakedW:   0,
-            _bgBakedH:   0,
+            _bgBaked: null,
+            _bgBakedW: 0,
+            _bgBakedH: 0,
         };
         for (const c of el.children) {
             const tag = c.tagName;
@@ -212,15 +395,15 @@ async function startPlatformerGame() {
                 const obj = { type: 'floor', x, y, w, h, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.floors.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'wall') {
-                const textureGhost  = c.getAttribute('textureGhost') || null;
-                const opaque        = c.getAttribute('opaque') === 'true';
-                const keyId         = c.getAttribute('keyId') || null;
-                const keyColor      = c.getAttribute('keyColor') || '#ffd700';
-                const keyholeAttr   = c.getAttribute('keyhole') || 'visible';
+                const textureGhost = c.getAttribute('textureGhost') || null;
+                const opaque = c.getAttribute('opaque') === 'true';
+                const keyId = c.getAttribute('keyId') || null;
+                const keyColor = c.getAttribute('keyColor') || '#ffd700';
+                const keyholeAttr = c.getAttribute('keyhole') || 'visible';
                 const closeOnAreaId = c.getAttribute('closeOnAreaId') || null;
-                const riseWithId    = c.getAttribute('riseWithId')  || null;
-                const riseYOnly     = c.getAttribute('riseYOnly')   === 'true';
-                const riseYOffset   = parseFloat(c.getAttribute('riseYOffset')) || 0;
+                const riseWithId = c.getAttribute('riseWithId') || null;
+                const riseYOnly = c.getAttribute('riseYOnly') === 'true';
+                const riseYOffset = parseFloat(c.getAttribute('riseYOffset')) || 0;
                 const obj = {
                     type: 'wall', x, y, w, h, ghost, opaque, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY,
                     textureGhost, tex: null, texGhost: null, playerOverlap: false,
@@ -233,11 +416,11 @@ async function startPlatformerGame() {
                 };
                 lvl.walls.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'lava') {
-                const flowUp       = c.getAttribute('flowUp') === 'true';
-                const flowSpeed    = parseFloat(c.getAttribute('flowSpeed'))    || 50;
+                const flowUp = c.getAttribute('flowUp') === 'true';
+                const flowSpeed = parseFloat(c.getAttribute('flowSpeed')) || 50;
                 const flowDuration = parseFloat(c.getAttribute('flowDuration')) || 0;
-                const flowAreaId   = c.getAttribute('flowAreaId') || null;
-                const riseId       = c.getAttribute('riseId') || null;
+                const flowAreaId = c.getAttribute('flowAreaId') || null;
+                const riseId = c.getAttribute('riseId') || null;
                 const obj = {
                     type: 'lava', x, y, w, h, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null,
                     flowUp, flowSpeed, flowDuration, flowAreaId,
@@ -262,17 +445,17 @@ async function startPlatformerGame() {
                 const obj = { type: 'orb', x, y, r: 20, strength: parseFloat(c.getAttribute('strength')) || 2.5, actTimer: 0, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.orbs.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'movingPlatformUp') {
-                const sy = parseFloat(c.getAttribute('startY')) || y;
-                const ey = parseFloat(c.getAttribute('endY'))   || y + 300;
+                const psy = parseFloat(c.getAttribute('startY')) || y;
+                const pey = parseFloat(c.getAttribute('endY')) || y + 300;
                 const triggerMode = c.getAttribute('triggerMode') === 'true';
                 const triggerTimeout = parseFloat(c.getAttribute('triggerTimeout') ?? 1.0);
                 const returnTimeout = parseFloat(c.getAttribute('returnTimeout') ?? 2.0);
-                const obj = { type: 'mpUp', x, w, h, startY: sy, endY: ey, cy: sy, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, triggerMode, triggerTimeout, returnTimeout, triggerTimer: 0, returnTimer: 0, triggerState: 'idle' };
+                const obj = { type: 'mpUp', x, w, h, startY: psy, endY: pey, cy: psy, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null, triggerMode, triggerTimeout, returnTimeout, triggerTimer: 0, returnTimer: 0, triggerState: 'idle' };
                 lvl.mpUp.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'movingPlatformRight') {
-                const sx = parseFloat(c.getAttribute('startX')) || x;
-                const ex = parseFloat(c.getAttribute('endX'))   || x + 300;
-                const obj = { type: 'mpRight', y, w, h, startX: sx, endX: ex, cx: sx, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
+                const psx = parseFloat(c.getAttribute('startX')) || x;
+                const pex = parseFloat(c.getAttribute('endX')) || x + 300;
+                const obj = { type: 'mpRight', y, w, h, startX: psx, endX: pex, cx: psx, dir: 1, ghost, oneWay, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.mpRight.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'coin') {
                 const r = parseFloat(c.getAttribute('r')) || 14;
@@ -286,7 +469,7 @@ async function startPlatformerGame() {
                 const obj = { type: 'end', x, y, w, h };
                 lvl.ends.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'text') {
-                const baseFont  = c.getAttribute('font')  || '20px sans-serif';
+                const baseFont = c.getAttribute('font') || '20px sans-serif';
                 const baseColor = c.getAttribute('color') || '#ffffff';
                 const TAG_COLORS = { y: '#fce512', r: '#fc1212', g: '#4caf50', bl: '#5b9cf6', o: '#fc9312', p: '#c084fc', w: '#ffffff', gray: '#9b9b9c' };
                 function parseSegments(node, bold, color) {
@@ -295,9 +478,9 @@ async function startPlatformerGame() {
                         if (child.nodeType === 3) {
                             if (child.nodeValue) segs.push({ text: child.nodeValue, bold, color });
                         } else if (child.nodeType === 1) {
-                            const t = child.tagName.toLowerCase();
-                            const newBold  = bold  || t === 'b';
-                            const newColor = TAG_COLORS[t] !== undefined ? TAG_COLORS[t] : color;
+                            const tn2 = child.tagName.toLowerCase();
+                            const newBold = bold || tn2 === 'b';
+                            const newColor = TAG_COLORS[tn2] !== undefined ? TAG_COLORS[tn2] : color;
                             segs.push(...parseSegments(child, newBold, newColor));
                         }
                     }
@@ -307,14 +490,14 @@ async function startPlatformerGame() {
                 const obj = { type: 'text', x, y, segments, baseFont, ghost };
                 lvl.texts.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'portal') {
-                const portalId   = c.getAttribute('portal-id')    || null;
+                const portalId = c.getAttribute('portal-id') || null;
                 const toPortalId = c.getAttribute('to-portal-id') || null;
                 const obj = { type: 'portal', x, y, w, h, portalId, toPortalId, cooldown: 0, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY, tex: null };
                 lvl.portals.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'key') {
-                const keyId    = c.getAttribute('keyId')    || `key_${Math.random()}`;
-                const keyColor = c.getAttribute('color')    || '#ffd700';
-                const r        = parseFloat(c.getAttribute('r')) || 16;
+                const keyId = c.getAttribute('keyId') || `key_${Math.random()}`;
+                const keyColor = c.getAttribute('color') || '#ffd700';
+                const r = parseFloat(c.getAttribute('r')) || 16;
                 const obj = {
                     type: 'key', x, y, origX: x, origY: y, r, keyId, keyColor,
                     collected: false,
@@ -324,7 +507,7 @@ async function startPlatformerGame() {
                 };
                 lvl.keys.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'area') {
-                const areaId      = c.getAttribute('id') || `area_${Math.random()}`;
+                const areaId = c.getAttribute('id') || `area_${Math.random()}`;
                 const checkpointX = c.getAttribute('checkpointX') !== null ? parseFloat(c.getAttribute('checkpointX')) : null;
                 const checkpointY = c.getAttribute('checkpointY') !== null ? parseFloat(c.getAttribute('checkpointY')) : null;
                 const obj = {
@@ -356,23 +539,21 @@ async function startPlatformerGame() {
                 const mx = c.getAttribute('max') !== null ? parseFloat(c.getAttribute('max')) : null;
                 const detectionR = parseFloat(c.getAttribute('detectionRadius')) || 200;
                 const stuck = c.getAttribute('stuck') !== 'false';
-                const ghost = c.getAttribute('ghost') === 'true';
-                const texture = c.getAttribute('texture') || null;
-                const textureMode = c.getAttribute('textureMode') || 'tile';
+                const ghostSp = c.getAttribute('ghost') === 'true';
+                const textureSp = c.getAttribute('texture') || null;
+                const textureModeSp = c.getAttribute('textureMode') || 'tile';
                 if (!lvl.enemySpawners) lvl.enemySpawners = [];
                 lvl.enemySpawners.push({
                     areaId, count, spawnX, spawnY, spread: spawnSpread,
                     min: mn, max: mx, detectionR,
-                    stuck, ghost, texture, textureMode, textureFrames, textureFps, rotation, invertX, invertY,
+                    stuck, ghost: ghostSp, texture: textureSp, textureMode: textureModeSp, textureFrames, textureFps, rotation, invertX, invertY,
                     speed: parseFloat(c.getAttribute('speed')) || 100,
                     fired: false,
                 });
             } else if (tag === 'despawnEnemies') {
-                const dsAreaId = c.getAttribute('areaId') || null;
-                const dsSpawnerArea = c.getAttribute('spawnerAreaId') || null;
                 lvl.despawnTriggers.push({
-                    areaId: dsAreaId,
-                    spawnerAreaId: dsSpawnerArea,
+                    areaId: c.getAttribute('areaId') || null,
+                    spawnerAreaId: c.getAttribute('spawnerAreaId') || null,
                     fired: false,
                 });
             } else if (tag === 'playAgainButton') {
@@ -386,7 +567,7 @@ async function startPlatformerGame() {
 
     async function loadLevelTextures(lvl) {
         const all = [...lvl.floors, ...lvl.walls, ...lvl.lavas, ...lvl.trampolines,
-                        ...lvl.enemies, ...lvl.orbs, ...lvl.mpUp, ...lvl.mpRight, ...lvl.coins, ...lvl.portals];
+            ...lvl.enemies, ...lvl.orbs, ...lvl.mpUp, ...lvl.mpRight, ...lvl.coins, ...lvl.portals];
         await Promise.all(all.map(async obj => {
             if (obj.texture) {
                 obj.tex = await loadTexture(obj.texture);
@@ -441,7 +622,7 @@ async function startPlatformerGame() {
             octx.globalAlpha = 1;
         }
 
-        lvl._bgBaked  = oc;
+        lvl._bgBaked = oc;
         lvl._bgBakedW = w;
         lvl._bgBakedH = h;
         return oc;
@@ -480,16 +661,129 @@ async function startPlatformerGame() {
             if (!resp.ok) break;
             const xml = parser.parseFromString(await resp.text(), 'text/xml');
             if (xml.querySelector('parseerror')) break;
-            const lvl = parseLvl(xml, i);
-            await loadLevelTextures(lvl);
-            levels.push(lvl);
+            const lvlParsed = parseLvl(xml, i);
+            await loadLevelTextures(lvlParsed);
+            levels.push(lvlParsed);
         } catch(e) { break; }
     }
 
+    function populateLevelGrid() {
+        const grid = document.getElementById('mod-level-grid');
+        grid.innerHTML = '';
+        const progress = getCompletedLevels();
+        const highestCompleted = Math.max(-1, ...Object.keys(progress).map(k => parseInt(k)));
+
+        levels.forEach((level, idx) => {
+            const totalCoins = countLevelCoins(level);
+            const earnedCoins = getLevelCoins(idx);
+            const completed = progress[idx]?.completed || false;
+            const locked = idx > highestCompleted + 1;
+            const bestTime = getLevelBestTime(idx);
+
+            const card = document.createElement('div');
+            card.className = 'mod-level-card';
+            if (completed) card.classList.add('mod-level-done');
+            if (locked) card.classList.add('mod-level-locked');
+
+            if (locked) {
+                card.innerHTML = `
+                    <div class="mod-level-lock">🔒</div>
+                    <div class="mod-level-num">${idx + 1}</div>
+                    <div class="mod-level-name">${level.title}</div>
+                `;
+            } else {
+                card.innerHTML = `
+                    ${completed ? '<div class="mod-level-badge">✓</div>' : ''}
+                    <div class="mod-level-num">${idx + 1}</div>
+                    <div class="mod-level-name">${level.title}</div>
+                    ${totalCoins > 0 ? `<div class="mod-level-coins">🪙 ${earnedCoins}/${totalCoins}</div>` : ''}
+                    ${bestTime !== null ? `<div class="mod-level-besttime">⏱ ${bestTime.toFixed(1)}s</div>` : ''}
+                `;
+
+                card.addEventListener('click', () => {
+                    startGame(idx);
+                });
+            }
+
+            grid.appendChild(card);
+        });
+    }
+
+    const BACKEND_URL = 'https://somtoday-mod-platformer-backend.onrender.com';
+
+    document.getElementById('mod-codes-submit').addEventListener('click', async () => {
+        const input = document.getElementById('mod-codes-input');
+        const status = document.getElementById('mod-codes-status');
+        const code = input.value.trim().toUpperCase();
+
+        if (!code) {
+            status.className = 'mod-codes-status mod-codes-status-error';
+            status.textContent = 'Voer een code in';
+            return;
+        }
+
+        const usedCodes = JSON.parse(get('platformer-used-codes') || '[]');
+        if (usedCodes.includes(code)) {
+            status.className = 'mod-codes-status mod-codes-status-error';
+            status.textContent = 'Deze code is al gebruikt';
+            return;
+        }
+
+        status.className = 'mod-codes-status mod-codes-status-loading';
+        status.textContent = 'Code valideren... dit kan tot 50 seconden duren';
+
+        try {
+            const resp = await fetch(`${BACKEND_URL}/redeem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, uuid: CODE_UUID }),
+            });
+            const data = await resp.json();
+
+            if (resp.ok && data.success) {
+                const reward = data.reward.coins || 0;
+                const currentCodeCoins = parseInt(get('platformer-code-coins') || '0');
+                set('platformer-code-coins', currentCodeCoins + reward);
+
+                usedCodes.push(code);
+                set('platformer-used-codes', JSON.stringify(usedCodes));
+
+                status.className = 'mod-codes-status mod-codes-status-success';
+                status.textContent = `🎉 +${reward} munten ontvangen!`;
+                input.value = '';
+
+                updateMenuCoins();
+            } else if (resp.status === 409) {
+                usedCodes.push(code);
+                set('platformer-used-codes', JSON.stringify(usedCodes));
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Deze code is al gebruikt';
+            } else if (resp.status === 404) {
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Ongeldige code';
+            } else {
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Er is een fout opgetreden, probeer opnieuw';
+            }
+        } catch(e) {
+            status.className = 'mod-codes-status mod-codes-status-error';
+            status.textContent = 'Geen verbinding met server, probeer het later opnieuw';
+        }
+    });
+
+    document.getElementById('mod-codes-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('mod-codes-submit').click();
+        }
+    });
+
+    updateMenuCoins();
+    populateLevelGrid();
+
     const PW = 49, PH = 49;
-    const GRAV     = 1800;
-    const JUMP_V   = 620;
-    const SPEED    = 300;
+    const GRAV = 1800;
+    const JUMP_V = 620;
+    const SPEED = 300;
     const MAX_FALL = -1400;
     const PORTAL_COOLDOWN = 0.4;
     const DEATH_DUR = 0.7;
@@ -497,19 +791,19 @@ async function startPlatformerGame() {
 
     const sfxPool = {};
 
-    let lvl      = null;
-    let lvlIdx   = 0;
+    let lvl = null;
+    let lvlIdx = 0;
     let px, py, vx = 0, vy = 0;
     let onGround = false;
-    let phase    = 'playing';
+    let phase = 'playing';
     let camX = 0, camY = 0;
-    let elapsed  = 0;
-    let timing   = false;
+    let elapsed = 0;
+    let timing = false;
     let jumpQ = false;
     let jumpHeldLastFrame = false;
     let jumpAnim = 0, landAnim = 0;
-    let gameAlive  = true;
-    let descTimer  = 0;
+    let gameAlive = true;
+    let descTimer = 0;
     let sessionCoins = 0;
     let sessionTotalCoins = 0;
     let coinPopups = [];
@@ -535,6 +829,8 @@ async function startPlatformerGame() {
     let doorMsg = null;
 
     let noclip = false;
+
+    let levelCompletedTime = 0;
 
     function getCurrentCheckpoint() {
         return checkpointHistory.length > 0 ? checkpointHistory[checkpointHistory.length - 1] : null;
@@ -602,9 +898,9 @@ async function startPlatformerGame() {
             if (cp.doorSnapshot) {
                 lvl.walls.forEach((w, i) => {
                     if (w.keyId && cp.doorSnapshot[i] !== undefined) {
-                        w.doorOpen   = cp.doorSnapshot[i].doorOpen;
-                        w.doorSlide  = cp.doorSnapshot[i].doorSlide;
-                        w.doorDir    = 0;
+                        w.doorOpen = cp.doorSnapshot[i].doorOpen;
+                        w.doorSlide = cp.doorSnapshot[i].doorSlide;
+                        w.doorDir = 0;
                     }
                 });
             }
@@ -615,18 +911,18 @@ async function startPlatformerGame() {
             lvl.walls.forEach(w => {
                 if (!w.closeOnAreaId) return;
                 const linkedArea = lvl.areas.find(a => a.areaId === w.closeOnAreaId);
-                const areaIdx    = lvl.areas.indexOf(linkedArea);
+                const areaIdx = lvl.areas.indexOf(linkedArea);
                 const wasTriggeredAtCp = cp.areaSnapshot && areaIdx !== -1 && cp.areaSnapshot[areaIdx]?.triggered;
                 w.areaCloseSlide = wasTriggeredAtCp ? 0 : 1;
-                w.areaCloseDir   = 0;
+                w.areaCloseDir = 0;
             });
             if (cp.lavaSnapshot) {
                 lvl.lavas.forEach((lv, i) => {
                     const snap = cp.lavaSnapshot[i];
                     if (!snap || !lv.flowUp) return;
-                    lv.currentH  = snap.currentH;
+                    lv.currentH = snap.currentH;
                     lv.flowTimer = snap.flowTimer;
-                    lv.flowing   = snap.flowing;
+                    lv.flowing = snap.flowing;
                 });
             }
             lvl.enemies.forEach(en => { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; });
@@ -646,9 +942,9 @@ async function startPlatformerGame() {
     }
 
     document.addEventListener('keydown', e => {
-        if (['ArrowDown','ArrowUp','Space'].includes(e.code)) e.preventDefault();
+        if (['ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) e.preventDefault();
         KEY[e.code] = true;
-        if (['ArrowUp','KeyW','Space'].includes(e.code)) jumpQ = true;
+        if (['ArrowUp', 'KeyW', 'Space'].includes(e.code)) jumpQ = true;
         if (DEBUG_MODE && e.code === 'KeyH') debugVisible = !debugVisible;
         if (DEBUG_MODE && e.code === 'KeyN') { noclip = !noclip; }
         if (e.code === 'Escape') togglePause();
@@ -688,14 +984,14 @@ async function startPlatformerGame() {
     document.addEventListener('keyup', e => { KEY[e.code] = false; });
 
     function togglePause() {
-        if (phase === 'win') return;
+        if (phase === 'win' || phase === 'levelComplete') return;
         if (phase === 'playing') {
             phase = 'paused';
             timing = false;
             if (musicAudio) musicAudio.pause();
             if (musicFading) {
                 if (musicFading.outAudio) musicFading.outAudio.pause();
-                if (musicFading.inAudio)  musicFading.inAudio.pause();
+                if (musicFading.inAudio) musicFading.inAudio.pause();
             }
         } else if (phase === 'paused') {
             phase = 'playing';
@@ -703,19 +999,19 @@ async function startPlatformerGame() {
             if (musicAudio) musicAudio.play().catch(() => {});
             if (musicFading) {
                 if (musicFading.outAudio) musicFading.outAudio.play().catch(() => {});
-                if (musicFading.inAudio)  musicFading.inAudio.play().catch(() => {});
+                if (musicFading.inAudio) musicFading.inAudio.play().catch(() => {});
             }
         }
     }
 
     function mBtn(btnId, onD, onU) {
         const b = id(btnId); if (!b) return;
-        ['touchstart','mousedown'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onD(); }));
-        ['touchend','mouseup','touchcancel','mouseleave'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onU(); }));
+        ['touchstart', 'mousedown'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onD(); }));
+        ['touchend', 'mouseup', 'touchcancel', 'mouseleave'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); onU(); }));
     }
-    mBtn('mod-btn-left',  () => mLeft  = true,                   () => mLeft  = false);
-    mBtn('mod-btn-right', () => mRight = true,                   () => mRight = false);
-    mBtn('mod-btn-jump',  () => { mJump = true; jumpQ = true; }, () => mJump  = false);
+    mBtn('mod-btn-left', () => mLeft = true, () => mLeft = false);
+    mBtn('mod-btn-right', () => mRight = true, () => mRight = false);
+    mBtn('mod-btn-jump', () => { mJump = true; jumpQ = true; }, () => mJump = false);
 
     id('mod-pause-btn').addEventListener('click', () => togglePause());
     id('mod-pause-btn').addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); togglePause(); });
@@ -736,15 +1032,15 @@ async function startPlatformerGame() {
     function loadLvl(idx) {
         if (idx >= levels.length) { winGame(); return; }
         lvlIdx = idx;
-        lvl    = levels[idx];
+        lvl = levels[idx];
         for (const mp of lvl.mpUp) { mp.cy = mp.startY; mp.dir = 1; mp.triggerTimer = 0; mp.returnTimer = 0; mp.triggerState = 'idle'; }
         for (const mp of lvl.mpRight) { mp.cx = mp.startX; mp.dir = 1; }
         for (const orb of lvl.orbs) { orb.actTimer = 0; }
-        for (const en  of lvl.enemies) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; }
-        for (const co  of lvl.coins) { co.collected = false; }
-        for (const cp  of lvl.checkpoints) { cp.activated = false; }
-        for (const pt  of lvl.portals) { pt.cooldown = 0; }
-        for (const wl  of lvl.walls) {
+        for (const en of lvl.enemies) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; en.detected = false; }
+        for (const co of lvl.coins) { co.collected = false; }
+        for (const cp of lvl.checkpoints) { cp.activated = false; }
+        for (const pt of lvl.portals) { pt.cooldown = 0; }
+        for (const wl of lvl.walls) {
             wl.playerOverlap = false;
             if (wl.keyId) { wl.doorOpen = false; wl.doorSlide = 0; wl.doorDir = 0; }
             if (wl.closeOnAreaId) { wl.areaCloseSlide = 1; wl.areaCloseDir = 0; }
@@ -757,7 +1053,6 @@ async function startPlatformerGame() {
         for (const lv of lvl.lavas) {
             if (lv.flowUp) { lv.currentH = lv.h; lv.flowTimer = 0; lv.flowing = !lv.flowAreaId; }
         }
-        if (lvl.enemySpawners) lvl.enemySpawners.forEach(s => s.fired = false);
         heldKey = null;
         doorMsg = null;
         checkpointHistory = [];
@@ -777,27 +1072,62 @@ async function startPlatformerGame() {
         playLevelMusic(lvl.song);
     }
 
+    function completedLevel() {
+        phase = 'levelComplete';
+        timing = false;
+        levelCompletedTime = elapsed;
+
+        markLevelCompleted(lvlIdx, sessionCoins);
+        setLevelBestTime(lvlIdx, elapsed);
+
+        const totalEarned = getTotalCoinsEarned();
+        set('platformer-total-coins', totalEarned);
+    }
+
     function winGame() {
         phase = 'win';
         timing = false;
         stopMusic();
-        const prev = get('platformer-gamerecord');
-        if (n(prev) || elapsed < parseFloat(prev)) set('platformer-gamerecord', elapsed.toFixed(1));
-        const prevCoins = parseInt(get('platformer-coinrecord') || '0');
-        if (sessionCoins > prevCoins) set('platformer-coinrecord', sessionCoins);
+
+        markLevelCompleted(lvlIdx, sessionCoins);
+        setLevelBestTime(lvlIdx, elapsed);
+
+        const totalEarned = getTotalCoinsEarned();
+        set('platformer-total-coins', totalEarned);
     }
 
     function endGame() {
         gameAlive = false;
         stopMusic();
-        window.removeEventListener('resize', resizeCanvas);
-        window.removeEventListener('resize', updateMobileVis);
         tn('body', 0).classList.remove('mod-game-playing');
-        setTimeout(() => { const g = id('mod-game'); if (g) g.remove(); }, 320);
+
+        document.getElementById('mod-game').style.display = 'none';
+        document.getElementById('mod-menu').style.display = '';
+
+        updateMenuCoins();
+        populateLevelGrid();
+        showScreen('mod-screen-main');
+
+        gameAlive = true;
+    }
+
+    function closeEntirePlatformer() {
+        gameAlive = false;
+        stopMusic();
+        tn('body', 0).classList.remove('mod-game-playing');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('mod-play');
+        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+
+        const menuEl = document.getElementById('mod-menu');
+        const gameEl = document.getElementById('mod-game');
+        if (menuEl) menuEl.remove();
+        if (gameEl) gameEl.remove();
     }
 
     function updateCam() {
-        let tx = px + PW / 2 - canvas.width  * 0.4;
+        let tx = px + PW / 2 - canvas.width * 0.4;
         let ty = lvl.worldHeight - py - PH / 2 - canvas.height / 2;
 
         for (const cam of lvl.cameras) {
@@ -805,7 +1135,7 @@ async function startPlatformerGame() {
             const area = lvl.areas.find(a => a.areaId === cam.areaId);
             if (!area) continue;
             const inArea = px + PW > area.x && px < area.x + area.w &&
-                           py + PH > area.y && py < area.y + area.h;
+                py + PH > area.y && py < area.y + area.h;
             if (!inArea) continue;
             if (cam.lockX && cam.targetCamX !== null) tx = cam.targetCamX - canvas.width / 2;
             if (cam.lockY && cam.targetCamY !== null) ty = lvl.worldHeight - cam.targetCamY - canvas.height / 2;
@@ -820,11 +1150,11 @@ async function startPlatformerGame() {
             camX += (tx - camX) * 0.1;
             camY += (ty - camY) * 0.1;
         }
-        camX = Math.max(0, Math.min(camX, lvl.worldWidth  - canvas.width));
+        camX = Math.max(0, Math.min(camX, lvl.worldWidth - canvas.width));
         camY = Math.max(0, Math.min(camY, lvl.worldHeight - canvas.height));
     }
 
-    function wx(x)    { return x - camX; }
+    function wx(x) { return x - camX; }
     function wy(y, h) { return lvl.worldHeight - y - h - camY; }
 
     function getEnterSide(portal) {
@@ -929,11 +1259,11 @@ async function startPlatformerGame() {
         if (phase === 'dying') {
             deathTimer -= dt;
             for (const s of deathSlices) {
-                s.worldX      += s.vx * dt;
+                s.worldX += s.vx * dt;
                 s.worldYBottom += s.vy * dt;
-                s.vy           -= GRAV * dt;
+                s.vy -= GRAV * dt;
                 if (s.vy < MAX_FALL) s.vy = MAX_FALL;
-                s.rot          += s.rotV * dt;
+                s.rot += s.rotV * dt;
             }
             if (deathTimer <= 0) {
                 deathSlices = [];
@@ -943,12 +1273,13 @@ async function startPlatformerGame() {
                 portalCooldownTimer = 0;
                 snapCam = true;
                 for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
-                for (const orb of lvl.orbs)    orb.actTimer = 0;
+                for (const orb of lvl.orbs) orb.actTimer = 0;
                 phase = 'playing';
             }
             updateCam();
             return;
         }
+        if (phase === 'levelComplete' || phase === 'win') return;
         if (phase !== 'playing') return;
 
         if (descTimer > 0) descTimer -= dt;
@@ -978,8 +1309,8 @@ async function startPlatformerGame() {
             if (!lv.flowUp || !lv.flowing) continue;
             if (lv.flowDuration > 0 && lv.flowTimer >= lv.flowDuration) continue;
             lv.flowTimer += dt;
-            const elapsed2 = lv.flowDuration > 0 ? Math.min(lv.flowTimer, lv.flowDuration) : lv.flowTimer;
-            lv.currentH = lv.h + lv.flowSpeed * elapsed2;
+            const lavaElapsed = lv.flowDuration > 0 ? Math.min(lv.flowTimer, lv.flowDuration) : lv.flowTimer;
+            lv.currentH = lv.h + lv.flowSpeed * lavaElapsed;
         }
 
         for (const wl of lvl.walls) {
@@ -999,7 +1330,7 @@ async function startPlatformerGame() {
         for (const area of lvl.areas) {
             if (area.triggered) continue;
             const fullyInside = px >= area.x && px + PW <= area.x + area.w &&
-                                py >= area.y && py + PH <= area.y + area.h;
+                py >= area.y && py + PH <= area.y + area.h;
             if (!fullyInside) continue;
             area.triggered = true;
 
@@ -1026,7 +1357,7 @@ async function startPlatformerGame() {
 
             for (const lv of lvl.lavas) {
                 if (lv.flowAreaId === area.areaId) {
-                    lv.flowing   = true;
+                    lv.flowing = true;
                     lv.flowTimer = 0;
                 }
             }
@@ -1095,7 +1426,7 @@ async function startPlatformerGame() {
                 if (dist < SPAWN_CLEAR_RADIUS) continue;
 
                 const n1 = Math.floor(Math.random() * 5) + 1;
-                let   n2 = Math.floor(Math.random() * 10);
+                let n2 = Math.floor(Math.random() * 10);
                 if (n1 === 5 && n2 >= 5) n2 = 4;
                 const spawnedEnemy = {
                     type: 'enemy',
@@ -1124,16 +1455,16 @@ async function startPlatformerGame() {
             }
         }
 
-        const goLeft  = mLeft  || KEY['ArrowLeft']  || KEY['KeyA'];
+        const goLeft = mLeft || KEY['ArrowLeft'] || KEY['KeyA'];
         const goRight = mRight || KEY['ArrowRight'] || KEY['KeyD'];
 
-        if (goRight && !goLeft) vx =  SPEED;
+        if (goRight && !goLeft) vx = SPEED;
         else if (goLeft && !goRight) vx = -SPEED;
-        else vx =  0;
+        else vx = 0;
 
         if (standingOn?._mp) {
             if (standingOn.type === 'mpRight') px = Math.max(0, Math.min(px + standingOn._mp.deltaX, lvl.worldWidth - PW));
-            if (standingOn.type === 'mpUp')    py += standingOn._mp.deltaY;
+            if (standingOn.type === 'mpUp') py += standingOn._mp.deltaY;
         }
 
         if (!onGround) {
@@ -1144,8 +1475,6 @@ async function startPlatformerGame() {
         const jumpHeld = mJump || KEY['ArrowUp'] || KEY['KeyW'] || KEY['Space'];
         if (!jumpHeld) jumpQ = false;
         const wantJump = jumpQ || (jumpHeld && onGround);
-
-        const jumpReleasedSinceLastJump = !jumpHeldLastFrame;
 
         if (wantJump) {
             let jumped = false;
@@ -1246,8 +1575,8 @@ async function startPlatformerGame() {
             } else {
                 const spd = 200 * dt;
                 mp.cy += mp.dir * spd;
-                if (mp.cy >= mp.endY)   { mp.cy = mp.endY;   mp.dir = -1; }
-                if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir =  1; }
+                if (mp.cy >= mp.endY) { mp.cy = mp.endY; mp.dir = -1; }
+                if (mp.cy <= mp.startY) { mp.cy = mp.startY; mp.dir = 1; }
             }
             mp.deltaY = mp.cy - oldCy;
         }
@@ -1256,8 +1585,8 @@ async function startPlatformerGame() {
             const spd = 160 * dt;
             const oldCx = mp.cx;
             mp.cx += mp.dir * spd;
-            if (mp.cx >= mp.endX)   { mp.cx = mp.endX;   mp.dir = -1; }
-            if (mp.cx <= mp.startX) { mp.cx = mp.startX; mp.dir =  1; }
+            if (mp.cx >= mp.endX) { mp.cx = mp.endX; mp.dir = -1; }
+            if (mp.cx <= mp.startX) { mp.cx = mp.startX; mp.dir = 1; }
             mp.deltaX = mp.cx - oldCx;
         }
 
@@ -1368,14 +1697,14 @@ async function startPlatformerGame() {
                 const overlapY = Math.min((a.y + a.h) - b.y, (b.y + b.h) - a.y);
                 if (overlapX <= overlapY) {
                     const half = overlapX / 2;
-                    const aLeft = (a.x + a.w/2) < (b.x + b.w/2);
+                    const aLeft = (a.x + a.w / 2) < (b.x + b.w / 2);
                     if (aLeft) { a.x -= half; b.x += half; }
-                    else       { a.x += half; b.x -= half; }
+                    else { a.x += half; b.x -= half; }
                 } else {
                     const half = overlapY / 2;
-                    const aBelow = (a.y + a.h/2) < (b.y + b.h/2);
+                    const aBelow = (a.y + a.h / 2) < (b.y + b.h / 2);
                     if (aBelow) { a.y -= half; b.y += half; }
-                    else        { a.y += half; b.y -= half; }
+                    else { a.y += half; b.y -= half; }
                 }
                 if (a.min !== null && a.x < a.min) a.x = a.min;
                 if (a.max !== null && a.x + a.w > a.max) a.x = a.max - a.w;
@@ -1511,11 +1840,11 @@ async function startPlatformerGame() {
         for (const fl of solids) {
             if (!hit(px, py, PW, PH, fl.x, fl.y, fl.w, fl.h)) continue;
             const playerBottom = py;
-            const playerTop    = py + PH;
-            const flTop        = fl.y + fl.h;
-            const flBottom     = fl.y;
-            const overlapY     = Math.min(playerTop - flBottom, flTop - playerBottom);
-            const overlapX     = Math.min((px + PW) - fl.x, (fl.x + fl.w) - px);
+            const playerTop = py + PH;
+            const flTop = fl.y + fl.h;
+            const flBottom = fl.y;
+            const overlapY = Math.min(playerTop - flBottom, flTop - playerBottom);
+            const overlapX = Math.min((px + PW) - fl.x, (fl.x + fl.w) - px);
             if (overlapY < overlapX) {
                 if (vy <= 0 && playerBottom < flTop && playerTop > flTop - 0.5) {
                     py = flTop;
@@ -1598,7 +1927,15 @@ async function startPlatformerGame() {
         }
 
         for (const en of lvl.ends) {
-            if (hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) { loadLvl(lvlIdx + 1); break; }
+            if (hit(px, py, PW, PH, en.x, en.y, en.w, en.h)) {
+                const isLastLevel = lvlIdx >= levels.length - 1;
+                if (isLastLevel) {
+                    winGame();
+                } else {
+                    completedLevel();
+                }
+                break;
+            }
         }
 
         if (jumpAnim > 0) jumpAnim -= dt;
@@ -1613,8 +1950,8 @@ async function startPlatformerGame() {
         orbRing: '#eaecd1', orbCore: '#fce512',
         coin: '#ffd700', coinShine: '#fff8a0', coinShadow: '#b8860b',
         portalInner: 'rgba(120,60,255,0.35)',
-        portalRim:   '#a855f7',
-        portalGlow:  'rgba(168,85,247,0.55)',
+        portalRim: '#a855f7',
+        portalGlow: 'rgba(168,85,247,0.55)',
     };
 
     const FLAG_W = 14, FLAG_H = 80;
@@ -1714,14 +2051,14 @@ async function startPlatformerGame() {
             if (obj.playerOverlap) {
                 ctx.save();
                 if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.clip(); }
-                else       { ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip(); }
+                else { ctx.beginPath(); ctx.rect(cxPos, cyPos, w, h); ctx.clip(); }
                 const m = new DOMMatrix();
                 m.translateSelf(cxPos, cyPos);
                 obj.texGhost.pat.setTransform(m);
                 ctx.fillStyle = obj.texGhost.pat;
                 ctx.globalAlpha = 1;
                 if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.fill(); }
-                else       { ctx.fillRect(cxPos, cyPos, w, h); }
+                else { ctx.fillRect(cxPos, cyPos, w, h); }
                 ctx.restore();
             }
             return;
@@ -1739,10 +2076,10 @@ async function startPlatformerGame() {
         if (!obj.tex) {
             ctx.globalAlpha = 0.55;
             ctx.strokeStyle = fallbackCol;
-            ctx.lineWidth   = 2;
+            ctx.lineWidth = 2;
             ctx.setLineDash([6, 4]);
             if (r > 0) { ctx.beginPath(); ctx.roundRect(cxPos, cyPos, w, h, r); ctx.stroke(); }
-            else       { ctx.strokeRect(cxPos, cyPos, w, h); }
+            else { ctx.strokeRect(cxPos, cyPos, w, h); }
         }
         ctx.restore();
     }
@@ -1756,8 +2093,8 @@ async function startPlatformerGame() {
         const rot = (wl.rotation || 0) * Math.PI / 180;
         const cx = wx(dr.x);
         const cy = wy(dr.y, dr.h);
-        const w  = dr.w;
-        const h  = dr.h;
+        const w = dr.w;
+        const h = dr.h;
         const kc = wl.keyColor || '#ffd700';
 
         ctx.save();
@@ -1814,24 +2151,24 @@ async function startPlatformerGame() {
             }
 
             ctx.strokeStyle = kc;
-            ctx.lineWidth   = 2.5;
+            ctx.lineWidth = 2.5;
             ctx.shadowColor = kc;
-            ctx.shadowBlur  = 8;
+            ctx.shadowBlur = 8;
             ctx.beginPath();
             ctx.roundRect(lx, ly, w, h, 4);
             ctx.stroke();
         }
 
         if (wl.keyholeVisible && h > 20) {
-            const khCx  = lx + w / 2;
-            const khCy  = ly + h * 0.42;
-            const khR   = Math.min(Math.max(w * 0.22, 10), Math.max(h * 0.18, 10), 28);
+            const khCx = lx + w / 2;
+            const khCy = ly + h * 0.42;
+            const khR = Math.min(Math.max(w * 0.22, 10), Math.max(h * 0.18, 10), 28);
             const slotW = khR * 0.85;
             const slotH = khR * 1.4;
 
             ctx.save();
             ctx.shadowColor = kc;
-            ctx.shadowBlur  = 16;
+            ctx.shadowBlur = 16;
 
             ctx.fillStyle = 'rgba(0,0,0,0.75)';
             ctx.beginPath();
@@ -1839,7 +2176,7 @@ async function startPlatformerGame() {
             ctx.fill();
 
             ctx.strokeStyle = kc;
-            ctx.lineWidth   = 3;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(khCx, khCy, khR, 0, Math.PI * 2);
             ctx.stroke();
@@ -1854,7 +2191,7 @@ async function startPlatformerGame() {
             ctx.fill();
 
             ctx.strokeStyle = kc;
-            ctx.lineWidth   = 2;
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(khCx - slotW / 2, khCy + khR * 0.1);
             ctx.lineTo(khCx + slotW / 2, khCy + khR * 0.1);
@@ -1868,6 +2205,7 @@ async function startPlatformerGame() {
 
         ctx.restore();
     }
+
     function drawAreaCloseWall(wl) {
         if (wl.areaCloseSlide >= 1) return;
         const dr = getAreaCloseRect(wl);
@@ -1927,11 +2265,11 @@ async function startPlatformerGame() {
 
     function blendDoorColor(hexColor) {
         try {
-            const r = parseInt(hexColor.slice(1,3),16);
-            const g = parseInt(hexColor.slice(3,5),16);
-            const b = parseInt(hexColor.slice(5,7),16);
+            const r = parseInt(hexColor.slice(1, 3), 16);
+            const g = parseInt(hexColor.slice(3, 5), 16);
+            const b = parseInt(hexColor.slice(5, 7), 16);
             return `rgb(${Math.round(r * 0.22 + 60)},${Math.round(g * 0.22 + 60)},${Math.round(b * 0.22 + 60)})`;
-        } catch(e) { return '#555'; }
+        } catch (e) { return '#555'; }
     }
 
     function drawBg() {
@@ -1948,7 +2286,7 @@ async function startPlatformerGame() {
             ctx.strokeStyle = 'rgba(155,155,156,0.06)';
             ctx.lineWidth = 1;
             const gs = 80, ox = camX % gs, oy = camY % gs;
-            for (let x = -ox; x < canvas.width;  x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+            for (let x = -ox; x < canvas.width; x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = -oy; y < canvas.height; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
         }
     }
@@ -1957,8 +2295,8 @@ async function startPlatformerGame() {
         const rot = (portal.rotation || 0) * Math.PI / 180;
         const cx = wx(portal.x);
         const cy = wy(portal.y, portal.h);
-        const w  = portal.w;
-        const h  = portal.h;
+        const w = portal.w;
+        const h = portal.h;
 
         ctx.save();
 
@@ -1996,15 +2334,15 @@ async function startPlatformerGame() {
             ctx.restore();
             return;
         }
-        
+
         const t = performance.now() / 1000;
         const pulse = 0.7 + 0.3 * Math.sin(t * 3 + (portal.portalId || 0) * 1.7);
 
         ctx.shadowColor = COL.portalGlow;
-        ctx.shadowBlur  = 18 * pulse;
+        ctx.shadowBlur = 18 * pulse;
 
         ctx.strokeStyle = COL.portalRim;
-        ctx.lineWidth   = 3;
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.roundRect(lx, ly, w, h, 6);
         ctx.stroke();
@@ -2013,11 +2351,11 @@ async function startPlatformerGame() {
 
         const numBands = 6;
         for (let i = 0; i < numBands; i++) {
-            const frac  = (i / numBands + t * 0.4) % 1;
+            const frac = (i / numBands + t * 0.4) % 1;
             const alpha = (1 - frac) * 0.18 * pulse;
             const inset = frac * Math.min(w, h) * 0.38;
             ctx.strokeStyle = `rgba(168,85,247,${alpha})`;
-            ctx.lineWidth   = 1.5;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.roundRect(lx + inset, ly + inset, Math.max(2, w - inset * 2), Math.max(2, h - inset * 2), Math.max(1, 6 - inset * 0.1));
             ctx.stroke();
@@ -2045,7 +2383,7 @@ async function startPlatformerGame() {
         ctx.beginPath();
         ctx.moveTo(fx + 4, fy);
         ctx.lineTo(fx + 30, fy + 13);
-        ctx.lineTo(fx + 4,  fy + 26);
+        ctx.lineTo(fx + 4, fy + 26);
         ctx.closePath(); ctx.fill();
         ctx.beginPath();
         ctx.arc(fx + 2, fy, 5, 0, Math.PI * 2);
@@ -2059,11 +2397,11 @@ async function startPlatformerGame() {
         ctx.save();
         if (t.ghost) ctx.globalAlpha = 0.3;
         ctx.textBaseline = 'middle';
-        ctx.textAlign    = 'left';
-        ctx.shadowBlur   = 0;
+        ctx.textAlign = 'left';
+        ctx.shadowBlur = 0;
         const sizeMatch = t.baseFont.match(/(\d+)px/);
-        const basePx    = sizeMatch ? parseInt(sizeMatch[1]) : 20;
-        const fontRest  = t.baseFont.replace(/(?:bold\s*)?\d+px/, '').trim();
+        const basePx = sizeMatch ? parseInt(sizeMatch[1]) : 20;
+        const fontRest = t.baseFont.replace(/(?:bold\s*)?\d+px/, '').trim();
         function segFont(bold) {
             return (bold ? 'bold ' : '') + basePx + 'px ' + fontRest;
         }
@@ -2076,7 +2414,7 @@ async function startPlatformerGame() {
         const drawY = wy(t.y, 0);
         let curX = drawX;
         for (const seg of t.segments) {
-            ctx.font      = segFont(seg.bold);
+            ctx.font = segFont(seg.bold);
             ctx.fillStyle = seg.color;
             ctx.fillText(seg.text, curX, drawY);
             curX += ctx.measureText(seg.text).width;
@@ -2093,32 +2431,32 @@ async function startPlatformerGame() {
         if (co.ghost) ctx.globalAlpha = 0.3;
         if (co.blue) {
             ctx.shadowColor = 'rgba(80, 160, 255, 0.9)';
-            ctx.shadowBlur  = 18;
+            ctx.shadowBlur = 18;
         } else {
             ctx.shadowColor = 'rgba(255, 215, 0, 0.7)';
-            ctx.shadowBlur  = 10;
+            ctx.shadowBlur = 10;
         }
         const innerCol = co.blue ? '#a0d4ff' : COL.coinShine;
-        const midCol   = co.blue ? '#5b9cf6' : COL.coin;
+        const midCol = co.blue ? '#5b9cf6' : COL.coin;
         const outerCol = co.blue ? '#1a4d99' : COL.coinShadow;
         const g = ctx.createRadialGradient(cx - co.r * 0.3, cy - co.r * 0.3, 0, cx, cy, co.r);
-        g.addColorStop(0,   innerCol);
+        g.addColorStop(0, innerCol);
         g.addColorStop(0.4, midCol);
-        g.addColorStop(1,   outerCol);
+        g.addColorStop(1, outerCol);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(cx, cy, co.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur  = 0;
+        ctx.shadowBlur = 0;
         ctx.strokeStyle = outerCol;
-        ctx.lineWidth   = 1.5;
+        ctx.lineWidth = 1.5;
         if (co.ghost) ctx.setLineDash([4, 3]);
         ctx.beginPath();
         ctx.arc(cx, cy, co.r, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.fillStyle    = outerCol;
-        ctx.font         = `bold ${Math.round(co.r * (co.blue ? 0.72 : 1.1))}px sans-serif`;
-        ctx.textAlign    = 'center';
+        ctx.fillStyle = outerCol;
+        ctx.font = `bold ${Math.round(co.r * (co.blue ? 0.72 : 1.1))}px sans-serif`;
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(co.blue ? '$10' : '$', cx, cy + 1);
         ctx.restore();
@@ -2127,15 +2465,15 @@ async function startPlatformerGame() {
     function drawKey(k) {
         if (k.collected) return;
         const bob = Math.sin(k.bobTimer) * 3;
-        const kc  = k.keyColor || '#ffd700';
-        const cx  = wx(k.x);
-        const cy  = wy(k.y, k.r * 2) + k.r + bob;
-        const r   = k.r;
+        const kc = k.keyColor || '#ffd700';
+        const cx = wx(k.x);
+        const cy = wy(k.y, k.r * 2) + k.r + bob;
+        const r = k.r;
 
         ctx.save();
         if (k.ghost) ctx.globalAlpha = 0.3;
         ctx.shadowColor = kc;
-        ctx.shadowBlur  = 14;
+        ctx.shadowBlur = 14;
 
         const headR = r * 0.58;
         ctx.fillStyle = kc;
@@ -2148,23 +2486,23 @@ async function startPlatformerGame() {
         ctx.arc(cx - r * 0.18, cy - r * 0.1, headR * 0.45, 0, Math.PI * 2);
         ctx.fill();
 
-        const shaftX  = cx - r * 0.18 + headR * 0.85;
-        const shaftY  = cy - r * 0.1;
-        const shaftL  = r * 1.1;
-        const shaftH  = r * 0.28;
+        const shaftX = cx - r * 0.18 + headR * 0.85;
+        const shaftY = cy - r * 0.1;
+        const shaftL = r * 1.1;
+        const shaftH = r * 0.28;
         ctx.fillStyle = kc;
         ctx.fillRect(shaftX, shaftY - shaftH / 2, shaftL, shaftH);
 
         const toothW = shaftH * 0.7;
         const toothH = shaftH * 0.8;
-        const t1X    = shaftX + shaftL * 0.45;
-        const t2X    = shaftX + shaftL * 0.7;
+        const t1X = shaftX + shaftL * 0.45;
+        const t2X = shaftX + shaftL * 0.7;
         ctx.fillRect(t1X, shaftY + shaftH / 2, toothW, toothH);
         ctx.fillRect(t2X, shaftY + shaftH / 2, toothW, toothH);
 
-        ctx.shadowBlur  = 0;
+        ctx.shadowBlur = 0;
         ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-        ctx.lineWidth   = 1.2;
+        ctx.lineWidth = 1.2;
         if (k.ghost) ctx.setLineDash([3, 2]);
 
         ctx.beginPath();
@@ -2179,11 +2517,11 @@ async function startPlatformerGame() {
         const kc = heldKey.keyColor || '#ffd700';
         const kx = wx(px + PW / 2);
         const ky = wy(py + PH, 0) - 12;
-        const r  = 9;
+        const r = 9;
 
         ctx.save();
         ctx.shadowColor = kc;
-        ctx.shadowBlur  = 10;
+        ctx.shadowBlur = 10;
 
         const headR = r * 0.56;
         ctx.fillStyle = kc;
@@ -2214,12 +2552,12 @@ async function startPlatformerGame() {
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
         ctx.font = 'bold 17px sans-serif';
-        const textW  = ctx.measureText(doorMsg.text).width;
-        const pad    = 16;
-        const boxW   = textW + pad * 2;
-        const boxH   = 44;
-        const bx     = canvas.width / 2 - boxW / 2;
-        const by     = canvas.height * 0.62;
+        const textW = ctx.measureText(doorMsg.text).width;
+        const pad = 16;
+        const boxW = textW + pad * 2;
+        const boxH = 44;
+        const bx = canvas.width / 2 - boxW / 2;
+        const by = canvas.height * 0.62;
 
         ctx.fillStyle = 'rgba(20,5,5,0.82)';
         ctx.beginPath();
@@ -2227,13 +2565,13 @@ async function startPlatformerGame() {
         ctx.fill();
 
         ctx.strokeStyle = '#fc4040';
-        ctx.lineWidth   = 1.5;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.roundRect(bx, by, boxW, boxH, 10);
         ctx.stroke();
 
-        ctx.fillStyle    = '#ffdddd';
-        ctx.textAlign    = 'center';
+        ctx.fillStyle = '#ffdddd';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(doorMsg.text, canvas.width / 2, by + boxH / 2);
         ctx.restore();
@@ -2242,10 +2580,10 @@ async function startPlatformerGame() {
     function drawCoinPopups() {
         for (const popup of coinPopups) {
             ctx.save();
-            ctx.globalAlpha  = popup.life / popup.maxLife;
-            ctx.fillStyle    = popup.blue ? '#5b9cf6' : COL.coin;
-            ctx.font         = 'bold 20px sans-serif';
-            ctx.textAlign    = 'center';
+            ctx.globalAlpha = popup.life / popup.maxLife;
+            ctx.fillStyle = popup.blue ? '#5b9cf6' : COL.coin;
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`+${popup.value || 1}`, popup.x, popup.y);
             ctx.restore();
@@ -2257,19 +2595,19 @@ async function startPlatformerGame() {
         const alpha = Math.min(1, descTimer / 0.5) * Math.min(1, descTimer / 1.0);
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-        ctx.fillStyle   = 'rgba(0,0,0,0.55)';
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
         const padding = 18;
         ctx.font = '18px sans-serif';
         const textW = ctx.measureText(lvl.description).width;
-        const boxW  = textW + padding * 2;
-        const boxH  = 48;
-        const bx    = canvas.width / 2 - boxW / 2;
-        const by    = canvas.height * 0.72;
+        const boxW = textW + padding * 2;
+        const boxH = 48;
+        const bx = canvas.width / 2 - boxW / 2;
+        const by = canvas.height * 0.72;
         ctx.beginPath();
         ctx.roundRect(bx, by, boxW, boxH, 10);
         ctx.fill();
-        ctx.fillStyle    = '#e0e0e0';
-        ctx.textAlign    = 'center';
+        ctx.fillStyle = '#e0e0e0';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(lvl.description, canvas.width / 2, by + boxH / 2);
         ctx.restore();
@@ -2278,11 +2616,11 @@ async function startPlatformerGame() {
     function drawDebug(dt) {
         if (!debugVisible || !lvl) return;
 
-        fpsAccum  += dt;
+        fpsAccum += dt;
         fpsFrames += 1;
         if (fpsAccum >= 0.25) {
-            fps       = Math.round(fpsFrames / fpsAccum);
-            fpsAccum  = 0;
+            fps = Math.round(fpsFrames / fpsAccum);
+            fpsAccum = 0;
             fpsFrames = 0;
         }
 
@@ -2299,8 +2637,8 @@ async function startPlatformerGame() {
         for (const w of lvl.walls) { if (!w.ghost) ctx.strokeRect(wx(w.x), wy(w.y, w.h), w.w, w.h); }
 
         ctx.strokeStyle = 'rgba(100,200,255,0.7)';
-        for (const mp of lvl.mpUp)    ctx.strokeRect(wx(mp.x),  wy(mp.cy, mp.h), mp.w, mp.h);
-        for (const mp of lvl.mpRight) ctx.strokeRect(wx(mp.cx), wy(mp.y,  mp.h), mp.w, mp.h);
+        for (const mp of lvl.mpUp) ctx.strokeRect(wx(mp.x), wy(mp.cy, mp.h), mp.w, mp.h);
+        for (const mp of lvl.mpRight) ctx.strokeRect(wx(mp.cx), wy(mp.y, mp.h), mp.w, mp.h);
 
         ctx.strokeStyle = 'rgba(80,160,255,0.7)';
         for (const tr of lvl.trampolines) { if (!tr.ghost) ctx.strokeRect(wx(tr.x), wy(tr.y, tr.h), tr.w, tr.h); }
@@ -2385,7 +2723,7 @@ async function startPlatformerGame() {
             `space: ${!!(KEY['Space'])}  up: ${!!(KEY['ArrowUp'])}  w: ${!!(KEY['KeyW'])}`,
             `left: ${!!(KEY['ArrowLeft'] || KEY['KeyA'])}  right: ${!!(KEY['ArrowRight'] || KEY['KeyD'])}`,
             standingOn
-                ? `standing on: ${standingOn.type}` + (standingOn.type !== 'world_floor' ? `  @ x:${(standingOn.x||0).toFixed(0)} y:${(standingOn.y||0).toFixed(0)}` : '')
+                ? `standing on: ${standingOn.type}` + (standingOn.type !== 'world_floor' ? `  @ x:${(standingOn.x || 0).toFixed(0)} y:${(standingOn.y || 0).toFixed(0)}` : '')
                 : 'standing on: (air)',
             `level: ${lvlIdx}  phase: ${phase}`,
             `elapsed: ${elapsed.toFixed(2)}s`,
@@ -2406,8 +2744,8 @@ async function startPlatformerGame() {
         ctx.beginPath();
         ctx.roundRect(bx, by, panelW, panelH, 8);
         ctx.fill();
-        ctx.font         = '13px monospace';
-        ctx.textAlign    = 'left';
+        ctx.font = '13px monospace';
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         lines.forEach((line, i) => {
             ctx.fillStyle = i === 0 ? '#fce512' : '#d0ffd0';
@@ -2458,7 +2796,7 @@ async function startPlatformerGame() {
         }
         ctx.scale(sx, sy);
         ctx.shadowColor = 'rgba(255,255,255,0.3)';
-        ctx.shadowBlur  = 8;
+        ctx.shadowBlur = 8;
         ctx.translate(-PW / 2, -PH / 2);
         const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary-normal').trim() || '#ffffff';
         ctx.fillStyle = bgColor;
@@ -2469,8 +2807,8 @@ async function startPlatformerGame() {
     }
 
     function drawOrb(orb) {
-        const cx   = wx(orb.x);
-        const cy   = wy(orb.y, orb.r * 2) + orb.r;
+        const cx = wx(orb.x);
+        const cy = wy(orb.y, orb.r * 2) + orb.r;
         const glow = orb.actTimer > 0;
         ctx.save();
         if (orb.ghost) ctx.globalAlpha = 0.3;
@@ -2482,7 +2820,7 @@ async function startPlatformerGame() {
                 ctx.drawImage(orb.tex.img, cx - orb.r, cy - orb.r, orb.r * 2, orb.r * 2);
             } else if (orb.textureMode === 'cover') {
                 const imgW = orb.tex.img.naturalWidth, imgH = orb.tex.img.naturalHeight;
-                const size  = orb.r * 2;
+                const size = orb.r * 2;
                 const scale = Math.max(size / imgW, size / imgH);
                 const dw = imgW * scale, dh = imgH * scale;
                 ctx.drawImage(orb.tex.img, cx - orb.r + (size - dw) / 2, cy - orb.r + (size - dh) / 2, dw, dh);
@@ -2496,9 +2834,9 @@ async function startPlatformerGame() {
             ctx.restore();
         } else {
             const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, orb.r);
-            g.addColorStop(0,   glow ? 'rgba(255,240,0,1)'   : COL.orbCore);
+            g.addColorStop(0, glow ? 'rgba(255,240,0,1)' : COL.orbCore);
             g.addColorStop(0.5, glow ? 'rgba(255,180,0,0.8)' : 'rgba(252,229,18,0.6)');
-            g.addColorStop(1,   'rgba(0,0,0,0)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = g;
             ctx.beginPath(); ctx.arc(cx, cy, orb.r, 0, Math.PI * 2); ctx.fill();
         }
@@ -2563,10 +2901,10 @@ async function startPlatformerGame() {
             ctx.beginPath(); ctx.roundRect(lx, ly, en.w, en.h, 6); ctx.stroke();
         }
 
-        ctx.globalAlpha  = en.ghost ? 0.35 : 1;
-        ctx.fillStyle    = '#fff';
-        ctx.font         = 'bold 15px sans-serif';
-        ctx.textAlign    = 'center';
+        ctx.globalAlpha = en.ghost ? 0.35 : 1;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(en.label, lx + en.w / 2, ly + en.h / 2);
 
@@ -2580,9 +2918,9 @@ async function startPlatformerGame() {
         ctx.fillStyle = disabled ? '#2a2a2a' : (hov ? darken(col) : col);
         ctx.shadowBlur = 0;
         ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill();
-        ctx.fillStyle    = disabled ? '#555' : '#fff';
-        ctx.font         = 'bold 20px sans-serif';
-        ctx.textAlign    = 'center';
+        ctx.fillStyle = disabled ? '#555' : '#fff';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(label, x + w / 2, y + h / 2);
         ctx.restore();
@@ -2636,7 +2974,7 @@ async function startPlatformerGame() {
 
     function drawPauseScreen() {
         ctx.save();
-        ctx.shadowBlur  = 0;
+        ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
 
         ctx.fillStyle = 'rgba(0,0,0,0.65)';
@@ -2656,23 +2994,23 @@ async function startPlatformerGame() {
         ctx.roundRect(px2, py2, panelW, panelH, 18);
         ctx.stroke();
 
-        ctx.textAlign    = 'center';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle    = '#ffffff';
-        ctx.font         = 'bold 32px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 32px sans-serif';
         ctx.fillText('Pauze', canvas.width / 2, py2 + 46);
 
         const bw = 300, bh = 52, bx = canvas.width / 2 - bw / 2;
         const gap = 14;
 
-        drawBtn(bx, py2 + 84,               bw, bh, '▶  Doorgaan',          '#3f8541', () => { phase = 'playing'; timing = true; if (musicAudio) musicAudio.play().catch(() => {}); });
-        drawBtn(bx, py2 + 84 + (bh + gap),  bw, bh, '↺  Herstarten bij checkpoint', '#1264fc',
+        drawBtn(bx, py2 + 84, bw, bh, '▶  Doorgaan', '#3f8541', () => { phase = 'playing'; timing = true; if (musicAudio) musicAudio.play().catch(() => {}); });
+        drawBtn(bx, py2 + 84 + (bh + gap), bw, bh, '↺  Herstarten bij checkpoint', '#1264fc',
             () => {
                 const cp = getCurrentCheckpoint();
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
                 for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
-                for (const orb of lvl.orbs)    orb.actTimer = 0;
+                for (const orb of lvl.orbs) orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
                 phase = 'playing'; timing = true;
@@ -2681,8 +3019,7 @@ async function startPlatformerGame() {
         );
 
         const hasUndo = checkpointHistory.length > 0;
-        const undoLabel = '↩  Verwijder checkpoint';
-        drawBtn(bx, py2 + 84 + (bh + gap) * 2, bw, bh, undoLabel, hasUndo ? '#7c3aed' : '#333',
+        drawBtn(bx, py2 + 84 + (bh + gap) * 2, bw, bh, '↩  Verwijder checkpoint', hasUndo ? '#7c3aed' : '#333',
             () => {
                 if (!hasUndo) return;
                 checkpointHistory.pop();
@@ -2693,7 +3030,7 @@ async function startPlatformerGame() {
                 restoreFromCheckpoint(cp);
                 vx = 0; vy = 0; onGround = false;
                 for (const en of lvl.enemies) { if (!en._spawned) { en.x = en.startX; en.y = en.startY; en.vy = 0; en.onGround = false; } en.detected = false; }
-                for (const orb of lvl.orbs)    orb.actTimer = 0;
+                for (const orb of lvl.orbs) orb.actTimer = 0;
                 portalCooldownTimer = 0;
                 snapCam = true;
                 phase = 'playing'; timing = true;
@@ -2717,7 +3054,7 @@ async function startPlatformerGame() {
                 if (musicFading) {
                     const t = Math.min(1, musicFading.timer / musicFading.duration);
                     if (musicFading.outAudio) musicFading.outAudio.volume = v * (1 - t);
-                    if (musicFading.inAudio)  musicFading.inAudio.volume  = v * t;
+                    if (musicFading.inAudio) musicFading.inAudio.volume = v * t;
                 }
             }, sliderY1],
             ['Geluiden', sfxVolume, (v) => { set('platformer-sfxVolume', v); sfxVolume = v; }, sliderY2],
@@ -2731,10 +3068,10 @@ async function startPlatformerGame() {
             const trackY = y + 28;
             const trackH = 6;
             ctx.fillStyle = '#333';
-            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH/2, sliderW, trackH, 3); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH / 2, sliderW, trackH, 3); ctx.fill();
 
             ctx.fillStyle = '#5b9cf6';
-            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH/2, sliderW * vol, trackH, 3); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(sliderX, trackY - trackH / 2, sliderW * vol, trackH, 3); ctx.fill();
 
             const knobX = sliderX + sliderW * vol;
             ctx.fillStyle = '#fff';
@@ -2747,9 +3084,9 @@ async function startPlatformerGame() {
             });
         }
 
-        ctx.fillStyle    = 'rgba(155,155,156,0.5)';
-        ctx.font         = '13px sans-serif';
-        ctx.textAlign    = 'center';
+        ctx.fillStyle = 'rgba(155,155,156,0.5)';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         if (isMobile()) {
             ctx.fillText('Tik buiten dit venster om door te gaan', canvas.width / 2, py2 + panelH - 18);
@@ -2760,36 +3097,94 @@ async function startPlatformerGame() {
         ctx.restore();
     }
 
+    function drawLevelCompleteScreen() {
+        ctx.save();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = 'rgba(0,0,0,0.72)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const panelW = 380, panelH = 340;
+        const px2 = canvas.width / 2 - panelW / 2;
+        const py2 = canvas.height / 2 - panelH / 2;
+
+        ctx.fillStyle = 'rgba(15,15,35,0.97)';
+        ctx.beginPath();
+        ctx.roundRect(px2, py2, panelW, panelH, 18);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(76,175,80,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(px2, py2, panelW, panelH, 18);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.fillStyle = '#fce512';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.fillText('✓ Level voltooid!', canvas.width / 2, py2 + 52);
+
+        ctx.fillStyle = '#9b9b9c';
+        ctx.font = '22px sans-serif';
+        ctx.fillText(`Tijd: ${levelCompletedTime.toFixed(1)}s`, canvas.width / 2, py2 + 102);
+
+        const bestTime = getLevelBestTime(lvlIdx);
+        if (bestTime !== null) {
+            const isNew = Math.abs(bestTime - levelCompletedTime) < 0.05;
+            ctx.fillStyle = isNew ? '#4caf50' : '#9b9b9c';
+            ctx.font = isNew ? 'bold 18px sans-serif' : '18px sans-serif';
+            ctx.fillText(isNew ? `🏆 Nieuwe beste tijd: ${bestTime.toFixed(1)}s` : `Beste tijd: ${bestTime.toFixed(1)}s`, canvas.width / 2, py2 + 138);
+        }
+
+        const totalPossible = countLevelCoins(lvl);
+        if (totalPossible > 0) {
+            ctx.fillStyle = COL.coin;
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText(`🪙 ${sessionCoins} / ${totalPossible}`, canvas.width / 2, py2 + 172);
+        }
+
+        const bw = 320, bh = 52, bx = canvas.width / 2 - bw / 2;
+
+        drawBtn(bx, py2 + 210, bw, bh, '↺  Opnieuw spelen', '#1264fc', () => {
+            elapsed = 0;
+            sessionCoins = 0;
+            sessionTotalCoins = 0;
+            loadLvl(lvlIdx);
+        });
+
+        drawBtn(bx, py2 + 210 + bh + 12, bw, bh, '☰  Terug naar menu', '#555', () => {
+            endGame();
+            showScreen('mod-screen-levels');
+        });
+
+        ctx.restore();
+    }
     function drawWinScreen() {
         ctx.save();
-        ctx.shadowBlur  = 0;
+        ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
         ctx.fillStyle = 'rgba(0,0,0,0.72)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillStyle = '#fce512';
-        ctx.font      = 'bold 56px sans-serif';
+        ctx.font = 'bold 56px sans-serif';
         ctx.fillText('🎉 Voltooid! 🎉', canvas.width / 2, canvas.height / 2 - 90);
         ctx.fillStyle = '#9b9b9c';
-        ctx.font      = '30px sans-serif';
+        ctx.font = '30px sans-serif';
         ctx.fillText(`Tijd: ${elapsed.toFixed(1)}s`, canvas.width / 2, canvas.height / 2 - 30);
-        const rec = get('platformer-gamerecord');
-        if (!n(rec)) ctx.fillText(`Record: ${parseFloat(rec).toFixed(1)}s`, canvas.width / 2, canvas.height / 2 + 20);
         ctx.fillStyle = COL.coin;
-        ctx.font      = 'bold 28px sans-serif';
+        ctx.font = 'bold 28px sans-serif';
         const totalPossible = levels.reduce((sum, l) => sum + countLevelCoins(l), 0);
         ctx.fillText(`🪙 Munten: ${sessionCoins} / ${totalPossible}`, canvas.width / 2, canvas.height / 2 + 68);
         const bw = 300, bh = 54, bx = canvas.width / 2 - bw / 2;
         drawBtn(bx, canvas.height / 2 + 110, bw, bh, lvl?.playAgainText || 'Opnieuw spelen', '#3f8541', () => { elapsed = 0; timing = true; sessionCoins = 0; sessionTotalCoins = 0; loadLvl(0); });
-        drawBtn(bx, canvas.height / 2 + 180, bw, bh, lvl?.closeGameText || 'Sluiten', '#555', () => endGame());
+        drawBtn(bx, canvas.height / 2 + 180, bw, bh, 'Menu', '#555', () => endGame());
         ctx.restore();
     }
 
     function drawHUD() {
-        const rec = get('platformer-gamerecord');
-        let txt = `Tijd: ${elapsed.toFixed(0)}s`;
-        if (!n(rec)) txt += `, record: ${parseFloat(rec).toFixed(0)}s`;
-        id('mod-playtime').textContent = txt;
+        id('mod-playtime').textContent = `Tijd: ${elapsed.toFixed(0)}s`;
         const totalPossible = levels.reduce((sum, l) => sum + countLevelCoins(l), 0);
         id('mod-coins-hud').textContent = totalPossible > 0 ? `🪙 ${sessionCoins}` : '';
     }
@@ -2836,6 +3231,7 @@ async function startPlatformerGame() {
             if (isVisible(o.x, o.y, o.w, o.h)) drawPortal(o);
         }
     }
+
     function render(dt) {
         btns.length = 0;
         if (!lvl) return;
@@ -2914,7 +3310,8 @@ async function startPlatformerGame() {
         drawDescription();
         drawDoorMessage();
         if (phase === 'paused') drawPauseScreen();
-        if (phase === 'win')    drawWinScreen();
+        if (phase === 'levelComplete') drawLevelCompleteScreen();
+        if (phase === 'win') drawWinScreen();
         drawDebug(dt);
     }
 

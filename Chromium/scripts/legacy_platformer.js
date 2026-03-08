@@ -116,6 +116,9 @@ function startLegacyPlatformerGame() {
             setTimeout(function () {
                 if (!n(id('legacy-game'))) {
                     id('legacy-game').remove();
+                    const urlParams = new URLSearchParams(window.location.search);
+                    urlParams.delete('mod-play');
+                    window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
                 }
             }, 320);
             return;

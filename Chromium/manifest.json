@@ -72,6 +72,7 @@
         "fonts/Kanit-SemiBold.ttf",
         "fonts/Kanit-ExtraLight.ttf",
         "images/dark-mode.svg",
+        "images/platformerv2/logo.svg",
         "wasm/pkg/somtoday_analytics_bg.wasm",
         "wasm/pkg/somtoday_analytics.js",
         "platformer_levels/*",
