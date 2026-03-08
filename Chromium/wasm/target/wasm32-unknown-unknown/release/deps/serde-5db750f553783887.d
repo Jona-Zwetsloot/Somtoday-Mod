@@ -1,0 +1,14 @@
+/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/deps/serde-5db750f553783887.d: /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/build/serde-5785aa9864386707/out/private.rs
+
+/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/deps/libserde-5db750f553783887.rlib: /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/build/serde-5785aa9864386707/out/private.rs
+
+/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/deps/libserde-5db750f553783887.rmeta: /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/build/serde-5785aa9864386707/out/private.rs
+
+/home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/sultan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/build/serde-5785aa9864386707/out/private.rs:
+
+# env-dep:OUT_DIR=/home/sultan/Somtoday-Mod/Chromium/wasm/target/wasm32-unknown-unknown/release/build/serde-5785aa9864386707/out

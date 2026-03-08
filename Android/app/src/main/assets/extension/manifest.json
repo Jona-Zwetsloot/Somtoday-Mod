@@ -1,0 +1,88 @@
+{
+  "name": "Somtoday Mod",
+  "version": "5.3",
+  "manifest_version": 3,
+  "description": "Pas het uiterlijk van Somtoday aan met achtergronden, lettertypes, kleuren en meer!",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "scripts/shorthand_functions.js",
+        "scripts/save_version_management.js",
+        "scripts/colors.js",
+        "scripts/minigame.js",
+        "scripts/fireworks.js",
+        "scripts/chart.js",
+        "scripts/main_functions.js",
+        "scripts/execute_after_page_load.js"
+      ],
+      "css": [
+        "css/night.css",
+        "css/styles.css",
+        "css/somtoday-recap.css",
+        "css/mod-settings.css",
+        "css/custom-homework.css",
+        "css/platformer.css"
+      ],
+      "matches": [
+        "*://*.somtoday.nl/*",
+        "*://som.today/*"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "geckoViewAddons",
+    "nativeMessaging",
+    "nativeMessagingFromContent"
+  ],
+  "host_permissions": [
+    "*://*.somtoday.nl/*",
+    "*://som.today/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "action": {
+    "default_title": "Somtoday Mod",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": [
+      "sw.js"
+    ],
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sounds/background.mp3",
+        "sounds/tada.mp3",
+        "sounds/error.mp3",
+        "sounds/correct.mp3",
+        "version_info.json",
+        "settings_content/familiar.html",
+        "fonts/Kanit-SemiBold.ttf",
+        "fonts/Kanit-ExtraLight.ttf",
+        "images/dark-mode.svg"
+      ],
+      "matches": [
+        "*://*.somtoday.nl/*"
+      ]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "somtodaymod@jonazwetsloot.nl",
+      "strict_min_version": "109.0"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "extVersion": {
+    "message": "Somtoday Mod Chromium v5.3"
+  },
+  "newOne": {
+    "message": "Live achtergronden toegevoegd door compiledkernel-idk"
+  },
+  "newTwo": {
+    "message": "Night mode toegevoegd door levkris"
+  },
+  "newThree": {
+    "message": "ELO hernoemd naar Somtoday door timmah12341"
+  },
+  "extName": {
+    "message": "Somtoday Mod"
+  },
+  "extDescription": {
+    "message": "Pas het uiterlijk van Somtoday aan met achtergronden, lettertypes, kleuren en meer!"
+  },
+  "activeText": {
+    "message": "Somtoday Mod is geactiveerd!"
+  },
+  "btnOne": {
+    "message": "Ga naar Somtoday"
+  },
+  "btnTwo": {
+    "message": "Instellingen"
+  },
+  "whatsNew": {
+    "message": "Bekijk wat er nieuw is"
+  },
+  "whatsNewHeader": {
+    "message": "Nieuw in deze release"
+  },
+  "back": {
+    "message": "Terug"
+  },
+  "enableDisable": {
+    "message": "Somtoday Mod aanzetten"
+  },
+  "toSomtoday": {
+    "message": "Naar Somtoday"
+  },
+  "resetAll": {
+    "message": "Reset alles"
+  },
+  "confirmReset": {
+    "message": "Wil je echt alle opslagdata wissen?"
+  },
+  "yes": {
+    "message": "Ja"
+  },
+  "no": {
+    "message": "Nee"
+  }
+
+}

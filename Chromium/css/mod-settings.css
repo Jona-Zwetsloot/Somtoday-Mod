@@ -1,3 +1,4 @@
+@layer mod-settings {
 .mod-user-scale {
     animation: 0.6s usericonscale 0.2s ease;
 }
@@ -966,4 +967,5 @@ input[type="color"] {
         width: calc(50% - 10px);
         margin-right: 10px;
     }
+}
 }

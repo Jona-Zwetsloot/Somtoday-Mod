@@ -1,3 +1,4 @@
+@layer mod-game {
 #mod-play-game {
     color: dodgerblue;
     text-align: center;
@@ -205,4 +206,5 @@ h1#mod-h1-header {
     background: rgba(0, 0, 0, 0.1);
     height: fit-content;
     padding: 0;
+}
 }

@@ -1,6 +1,25 @@
+@layer mod-homework {
 sl-studiewijzer-week .week,
 sl-studiewijzer-dag {
     position: relative;
+}
+
+/* Make studiewijzer items transparent based on user settings */
+sl-studiewijzer-item {
+    background: var(--mod-semi-transparant, var(--bg-elevated-weakest)) !important;
+}
+
+sl-studiewijzer-item:hover {
+    background: var(--mod-ui-transparent, var(--bg-elevated-weak)) !important;
+}
+
+/* Make description blocks transparent */
+.blok.omschrijving {
+    background: var(--mod-semi-transparant, var(--bg-elevated-weakest)) !important;
+}
+
+.blok.omschrijving:hover {
+    background: var(--mod-ui-transparent, var(--bg-elevated-weak)) !important;
 }
 
 @keyframes homeworkchecked {
@@ -188,4 +207,5 @@ sl-studiewijzer-items.mod-added {
 
 .mod-homework-icon.mod-active, .mod-homework-icon:hover {
     background: var(--bg-elevated-strong);
+}
 }

@@ -1,5 +1,5 @@
 # Contributing
-Pull requests are welcomed! Be clear about what you've changed, and I'll almost always approve it.
+Pull requests are welcome! Be clear about what you've changed, and I'll almost always approve it.
 
 <br>
 

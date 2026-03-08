@@ -18,7 +18,10 @@ function loadJson() {
             getFromJson.data = {};
         }
     } catch (err) {
-        console.error('Somtoday Mod ERROR: Could not load version_info.json', err);
+        // Only log error on main domain, not on redirect pages like som.today
+        if (window.location.hostname.includes('leerling.somtoday.nl')) {
+            console.error('Somtoday Mod ERROR: Could not load version_info.json', err);
+        }
         version_json = {};
         getFromJson.data = {};
     }

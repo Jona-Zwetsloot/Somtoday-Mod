@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Jona Zwetsloot">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Somtoday Mod</title>
+        <script defer="defer" src="options.js"></script>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre&family=Aleo&family=Archivo&family=Assistant&family=B612&family=Bebas+Neue&family=Black+Ops+One&family=Brawler&family=Cabin&family=Caladea&family=Cardo&family=Chivo&family=Crimson+Text&family=DM+Serif+Text&family=Enriqueta&family=Fira+Sans&family=Frank+Ruhl+Libre&family=Gabarito&family=Gelasio&family=IBM+Plex+Sans&family=Inconsolata&family=Inter&family=Josefin+Sans&family=Kanit&family=Karla&family=Lato&family=Libre+Baskerville&family=Libre+Franklin&family=Lora&family=Merriweather&family=Montserrat&family=Neuton&family=Noto+Serif&family=Nunito&family=Open+Sans&family=Oswald&family=Permanent+Marker&family=PT+Sans&family=PT+Serif&family=Playfair+Display:ital@1&family=Poppins&family=Poetsen+One&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Slab&family=Rubik&family=Rubik+Doodle+Shadow&family=Sedan+SC&family=Shadows+Into+Light&family=Single+Day&family=Source+Sans+3&family=Source+Serif+4:opsz@8..60&family=Spectral&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap");
+            html {
+                overflow: hidden;
+                min-height: 235px;
+                background: #fff;
+                color: #000;
+            }
+            body {
+                padding: 0 20px;
+                font-size: 0.8em;
+                overflow: hidden;
+            }
+            #activated {
+                display: block;
+            }
+            a {
+                color: #1e90ff;
+                text-decoration: underline;
+                cursor: pointer;
+            }
+            p {
+                font-size: 14px;
+            }
+            .button {
+                width: fit-content;
+                display: inline-block;
+                margin-right: 15px;
+                margin-bottom: 10px;
+                color: var(--button-color);
+                background: var(--button-background-color);
+                border: 4px solid var(--button-border-color);
+                padding: 12px 18px;
+                border-radius: 12px;
+                transition: border .3s ease;
+                text-decoration: none;
+                font-weight: 700;
+                font-size: 16px;
+            }
+            .button:hover {
+                border: 4px solid var(--button-border-hover-color);
+            }
+            div:empty {
+                clear: both;
+                height: 10px;
+                width: 100%;
+            }
+            #version {
+                position: absolute;
+                bottom: 20px;
+                right: 20px;
+                margin-top: 20px;
+            }
+            a.more {
+                display: inline-block;
+                width: fit-content;
+                font-size: 16px;
+                user-select: none;
+                padding-right: 20px;
+            }
+            a.more:after{
+                transition: margin-left 0.3s ease;
+                display: inline-block;
+                margin-left: 5px;
+                position: absolute;
+                margin-top: 2px;
+                content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="%231e90ff" height="1em" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>');
+                fill: var(--button-color);
+            }
+            a.more:hover:after {
+                margin-left: 10px;
+            }
+            #new-in-this-release {
+                display: none;
+            }
+            ul {
+                font-size: 16px;
+            }
+            @media (prefers-color-scheme: dark) {
+                html {
+                    background: #28292b;
+                    color: #eee;
+                }
+                @-moz-document url-prefix() {
+                    html {
+                        background: #23222b;
+                    }
+                }
+                a {
+                    color: #68b5ff;
+                }
+                a.more:after{
+                    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="%2368b5ff" height="1em" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>');
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="activated">
+            <h1 id="name"></h1>
+            <p id="activetext"></p>
+            <div></div>
+            <a class="button" target="_blank" href="https://leerling.somtoday.nl" id="btn-1"></a><a class="button" target="_blank" href="https://leerling.somtoday.nl/rooster#mod-settings" id="btn-2"></a>
+            <div></div>
+            <div></div>
+            <a id="whats-new" class="more"></a>
+            <div></div>
+        </div>
+        <div id="new-in-this-release">
+            <h1 id="new-header"></h1>
+            <ul>
+                <li id="new-1"></li>
+                <li id="new-2"></li>
+                <li id="new-3"></li>
+            </ul>
+            <div></div>
+            <a id="back" class="more"></a>
+            <div></div>
+        </div>
+        <div id="version"></div>
+    </body>
+</html>

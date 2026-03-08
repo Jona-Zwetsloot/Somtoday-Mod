@@ -1,0 +1,15 @@
+{
+    "version": 5.3,
+    "platform": "Firefox",
+    "minified": false,
+    "last_update": "19-12-2025",
+    "version_type": "release",
+    "version_name": "5.3-release",
+    "contributors": {
+        "Jona-Zwetsloot": "https:\/\/avatars.githubusercontent.com\/u\/170928581?s=64&v=4",
+        "compiledkernel-idk": "https:\/\/avatars.githubusercontent.com\/u\/220610112?s=64&v=4",
+        "levkris": "https:\/\/avatars.githubusercontent.com\/u\/105733478?s=64&v=4",
+        "timmah12341": "https:\/\/avatars.githubusercontent.com\/u\/200096760?s=64&v=4",
+        "JxxIT": "https:\/\/avatars.githubusercontent.com\/u\/110342008?s=64&v=4"
+    }
+}

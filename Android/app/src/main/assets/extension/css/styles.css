@@ -1,0 +1,560 @@
+:root {
+    --ruimvoldoende-cijfer-color: #3f8541 !important;
+}
+
+:root.dark {
+    --ruimvoldoende-cijfer-color: #90ea93 !important;
+}
+
+/* General Style */
+body {
+    overflow-y: scroll !important;
+    background: var(--bg-elevated-none);
+}
+
+html.dark .cijfer.neutraal {
+    color: var(--fg-primary-normal) !important;
+}
+
+sl-scrollable-title {
+    background: var(--bg-neutral-none);
+    padding: 0 16px !important;
+    margin: 0 !important;
+    max-width: unset !important;
+}
+
+hmy-switch-group:has(hmy-switch),
+sl-bericht-detail .header,
+sl-bericht-nieuw>.titel {
+    position: relative;
+}
+
+sl-bericht-nieuw .nieuw-bericht-form input,
+sl-bericht-nieuw .nieuw-bericht-form textarea,
+sl-bericht-nieuw .nieuw-bericht-form sl-bericht-ontvanger-selectie {
+    background: none;
+}
+
+sl-rooster-tijden>div:first-of-type span {
+    padding-top: 10px;
+}
+
+.tijd {
+    text-wrap: nowrap;
+}
+
+sl-modal>div:has(sl-account-modal) {
+    max-width: 2048px !important;
+    height: 92% !important;
+    max-height: 92% !important;
+}
+
+.zoekresultaten-inner {
+    max-height: 368px !important;
+}
+
+.week:not(sl-rooster-week) {
+    background: var(--bg-neutral-none) !important;
+    color: var(--text-strong) !important;
+}
+
+@media (min-width:1280px) {
+    sl-tab-bar {
+        background: none !important;
+    }
+}
+
+.navigation,
+.dagen,
+.actiepanel,
+.dag-afkortingen {
+    background: none !important;
+}
+
+.zoekresultaten {
+    border: none !important;
+}
+
+sl-plaatsingen,
+.nieuw-bericht-form {
+    background: var(--bg-neutral-none);
+}
+
+sl-cijfers .tabs {
+    border-radius: 6px;
+}
+
+sl-account-modal .content,
+.tabs .filler {
+    position: relative;
+}
+
+#studiewijzer-afspraak-toevoegen-select {
+    margin-top: 20px;
+}
+
+.mod-multi-choice {
+    display: inline-block;
+    vertical-align: top;
+    border: var(--thinnest-solid-neutral-normal);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.mod-multi-choice span {
+    padding: 10px 15px;
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s ease;
+}
+
+.mod-multi-choice span:hover {
+    background: var(--bg-elevated-weakest);
+}
+
+.mod-multi-choice span.active {
+    background: var(--bg-elevated-weak);
+}
+
+@media (max-width:48em) {
+
+    #mod-grade-calculate,
+    #mod-grades-graphs {
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+}
+
+.input-veld {
+    border-width: 2px !important;
+}
+
+button.tertiary:not(:hover),
+sl-studiewijzer-filter-button:not(:hover) {
+    background: var(--bg-neutral-none) !important;
+}
+
+#mod-grades-graphs>div {
+    margin-bottom: 50px;
+    width: 100%;
+    position: relative;
+}
+
+#mod-grades-graphs>div>canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#mod-grades-graphs>h3 {
+    margin-top: 40px;
+    margin-bottom: 10px;
+    color: var(--text-strong);
+}
+
+.mod-info-notice {
+    width: fit-content;
+    margin-bottom: -15px;
+    padding: 10px 20px;
+    border: 2px solid var(--blue-0);
+    color: var(--fg-on-primary-weak);
+    line-height: 15px;
+    border-radius: 16px;
+    padding-left: 50px;
+    position: relative;
+}
+
+.mod-info-notice>svg {
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 18px;
+}
+
+#mod-grade-calculate {
+    margin-top: 40px;
+    color: var(--text-strong);
+    width: calc(100% + 15px);
+}
+
+#mod-grade-calculate input {
+    width: calc(50% - 80px);
+    margin-right: 15px;
+    display: inline-block;
+}
+
+#mod-grade-calculate #mod-grade-one-three,
+#mod-grade-calculate #mod-grade-two-three {
+    width: 115px;
+}
+
+#mod-grade-calculate input[type=submit] {
+    background: var(--action-primary-normal);
+    color: var(--text-inverted);
+    transition: background 0.3s ease !important;
+    cursor: pointer;
+}
+
+#mod-grade-calculate input[type=submit]:hover {
+    background: var(--action-primary-strong);
+}
+
+.mod-grades-download {
+    right: 20px;
+    position: absolute;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.mod-grades-download svg {
+    height: 25px;
+}
+
+sl-studiewijzer-week:has(.datum.vandaag) {
+    background: var(--mod-semi-transparant) !important;
+}
+
+sl-laatste-resultaat-item,
+sl-vakresultaat-item {
+    background: var(--bg-neutral-none) !important;
+}
+
+sl-rooster-week-header .dag {
+    align-content: start !important;
+}
+
+sl-rooster-week-header .dag p {
+    height: fit-content;
+}
+
+sl-rooster-week-header .mod-add-homework {
+    display: none !important;
+}
+
+@media (max-width:767px) {
+
+    .mod-huiswerk strong,
+    .mod-huiswerk p {
+        width: calc(100% - 65px) !important;
+    }
+
+    sl-studiewijzer-dag .mod-huiswerk {
+        margin-top: -12px !important;
+    }
+
+    sl-studiewijzer-dag .mod-huiswerk.mod-before {
+        margin-top: 0 !important;
+        margin-bottom: -12px !important;
+    }
+
+    sl-studiewijzer-lijst-dag .mod-huiswerk,
+    sl-studiewijzer-lijst-dag .mod-add-homework {
+        margin-top: 4px !important;
+    }
+
+    sl-studiewijzer-lijst-dag .mod-huiswerk.mod-before {
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+    }
+
+    sl-studiewijzer-lijst-dag .dag-header {
+        background: transparent !important;
+    }
+
+    #mod-message>center>div {
+        padding: 20px !important;
+    }
+
+    .mod-multi-choice span {
+        padding: 10px !important;
+    }
+
+    .mod-huiswerk.mod-huiswerk-done div svg {
+        opacity: 1 !important;
+        padding: 2px !important;
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .mod-huiswerk div {
+        right: 15px !important;
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .laad-eerdere {
+        background: var(--bg-neutral-none) !important;
+    }
+
+    .berichten-lijst {
+        min-height: calc(var(--min-content-vh) - 64px - 32px) !important;
+        margin-bottom: 0 !important;
+    }
+
+    sl-cijfers>.container {
+        padding-bottom: 0 !important;
+    }
+
+    sl-cijfers .tabs {
+        border-radius: 0;
+    }
+}
+
+@media (min-width:1120px) and (min-height:550px) {
+    #mod-actions {
+        position: sticky;
+    }
+}
+
+@media (max-width:1279px) {
+    sl-modal>div:has(sl-account-modal) {
+        max-width: 2048px !important;
+        height: 95% !important;
+        max-height: 95% !important;
+    }
+}
+
+@media (min-width:767px) {
+
+    .mod-add-homework {
+        opacity: 0;
+        transition: 0.2s opacity ease;
+    }
+}
+
+/* Grade Defender */
+#grade-defender-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    background: rgba(0, 0, 0, 0.85);
+    cursor: crosshair;
+    display: none;
+}
+
+#grade-defender-canvas.active {
+    display: block;
+}
+
+#grade-defender-ui {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100001;
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-size: 24px;
+    pointer-events: none;
+    display: none;
+}
+
+#grade-defender-ui.active {
+    display: block;
+}
+
+#grade-defender-close {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100001;
+    color: #fff;
+    font-size: 40px;
+    cursor: pointer;
+    line-height: 30px;
+    display: none;
+}
+
+#grade-defender-close.active {
+    display: block;
+}
+
+#grade-defender-gameover {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100002;
+    color: #fff;
+    text-align: center;
+    display: none;
+}
+
+#grade-defender-gameover.active {
+    display: block;
+}
+
+#grade-defender-gameover h1 {
+    font-size: 60px;
+    margin: 0;
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+#grade-defender-restart {
+    background: #fff;
+    color: #000;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+/* Live Wallpaper */
+#mod-background-live {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+#mod-bg-live {
+    padding: 20px;
+    background: var(--bg-elevated-weakest);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+#mod-new-year {
+    padding: 20px;
+    background: linear-gradient(to bottom, #39497b, #182859);
+    color: #fff;
+    position: relative;
+    transition: height .3s ease, padding .3s ease;
+    height: 142px;
+    box-sizing: border-box;
+}
+
+#mod-new-year button {
+    position: absolute;
+    right: 20px;
+    cursor: pointer;
+    color: #fff;
+    background: #fff2;
+    border: none;
+    font-size: 26px;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    transition: background .2s ease;
+}
+
+#mod-new-year button:hover {
+    background: #fff4;
+}
+
+#mod-new-year h3 {
+    text-align: center;
+    display: block;
+}
+
+#mod-new-year>div:last-of-type {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#mod-new-year>div:last-of-type>div {
+    background: #fff2;
+    display: block;
+    width: 80px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-align: center;
+    overflow: hidden;
+}
+
+#mod-new-year div p {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.mod-letter-slide {
+    animation: mod-letter-slide .4s;
+}
+
+@keyframes mod-letter-slide {
+    0% {
+        transform: translateY(-30px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+
+#mod-new-year div span {
+    display: block;
+    font-size: 0.7em;
+    transform: translateY(-3px);
+}
+
+#mod-new-year-fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#mod-fireworks {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100dvw;
+    height: 100dvh;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+#mod-contributors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    row-gap: 5px;
+    margin-bottom: 25px;
+}
+
+#mod-contributors a {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg-elevated-weak);
+    border-radius: 100dvh;
+    padding-right: 15px;
+    transition: background .2s ease;
+}
+
+#mod-contributors a img {
+    height: 2em;
+    border-radius: 50%;
+}
+
+#mod-contributors a p {
+    margin: 0;
+}
+
+#mod-contributors a:hover {
+    background: var(--bg-elevated-strong);
+    cursor: pointer;
+}
+
+.blok>.container>svg {
+    width: 100%;
+    height: 100%;
+}

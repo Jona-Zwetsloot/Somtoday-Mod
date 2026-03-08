@@ -1,9 +1,18 @@
 # Somtoday Mod
+
+This is the beta branch! It probably is in unusable state right now. If you want to make a PR, it is better to just use the main branch at this time.
+---
+
 Somtoday Mod is a free browser-extension which adjusts the student website of Somtoday. With Somtoday Mod you can customise your Somtoday by setting your own backgrounds, colors, fonts, layouts and more. It also improves the functionality of Somtoday, by adding graphs to the grades pages and offering an auto-login function. At the end of the year you can view a recap of your grades with a fun quiz. And do you want to change the names of your teacher? This is also possible with Somtoday Mod, alongside many other options. Somtoday Mod is available in the Chrome Webstore, Edge Addons and Firefox Add-ons as extension. It is also available as userscript. Somtoday Mod is not affiliated with Somtoday/Topicus.
 
 [![Button Chrome]][ChromeLink]
 [![Button Edge]][EdgeLink]
 [![Button Firefox]][FirefoxLink]
+
+[![Stars](https://img.shields.io/github/stars/Jona-Zwetsloot/Somtoday-Mod?style=social)](https://github.com/Jona-Zwetsloot/Somtoday-Mod/stargazers)
+[![Forks](https://img.shields.io/github/forks/Jona-Zwetsloot/Somtoday-Mod?style=social)](https://github.com/Jona-Zwetsloot/Somtoday-Mod/network/members)
+[![Contributors](https://img.shields.io/github/contributors/Jona-Zwetsloot/Somtoday-Mod?style=social)](https://github.com/Jona-Zwetsloot/Somtoday-Mod/graphs/contributors)
+[![Open Issues](https://img.shields.io/github/issues/Jona-Zwetsloot/Somtoday-Mod)](https://github.com/Jona-Zwetsloot/Somtoday-Mod/issues)
 
 <br>
 

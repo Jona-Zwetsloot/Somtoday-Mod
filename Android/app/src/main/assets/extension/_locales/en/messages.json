@@ -1,0 +1,57 @@
+{
+  "extVersion": {
+    "message": "Somtoday Mod Chromium v5.3"
+  },
+  "newOne": {
+    "message": "Live backgrounds added by compiledkernel-idk"
+  },
+  "newTwo": {
+    "message": "Night mode added by levkris"
+  },
+  "newThree": {
+    "message": "ELO renamed to Somtoday by timmah12341"
+  },
+  "extName": {
+    "message": "Somtoday Mod"
+  },
+  "extDescription": {
+    "message": "Customize the appearance of Somtoday with backgrounds, fonts, colors and more!"
+  },
+  "activeText": {
+    "message": "Somtoday Mod is activated!"
+  },
+  "btnOne": {
+    "message": "Go to Somtoday"
+  },
+  "btnTwo": {
+    "message": "Settings"
+  },
+  "whatsNew": {
+    "message": "See what's new"
+  },
+  "whatsNewHeader": {
+    "message": "New in this release"
+  },
+  "back": {
+    "message": "Back"
+  },
+  "enableDisable": {
+    "message": "Enable Somtoday Mod"
+  },
+  "toSomtoday": {
+    "message": "To Somtoday"
+  },
+  "resetAll": {
+    "message": "Reset all"
+  },
+  "confirmReset": {
+    "message": "Are you sure you want to erase all storage data?"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "no": {
+    "message": "No"
+  }
+
+}

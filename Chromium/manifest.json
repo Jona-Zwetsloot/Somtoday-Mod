@@ -19,6 +19,8 @@
         "scripts/minigame.js",
         "scripts/fireworks.js",
         "scripts/chart.js",
+        "scripts/wasm_analytics.js",
+        "scripts/analytics_ui.js",
         "scripts/main_functions.js",
         "scripts/execute_after_page_load.js"
       ],
@@ -67,7 +69,9 @@
         "settings_content/familiar.html",
         "fonts/Kanit-SemiBold.ttf",
         "fonts/Kanit-ExtraLight.ttf",
-        "images/dark-mode.svg"
+        "images/dark-mode.svg",
+        "wasm/pkg/somtoday_analytics_bg.wasm",
+        "wasm/pkg/somtoday_analytics.js"
       ],
       "matches": [
         "*://*.somtoday.nl/*"

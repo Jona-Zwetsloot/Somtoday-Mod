@@ -1,3 +1,4 @@
+@layer mod-recap {
 #somtoday-recap {
     cursor: pointer;
     overflow: hidden;
@@ -427,4 +428,5 @@
         opacity: 0;
         border-radius: 50%;
     }
+}
 }
