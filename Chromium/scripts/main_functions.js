@@ -111,6 +111,10 @@ function onload() {
             let n = 0;
             let p = 0;
             document.addEventListener('keydown', function (e) {
+                if (e == null || e.key == null) {
+                    return;
+                }
+
                 let konamikeys = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
                 if (e.key.toLowerCase() == konamikeys[i]) {
                     i++;
@@ -2729,11 +2733,7 @@ function onload() {
                         ">${grade}</p>
                     </div>`;
             }
-            if (n(tn('sl-resultaat-item', 0)) && !n(cn('totaalgemiddelden', 0))) {
-                /* Year average */
-                //html += '<div style="width:100%;border:2px solid rgb(218, 223, 227);background:#f3f5f6;border-radius:6px;padding:20px 30px;margin-bottom:15px;box-sizing:border-box;height:95px;"><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:left;max-width:400px;height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">Totaalgemiddelden</h3><h3 style="font-family:KanitBold;font-size:30px;margin:0;display:block;float:right;">' + cn('totaalgemiddelden', 0).getElementsByClassName('cijfer')[0].innerHTML + '</h3></div>';
-            }
-            else if (n(tn('sl-resultaat-item', 0)) && n(tn('sl-vakgemiddelde-item', 0))) {
+            if (n(tn('sl-resultaat-item', 0)) && n(tn('sl-vakgemiddelde-item', 0))) {
                 html += `
                     <div style="
                         display: flex;
@@ -6207,7 +6207,7 @@ function onload() {
         if (get(key) == null && !key.startsWith('bools')) {
             set(key, value);
         }
-        let code = '<div><h3>' + name + '</h3>' + ((n(description) || type == 'checkbox') ? '' : '<p>' + description + '</p>');
+        let code = '<div><h3>' + name + '</h3>' + ((n(description) || type == 'checkbox') ? '' : '<div><p>' + description + '</p></div>');
         if (type == 'checkbox') {
             if (key.startsWith('bools')) {
                 code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get('bools').charAt(parseInt(key.charAt(5) + key.charAt(6))) == '1' ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';

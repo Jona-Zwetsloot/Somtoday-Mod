@@ -55,6 +55,32 @@ $res .= preg_replace("/\/\/ \[GENERATION\] START_IGNORE[\s\S]+?\/\/ \[GENERATION
 $shorthand_functions = file_get_contents("{$_GET['source']}/scripts/shorthand_functions.js", true);
 $res .= "\n\n\n" . $shorthand_functions;
 
+// Add all styles defined in the CSS directory
+$styles = '';
+$platformerStyle = '';
+$files = scandir(__DIR__ . "/{$_GET['source']}/css");
+foreach ($files as $file) {
+    if ($file === '.' || $file === '..') {
+        continue;
+    }
+    if ($file == 'platformer.css') {
+        $platformerStyle = file_get_contents("{$_GET['source']}/css/$file");
+    } else {
+        $styles .= file_get_contents("{$_GET['source']}/css/$file");
+    }
+}
+function cleanCSS(string $input): string
+{
+    $output = preg_replace('/\R/u', '', $input);
+    $output = str_replace("'", "\\'", $output);
+    while (str_contains($output, "  ")) {
+        $output = str_replace("  ", " ", $output);
+    }
+    return $output;
+}
+$styles = cleanCSS($styles);
+$platformerStyle = cleanCSS($platformerStyle);
+
 $colors = file_get_contents("{$_GET['source']}/scripts/colors.js", true);
 $image = file_get_contents("{$_GET['source']}/images/dark-mode.svg", true);
 $image = preg_replace('/\R/u', '', $image);
@@ -62,6 +88,8 @@ $image = str_replace("'", "\\'", $image);
 $res .= "\n\n\n" . str_replace("// [GENERATION] SET_DARK_IMAGE", "darkImage.outerHTML = '$image';", $colors);
 
 $minigame = file_get_contents("{$_GET['source']}/scripts/minigame.js", true);
+$minigame = str_replace("// [GENERATION] PLATFORMER_STYLE", "if (n(id('mod-platformer-css'))) { tn('head', 0).insertAdjacentHTML('beforeend', '<style id=\"mod-platformer-css\">$platformerStyle</style>'); }", $minigame);
+
 $res .= "\n\n\n" . $minigame;
 
 $execute_after_page_load = file_get_contents("{$_GET['source']}/scripts/execute_after_page_load.js", true);
@@ -70,22 +98,6 @@ $res .= "\n\n\n" . $execute_after_page_load;
 $familiar = file_get_contents("{$_GET['source']}/settings_content/familiar.html", true);
 $chart = file_get_contents("{$_GET['source']}/scripts/chart.js", true);
 $fireworks = file_get_contents("{$_GET['source']}/scripts/fireworks.js", true);
-
-// Add all styles defined in the CSS directory
-$styles = '';
-$files = scandir(__DIR__ . "/{$_GET['source']}/css");
-foreach ($files as $file) {
-    if ($file === '.' || $file === '..') {
-        continue;
-    }
-    $styles .= file_get_contents("{$_GET['source']}/css/$file");
-}
-$styles = preg_replace('/\R/u', '', $styles);
-$styles = str_replace("'", "\\'", $styles);
-
-while (str_contains($styles, "  ")) {
-    $styles = str_replace("  ", " ", $styles);
-}
 
 $main_functions = file_get_contents("{$_GET['source']}/scripts/main_functions.js", true);
 $main_functions = str_replace("// [GENERATION] HARDCODED_FONTS", "
@@ -171,7 +183,6 @@ $res_android = preg_replace("/\/\/ \[GENERATION\] ANDROID_START_IGNORE[\s\S]+?\/
 for ($i = 0; $i < 4; $i++) {
     $res_android = preg_replace("/ \/\/(.*)\n/", "", $res_android);
     $res_android = preg_replace("/\n\/\/(.*)\n/", "", $res_android);
-    $res_android = preg_replace("/ ?\/\*[\s\S]+?\*\//", "", $res_android);
     $res_android = preg_replace("/\A\/\/(.*)\n/", "", $res_android);
 }
 

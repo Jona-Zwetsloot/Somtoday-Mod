@@ -953,13 +953,13 @@ input[type="color"] {
 
 @media (max-width:1300px) {
     .theme {
-        width: calc(33.33333% - 11px);
+        flex-basis: 130px;
     }
 }
 
 @media (max-width:1000px) {
     .theme {
-        width: calc(50% - 11px);
+        width: 80px;
     }
 
     #mod-setting-panel {

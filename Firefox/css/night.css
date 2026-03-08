@@ -120,6 +120,7 @@
     --disabled-fg: #555555;
     --disabled-border: #2a2a2a;
 
+    --scrollbar-color-track-border: #000;
 }
 
 :root.night ::-webkit-scrollbar {

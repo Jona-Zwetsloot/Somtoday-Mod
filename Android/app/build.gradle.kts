@@ -1,19 +1,21 @@
+import com.android.build.api.dsl.ApplicationExtension
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "com.jonazwetsloot.somtodaymod"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.jonazwetsloot.somtodaymod"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
         versionCode = 54
         versionName = "5.4"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -30,14 +32,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -46,8 +42,14 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
+}
+
 dependencies {
-    implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.webkit:webkit:1.15.0")
     implementation("com.google.android.material:material:1.13.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

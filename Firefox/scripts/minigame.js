@@ -2,6 +2,7 @@
 // A minigame on the error page
 function errorPage() {
     if (!n(tn('hmy-button', 0))) {
+        // [GENERATION] PLATFORMER_STYLE
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
         id('mod-play-game').addEventListener('click', function () {
             tn('body', 0).classList.add('mod-game-playing');
