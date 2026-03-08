@@ -76,7 +76,8 @@
         "wasm/pkg/somtoday_analytics_bg.wasm",
         "wasm/pkg/somtoday_analytics.js",
         "platformer_levels/*",
-        "platformer_textures/*"
+        "platformer_textures/*",
+        "platformer/*"
       ],
       "matches": [
         "*://*.somtoday.nl/*"

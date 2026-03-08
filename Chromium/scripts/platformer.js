@@ -12,7 +12,7 @@ async function startPlatformerGame() {
         return;
     }
 
-    const DEBUG_MODE = true; // DISABLE THIS IN PRODUCTION
+    const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 
     const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
@@ -53,6 +53,7 @@ async function startPlatformerGame() {
             <span class="mod-menu-side-btn-label">Shop</span>
           </div>
         </div>
+        <button class="mod-credits-float-btn" id="mod-menu-credits-btn" title="Credits">📜</button>
       </div>
 
       <div id="mod-screen-levels" class="mod-screen mod-screen-hidden">
@@ -195,6 +196,8 @@ async function startPlatformerGame() {
     document.getElementById('mod-menu-close').addEventListener('click', () => {
         closeEntirePlatformer();
     });
+
+    document.getElementById('mod-menu-credits-btn').addEventListener('click', async () => await openCreditsPopup());
 
     document.getElementById('mod-menu-shop').addEventListener('click', () => {
         const overlay = document.createElement('div');
@@ -3386,5 +3389,156 @@ async function startPlatformerGame() {
         a.currentTime = 0;
         a.volume = sfxVolume;
         a.play().catch(() => {});
+    }
+
+async function openCreditsPopup() {
+        function mdInline(str) {
+            return str
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+                    '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        }
+
+        const contributors = [
+            {
+                username: 'levkris',
+                avatar: 'https://avatars.githubusercontent.com/u/105733478?v=4',
+                github: 'https://github.com/levkris',
+            },
+        ];
+
+        let musicRows = '';
+        let sfxRows = '';
+        let licenseBlocks = '';
+
+        try {
+            const resp = await fetch(chrome.runtime.getURL('platformer/credits.md'));
+            const md = await resp.text();
+            const lines = md.split('\n');
+
+            let section = null;
+            for (const raw of lines) {
+                const line = raw.trimEnd();
+
+                const h = line.match(/^##\s+(.*)/);
+                if (h) {
+                    const title = h[1].trim();
+                    if (/music/i.test(title)) section = 'music';
+                    else if (/sound/i.test(title)) section = 'sfx';
+                    else if (/license/i.test(title)) section = 'license';
+                    else section = null;
+                    continue;
+                }
+
+                if (/^---+$/.test(line)) { section = null; continue; }
+
+                if (section === 'music' && line.startsWith('|')) {
+                    const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+                    if (cells.length < 4) continue;
+                    if (/^[-:\s]+$/.test(cells[0]) || /bestand|file/i.test(cells[0])) continue;
+                    musicRows += `<tr>
+                        <td>${mdInline(cells[0])}</td>
+                        <td>${mdInline(cells[1])}</td>
+                        <td>${mdInline(cells[2])}</td>
+                        <td>${mdInline(cells[3])}</td>
+                    </tr>`;
+                }
+
+                if (section === 'sfx' && line.startsWith('|')) {
+                    const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+                    if (cells.length < 2) continue;
+                    if (/^[-:\s]+$/.test(cells[0]) || /bestand|file/i.test(cells[0])) continue;
+                    sfxRows += `<tr>
+                        <td>${mdInline(cells[0])}</td>
+                        <td>${mdInline(cells[1])}</td>
+                    </tr>`;
+                }
+
+                if (section === 'license' && line.trim()) {
+                    licenseBlocks += `<p class="mod-credits-license-text">${mdInline(line.trim())}</p>`;
+                }
+            }
+
+        } catch (e) {
+            console.warn('Could not load credits.md', e);
+        }
+
+        const contributorHTML = contributors.map(c => `
+            <a class="mod-credits-gh-pill" href="${c.github}" target="_blank" rel="noopener">
+                ${c.avatar ? `<img src="${c.avatar}" alt="${c.username}" class="mod-credits-gh-avatar">` : ''}
+                <span class="mod-credits-gh-name">${c.username}</span>
+                <svg class="mod-credits-gh-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
+                    0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755
+                    -1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07
+                    1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332
+                    -5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005
+                    -.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552
+                    3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22
+                    0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015
+                    3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+            </a>
+        `).join('');
+
+        const overlay = document.createElement('div');
+        overlay.className = 'mod-coming-soon-overlay';
+        overlay.id = 'mod-credits-overlay';
+        overlay.innerHTML = `
+            <div class="mod-credits-box">
+                <button class="mod-credits-close" id="mod-credits-close" aria-label="Sluiten">✕</button>
+
+                <div class="mod-credits-header">
+                    <span class="mod-credits-header-icon">📜</span>
+                    <h2 class="mod-credits-title">Credits</h2>
+                </div>
+
+                <div class="mod-credits-scroll">
+
+                    <section class="mod-credits-section">
+                        <h3 class="mod-credits-section-title">👾 Contributors</h3>
+                        <div class="mod-credits-gh-pills">${contributorHTML}</div>
+                    </section>
+                    <div class="mod-credits-divider"></div>
+
+                    ${musicRows ? `
+                    <section class="mod-credits-section">
+                        <h3 class="mod-credits-section-title">🎵 Muziek</h3>
+                        <table class="mod-credits-table">
+                            <thead><tr><th>Bestand</th><th>Titel</th><th>Artiest</th><th>Licentie</th></tr></thead>
+                            <tbody>${musicRows}</tbody>
+                        </table>
+                    </section>
+                    <div class="mod-credits-divider"></div>
+                    ` : ''}
+
+                    ${sfxRows ? `
+                    <section class="mod-credits-section">
+                        <h3 class="mod-credits-section-title">🔊 Geluidseffecten</h3>
+                        <table class="mod-credits-table">
+                            <thead><tr><th>Bestand</th><th>Bron</th></tr></thead>
+                            <tbody>${sfxRows}</tbody>
+                        </table>
+                    </section>
+                    <div class="mod-credits-divider"></div>
+                    ` : ''}
+
+                    ${licenseBlocks ? `
+                    <section class="mod-credits-section mod-credits-license-section">
+                        <h3 class="mod-credits-section-title">📄 Licentie-informatie</h3>
+                        ${licenseBlocks}
+                    </section>
+                    ` : ''}
+
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const close = () => overlay.remove();
+        document.getElementById('mod-credits-close').addEventListener('click', close);
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     }
 }
