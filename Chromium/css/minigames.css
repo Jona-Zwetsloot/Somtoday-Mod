@@ -1,0 +1,38 @@
+@layer mod-minigames {
+    #mod-game-select {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-mask-normal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    #mod-game-select-box {
+        background: var(--bg-elevated-none);
+        border-radius: var(--border-radius-large);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-width: 260px;
+    }
+
+    #mod-game-select-box h2 {
+        margin: 0 0 8px;
+        font-size: 1.3rem;
+    }
+
+    #mod-game-select-close {
+        margin-top: 4px;
+        font-size: 0.9rem;
+        color: var(--action-neutral-normal);
+        cursor: pointer;
+    }
+
+    #mod-game-select-close:hover {
+        color: var(--action-neutral-strong);
+    }
+}

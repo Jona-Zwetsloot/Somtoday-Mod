@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<level
+	title = "Level 1 - Onder de grond"
+	song = "lvl0"
+	worldWidth = "10000"
+	worldHeight = "1600"
+	spawnX = "90"
+	spawnY = "650"
+	bgColor="#1a0806"
+	bgColor2="#0e0302">
+	<description>Zoek de uitgang naar boven</description>
+
+	<!-- FIRST PART OF LEVEL -->
+
+	<!-- Floor -->
+	<floor x="0" y="0" width="300" height="60" texture="platformer_textures/lvl-0/bricks-1.png"/>
+ 	<lava x="300" y="0" width="200" height="40"/>
+	<text x="400" y="160">Raak niet de <b><o>lava</o></b> aan</text>
+	<floor x="500" y="0" width="396" height="60" texture="platformer_textures/lvl-0/bricks-2.png"/>
+
+	<wall x="50" y="-350" width="700" height="500" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="300" y="0" width="200" height="40" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="260" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" invertX="true" textureMode="stretch"/>
+	<wall x="500" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
+
+	<!-- TORCHES -->
+	<wall x="240" y="60" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+	<wall x="530" y="60" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+
+	<!-- BLOCK LEFT -->
+	<wall x="0" y="600" width="60" height="800" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<floor x="170" y="600" width="430" height="130" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="170" y="730" width="314" height="200" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="484" y="730" width="116" height="200" ghost="true" texture="platformer_textures/lvl-0/dirt-dark.png"/>
+	<floor x="170" y="930" width="430" height="470" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- PIPE -->
+	<wall x="80" y="380" width="70" height="1020" ghost="true" opaque="true" texture="platformer_textures/lvl-0/pipe-inside.png" textureMode="stretch"/>
+
+	<wall x="60" y="400" width="20" height="1000" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+	<wall x="40" y="380" width="40" height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+
+	<wall x="150" y="400" width="20" height="1000" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+	<wall x="150" y="380" width="40" height="20" texture="platformer_textures/lvl-0/pipe-wall.png"/>
+
+	<!-- FLOOR -->
+	<floor x="1106" y="0" width="394" height="60" texture="platformer_textures/lvl-0/bricks-6.png"/>
+
+	<!-- CRATE -->
+	<floor x="1451" y="60" width="49" height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<!-- FALLING CRATES -->
+ 	<movingPlatformUp x="1598" startY="50" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+ 	<movingPlatformUp x="1794" startY="70" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+ 	<movingPlatformUp x="1990" startY="60" endY="-10" width="49" height="49" triggerMode="true" triggerTimeout="1.0" returnTimeout="2.0" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<!-- KEY PLATFORM -->
+	<floor x="2186" y="60" width="150" height="20" texture="platformer_textures/lvl-0/floating-platform-short.png"/>
+
+	<!-- FIST KEY -->
+	<key x="2260" y="100" keyId="key_red" color="#e74c3c" r="16" />
+
+	<!-- LAVA -->
+ 	<lava x="1500" y="0" width="1200" height="40"/>
+
+	<wall x="1300" y="-350" width="2000" height="500" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="1500" y="0" width="1200" height="40" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<!-- SECRET COIN 1 -->
+	<coin x="2436" y="129" blue="true" />
+
+	<!-- BLOCK RIGHT -->
+	<floor x="2336" y="0" width="2064" height="80" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="2336" y="80" width="200" height="98" ghost="true" opaque="true" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="2536" y="80" width="1864" height="98" texture="platformer_textures/lvl-0/dirt.png"/>
+	<floor x="2336" y="178" width="1200" height="552" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="2336" y="730" width="1200" height="200" ghost="true" texture="platformer_textures/lvl-0/dirt-dark.png"/>
+
+	<floor x="2336" y="930" width="1200" height="870" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="2336" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
+	<wall x="2336" y="60" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading.png" textureMode="stretch"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="2306" y="80" width="30" height="49" ghost="true" invertX="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
+
+	<!-- LAVA GLOW -->
+	<wall x="1460" y="0" width="40" height="60" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" invertX="true" textureMode="stretch"/>
+	
+	<!-- FIRST OBSTACLE -->
+	<floor x="700" y="60" width="49" height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+	<floor x="749" y="60" width="49" height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+	<floor x="749" y="109" width="49" height="49" texture="platformer_textures/lvl-0/wooden_crate.png" textureMode="stretch"/>
+
+	<floor x="847" y="60" width="49" height="147" texture="platformer_textures/lvl-0/bricks-3.png"/>
+	<floor x="896" y="158" width="49" height="49" texture="platformer_textures/lvl-0/bricks-4.png"/>
+
+	<coin x="749" y="340" />
+
+	<floor x="1106" y="60" width="49" height="147" texture="platformer_textures/lvl-0/bricks-5.png"/>
+
+	<wall x="847" y="0" width="49" height="109" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" invertX="true" textureMode="stretch"/>
+	<wall x="847" y="109" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading.png" invertX="true" textureMode="stretch"/>
+
+	<wall x="1106" y="0" width="49" height="109" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" textureMode="stretch"/>
+	<wall x="1106" y="109" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading.png" textureMode="stretch"/>
+
+ 	<lava x="896" y="0" width="210" height="109"/>
+	<wall x="896" y="0" width="210" height="109" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="760" y="-20" width="400" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+
+	<!-- TORCH -->
+	<wall x="1159" y="100" width="30" height="66" ghost="true" rotation="45" invertX="true" texture="platformer_textures/lvl-0/torch-rotated.png" textureFrames="4" textureFps="8"/>
+
+	<!-- LADDER UP -->
+	<wall x="1300" y="60" width="20" height="500" ghost="true" texture="platformer_textures/lvl-0/ladder-pole.png"/>
+	<wall x="1400" y="60" width="20" height="500" ghost="true" texture="platformer_textures/lvl-0/ladder-pole.png"/>
+
+	<floor x="1300" y="120" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="220" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="320" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="420" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+	<floor x="1300" y="520" width="120" height="20" oneWay="true" texture="platformer_textures/lvl-0/ladder-plank.png"/>
+
+	<coin x="1360" y="630" />
+
+	<!-- FLOATING PLATFORMS -->
+	<floor x="1150" y="530" width="150" height="30" texture="platformer_textures/lvl-0/floating-platform-short.png"/>
+
+	<floor x="1420" y="530" width="150" height="30" texture="platformer_textures/lvl-0/floating-platform-short.png"/>
+
+	<text x="950" y="700">Spring wanneer je een <b><y>orb</y></b> aanraakt</text>
+ 	<orb x="950" y="600" strength="2.5"/>
+	<floor x="600" y="700" width="150" height="30" texture="platformer_textures/lvl-0/floating-platform-short.png"/>
+
+	<!-- SPIDER WEBS -->
+	<wall x="600" y="675" width="49" height="35" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<wall x="1420" y="491" width="49" height="49" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png"/>
+	<wall x="1251" y="501" width="49" height="39" invertX="true" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<!-- TORCHES -->
+	<wall x="1180" y="560" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+	<wall x="1510" y="560" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+	
+	<!-- ORB TO SECOND DOOR -->
+ 	<orb x="1770" y="600" strength="2.5"/>
+
+	<!-- PLATFORM TO SECOND DOOR -->
+	<floor x="1986" y="700" width="350" height="30" texture="platformer_textures/lvl-0/floating-platform-large.png"/>
+
+	<!-- SPIDER WEB -->
+	<wall x="2287" y="681" width="49" height="29" invertX="true" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<!-- TORCH -->
+	<wall x="2016" y="730" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+
+	<!-- DOOR TO END -->
+	<wall x="2336" y="730" width="30" height="200" keyId="key_green" keyColor="#3ed42a"/>
+
+	<!-- TORCH -->
+	<wall x="2302" y="930" width="30" height="66" ghost="true" rotation="-45" texture="platformer_textures/lvl-0/torch-rotated.png" textureFrames="4" textureFps="8"/>
+
+	<!-- DOOR BEFORE PORTAL -->
+	<wall x="570" y="730" width="30" height="200" keyId="key_red" keyColor="#e74c3c"/>
+
+	<!-- PORTAL TO NEXT PART OF LEVEL -->
+	<portal x="480" y="730" width="40" height="200" portal-id="1" to-portal-id="2" texture="platformer_textures/lvl-0/portal.png"/>
+
+	<!-- DECOR -->
+	<wall x="520" y="730" width="40" height="200" ghost="true" texture="platformer_textures/lvl-0/portal.png" invertX="true"/>
+
+	<!-- SECOND PART OF LEVEL -->
+
+	<!-- THIRD BLOCK BG -->
+	<wall x="7000" y="530" width="3000" height="1270" texture="platformer_textures/lvl-0/dirt-dark.png" ghost="true"/>
+	<wall x="7074" y="530" width="1926" height="200" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- PORTAL TO FIRST PART OF LEVEL -->
+	<portal x="7034" y="530" width="40" height="200" portal-id="2" to-portal-id="1" texture="platformer_textures/lvl-0/portal.png" invertX="true"/>
+
+	<!-- DECOR -->
+	<wall x="6996" y="530" width="40" height="200" ghost="true" texture="platformer_textures/lvl-0/portal.png"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="6700" y="500" width="350" height="30" texture="platformer_textures/lvl-0/floating-platform-large.png"/>
+
+	<!-- MOVING PLATFORM BEHIND -->
+	<wall x="6250" y="500" width="400" height="40" ghost="true" texture="platformer_textures/lvl-0/moving-platform-rails.png"/>
+
+	<!-- CHAIN UP -->
+	<wall x="6270" y="540" width="16" height="520" ghost="true" texture="platformer_textures/lvl-0/chain.png"/>
+
+	<!-- SECOND CHAIN UP -->
+	<wall x="6614" y="540" width="16" height="960" ghost="true" texture="platformer_textures/lvl-0/chain.png"/>
+
+	<!-- MOVING PLATFORM -->
+ 	<movingPlatformRight y="510" startX="6200" endX="6560" width="140" texture="platformer_textures/lvl-0/floating-platform-short.png" height="20"/>
+
+	<!-- COINS FOR MOVING PLATFORM -->
+	<coin x="6350" y="620" />
+	<coin x="6550" y="620" />
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="6000" y="500" width="200" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- ENEMIES -->
+	<enemy x="6050" y="530" min="6000" max="6200" detectionRadius="400" stuck="true"/>
+	<text x="6100" y="650">Pas op voor de <b><r>vijanden</r></b>!</text>
+
+	<!-- ORB -->
+ 	<orb x="5850" y="530" strength="2.5"/>
+
+	<!-- CHECKPOINT -->
+ 	<checkpoint x="6800" y="530" />
+
+	<!-- TORCH -->
+	<wall x="6730" y="530" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="5500" y="670" width="200" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+	
+	<!-- SPIDER WEB -->
+	<wall x="5500" y="645" width="49" height="35" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<!-- LAVA -->
+ 	<lava x="4000" y="0" width="5000" height="109"/>
+	<wall x="4000" y="0" width="5000" height="109" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+	<wall x="4000" y="0" width="5000" height="200" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+
+	<!-- SECRET COIN 2 -->
+	<coin x="5300" y="749" blue="true" />
+
+	<!-- SECOND BLOCK -->
+	<floor x="4400" y="0" width="1100" height="700" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="5200" y="700" width="300" height="98" ghost="true" opaque="true" texture="platformer_textures/lvl-0/dirt.png"/>
+	<wall x="4400" y="700" width="800" height="98" texture="platformer_textures/lvl-0/dirt.png"/>
+	<floor x="4400" y="798" width="1100" height="702" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="5500" y="700" width="30" height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
+
+	<!-- TRAMPOLINE -->
+ 	<trampoline x="5575" y="700" width="50" height="10" strength="3.2"/>
+
+	<!-- TORCH -->
+	<wall x="5640" y="700" width="30" height="50" ghost="true" texture="platformer_textures/lvl-0/torch-stand.png" textureFrames="4" textureFps="8"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="5700" y="1050" width="200" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- ORB -->
+ 	<orb x="6050" y="1110" strength="1.5"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="6200" y="1050" width="200" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- CHAIN UP FROM FLOATING PLATFORM -->
+	<wall x="6380" y="1080" width="16" height="420" texture="platformer_textures/lvl-0/chain.png"/>
+
+	<!-- GREEN KEY -->
+	<key x="6300" y="1120" keyId="key_green" color="#3ed42a" r="16" />
+	
+	<!-- COIN -->
+	<coin x="5600" y="1200" />
+
+	<!-- THIRD AREA -->
+
+	<!-- FLOOR -->
+	<floor x="3536" y="0" width="864" height="500" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- WOODEN BRIDGE -->
+	<floor x="3536" y="715" width="864" height="15" texture="platformer_textures/lvl-0/thin-wood.png"/>
+
+	<!-- LAVA TOWER AREA -->
+	<area id="lava-tower" x="3536" y="730" width="864" height="1070"
+   checkpointX="3968" checkpointY="730"/>
+
+	<!-- DESPAWN ENEMIES IF IN LAVA TOWER -->
+	<despawnEnemies areaId="lava-tower" spawnerAreaId="ambush" />
+
+	<!-- CAMERA LOCK -->
+	<camera areaId="lava-tower" lockX="true" targetCamX="3968"/>
+
+	<!-- DOOR -->
+	<wall x="3506" y="730" width="30" height="200" closeOnAreaId="lava-tower" texture="platformer_textures/lvl-0/door-lava-tower.png"/>
+
+	<!-- SONG CHANGE -->
+	<music areaId="lava-tower" song="lavatower" fadeDuration="1.5" restartOnDie="true"/>
+
+	<!-- TRAMPOLINE -->
+ 	<trampoline x="4300" y="730" width="50" height="10" strength="3.2"/>
+
+	<!-- CHAINS UP FROM FLOATING PLATFORM -->
+	<wall x="4020" y="1140" width="16" height="360" texture="platformer_textures/lvl-0/chain.png" ghost="true"/>
+	<wall x="4164" y="1140" width="16" height="360" texture="platformer_textures/lvl-0/chain.png" ghost="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="4000" y="1110" width="200" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1000" width="100" height="30" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+	
+	<!-- ORB -->
+ 	<orb x="3836" y="1050" strength="1.5"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1100" width="60" height="20" oneWay="true" texture="platformer_textures/lvl-0/wood-small.png"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3636" y="1200" width="60" height="20" oneWay="true" texture="platformer_textures/lvl-0/wood-small.png"/>
+
+	<!-- CHAIN UP FROM FLOATING PLATFORM -->
+	<wall x="3658" y="1220" width="16" height="180" texture="platformer_textures/lvl-0/chain.png" ghost="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3536" y="1300" width="60" height="20" oneWay="true" texture="platformer_textures/lvl-0/wood-small.png"/>
+	
+	<!-- SPIDER WEB -->
+	<wall x="3536" y="1261" width="49" height="39" ghost="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3636" y="1400" width="200" height="20" oneWay="true" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- CHAINS UP FROM FLOATING PLATFORM -->
+	<wall x="3656" y="1420" width="16" height="380" texture="platformer_textures/lvl-0/chain.png" ghost="true"/>
+	<wall x="3800" y="1420" width="16" height="380" texture="platformer_textures/lvl-0/chain.png" ghost="true"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="3836" y="1500" width="1664" height="20" oneWay="true" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+	
+	<!-- SPIDER WEB -->
+	<wall x="4351" y="1451" width="49" height="49" ghost="true" invertX="true" texture="platformer_textures/lvl-0/spider-web-corner.png" textureMode="stretch"/>
+
+	<!-- FLOATING PLATFORM -->
+	<floor x="5500" y="1500" width="2000" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png"/>
+
+	<!-- RISING LAVA -->
+	<lava x="3536" y="500" width="864" height="0"
+   flowUp="true" flowSpeed="80" flowAreaId="lava-tower" riseId="lava-rise"/>
+	
+	<!-- LAVA GLOW -->
+	<wall x="3536" y="500" width="864" height="0" riseWithId="lava-rise" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+	<wall x="3350" y="500" width="1200" height="200" riseWithId="lava-rise" riseYOnly="true" riseYOffset="-125" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<!-- AMBUSH -->
+	<area id="ambush" x="4400" y="1520" width="100" height="280" />
+
+	<enemySpawner
+		areaId="ambush"
+		x="4400" y="1520"
+		count="10"
+		spread="-10"
+		detectionRadius="2000"
+		speed="300"
+		stuck="false"
+	/>
+
+	<!-- THIRD BLOCK -->
+	<wall x="7000" y="0" width="3000" height="530" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="7000" y="730" width="1200" height="300" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<wall x="7000" y="1030" width="500" height="470" texture="platformer_textures/lvl-0/dirt.png"/>
+
+	<!-- FOURTH AREA -->
+
+	<!-- ENEMY DESPAWNER -->
+	<area x="7400" y="1520" height="280" width="100" id="enemy-despawner" />
+	<despawnEnemies areaId="enemy-despawner" spawnerAreaId="ambush" />
+
+	<!-- CHECKPOINT -->
+	<checkpoint x="7700" y="1030" />
+
+	<!-- TRAMPOLINE TO GET BACK UP -->
+	<trampoline x="7575" y="1030" width="50" height="10" strength="3.5"/>
+
+	<!-- SKELETON DECOR -->
+	<wall x="7500" y="1030" width="30" height="49" ghost="true" texture="platformer_textures/lvl-0/skeleton.png" textureMode="stretch"/>
+
+	<!-- LAVA -->
+ 	<lava x="9000" y="530" width="1000" height="180"/>
+
+	<wall x="9000" y="500" width="1200" height="400" ghost="true" texture="platformer_textures/lvl-0/lava-glow.png" textureMode="stretch"/>
+	
+	<wall x="9000" y="530" width="9000" height="180" ghost="true" texture="platformer_textures/lvl-0/inside-lava-glow.png" textureMode="stretch"/>
+
+	<wall x="8960" y="530" width="40" height="180" ghost="true" texture="platformer_textures/lvl-0/lava-glow-left.png" invertX="true" textureMode="stretch"/>
+	<wall x="8960" y="710" width="40" height="20" ghost="true" texture="platformer_textures/lvl-0/lava-glow-fading.png" invertX="true" textureMode="stretch"/>
+	
+	<!-- PLATFORM UP IF YOU GET STUCK -->
+	<movingPlatformUp x="8200" startY="730" endY="1010" width="200" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png" triggerMode="true" triggerTimeout="0.01" returnTimeout="3.0"  />
+
+	<!-- ORB -->
+	<orb x="8450" y="1050" strength="2.5"/>
+
+	<!-- END PLATFORM -->
+	<movingPlatformUp x="8600" startY="1030" endY="1700" width="200" height="20" texture="platformer_textures/lvl-0/floating-platform-medium.png" triggerMode="true" triggerTimeout="0.01" returnTimeout="3.0"  />
+
+	<!-- END -->
+	<end x="8600" y="1500" width="200" height="100"/>
+</level>
