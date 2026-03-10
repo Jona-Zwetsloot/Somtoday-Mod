@@ -1,10 +1,14 @@
 ---
 name: Feature request (English)
-about: Suggest a new feature or improvement for Somtoday Mod
+about: Suggest a feature - Please complete ALL fields
 title: "[Feature] "
 labels: enhancement
 assignees: ''
 ---
+
+## Before submitting
+- [ ] I have searched for existing issues and confirmed this feature has not been requested yet
+- [ ] I will complete ALL sections below (do not leave sections empty)
 
 ## Summary
 A short description of the feature you'd like to see.
