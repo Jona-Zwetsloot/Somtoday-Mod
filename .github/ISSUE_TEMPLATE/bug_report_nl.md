@@ -1,10 +1,14 @@
 ---
 name: Bugrapport (Nederlands)
-about: Meld een bug of onverwacht gedrag in Somtoday Mod
+about: Meld een bug - Vul ALLE velden in
 title: "[Bug] "
 labels: bug
 assignees: ''
 ---
+
+## Voordat je indient
+- [ ] Ik heb gezocht naar bestaande issues en bevestig dat deze bug nog niet gemeld is
+- [ ] Ik zal ALLE secties hieronder invullen (laat geen secties leeg)
 
 ## Beschrijving
 Een duidelijke beschrijving van de bug.
