@@ -673,11 +673,18 @@ input:checked+.slider:before {
     transform-origin: top left;
 }
 
+#theme-wrapper>div {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .theme {
+    flex-basis: 180px;
+    flex-grow: 1;
+    flex-shrink: 1;
     user-select: none;
     display: inline-block;
     cursor: pointer;
-    width: calc(20% - 11px);
     margin-bottom: 10px;
     margin-right: 5px;
     overflow: hidden;
@@ -832,6 +839,7 @@ input[type="color"] {
     height: 38px;
     border-radius: 50%;
     display: inline-block;
+    box-shadow: 0 0 10px var(--bg-elevated-weak);
 }
 
 .mod-color p {
@@ -945,13 +953,13 @@ input[type="color"] {
 
 @media (max-width:1300px) {
     .theme {
-        width: calc(33.33333% - 11px);
+        flex-basis: 130px;
     }
 }
 
 @media (max-width:1000px) {
     .theme {
-        width: calc(50% - 11px);
+        width: 80px;
     }
 
     #mod-setting-panel {

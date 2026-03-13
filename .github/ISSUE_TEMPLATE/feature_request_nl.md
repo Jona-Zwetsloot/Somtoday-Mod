@@ -1,10 +1,14 @@
 ---
 name: Functieverzoek (Nederlands)
-about: Stel een nieuwe functie of verbetering voor in Somtoday Mod
+about: Stel een functie voor - Vul ALLE velden in
 title: "[Feature] "
 labels: enhancement
 assignees: ''
 ---
+
+## Voordat je indient
+- [ ] Ik heb gezocht naar bestaande issues en bevestig dat deze functie nog niet aangevraagd is
+- [ ] Ik zal ALLE secties hieronder invullen (laat geen secties leeg)
 
 ## Samenvatting
 Een korte beschrijving van de functie die je graag zou zien.

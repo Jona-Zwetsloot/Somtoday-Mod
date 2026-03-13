@@ -1,4 +1,3 @@
-@layer mod-base {
 :root {
     --ruimvoldoende-cijfer-color: #3f8541 !important;
 }
@@ -10,7 +9,14 @@
 /* General Style */
 body {
     overflow-y: scroll !important;
-    background: var(--bg-elevated-none);
+    background: transparent !important;
+}
+
+/* Background on body is placed *above* the background image,
+   so we apply the background to the HTML element instead,
+   to prevent covering up the user's background */
+html {
+    background: var(--bg-neutral-none) !important;
 }
 
 html.dark .cijfer.neutraal {
@@ -160,7 +166,7 @@ sl-studiewijzer-filter-button:not(:hover) {
     padding: 10px 20px;
     border: 2px solid var(--blue-0);
     color: var(--fg-on-primary-weak);
-    line-height: 15px;
+    line-height: 1.4em;
     border-radius: 16px;
     padding-left: 50px;
     position: relative;
@@ -178,6 +184,10 @@ sl-studiewijzer-filter-button:not(:hover) {
     margin-top: 40px;
     color: var(--text-strong);
     width: calc(100% + 15px);
+}
+
+#mod-cijferanalyse {
+    color: var(--text-strong);
 }
 
 #mod-grade-calculate input {
@@ -380,6 +390,8 @@ sl-rooster-week-header .mod-add-homework {
     color: #fff;
     font-size: 30px;
     cursor: pointer;
+    line-height: 30px;
+    display: none;
     width: 40px;
     height: 40px;
     background: rgba(255, 50, 50, 0.8);
@@ -721,5 +733,4 @@ sl-rooster-week-header .mod-add-homework {
 .blok>.container>svg {
     width: 100%;
     height: 100%;
-}
 }

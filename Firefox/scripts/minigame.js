@@ -2,6 +2,7 @@
 // A minigame on the error page
 function errorPage() {
     if (!n(tn('hmy-button', 0))) {
+        // [GENERATION] PLATFORMER_STYLE
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
         id('mod-play-game').addEventListener('click', function () {
             tn('body', 0).classList.add('mod-game-playing');
@@ -123,7 +124,7 @@ function errorPage() {
                         clearInterval(timer);
                     }
                     setTimeout(function () {
-                        if (!n(id('mod-game'))) {
+                        if (id('mod-game')) {
                             id('mod-game').remove();
                         }
                     }, 320);
@@ -167,8 +168,14 @@ function errorPage() {
             id('mod-close-button').addEventListener('click', function () { openLevel(12); });
             id('mod-play-again').addEventListener('click', function () { time = 0; setTimeInterval(); openLevel(1); });
 
-            document.addEventListener('keyup', function (e) { pressedKeys[e.keyCode] = false; });
-            document.addEventListener('keydown', function (e) { if (e.keyCode == 40) { e.preventDefault(); } pressedKeys[e.keyCode] = true; });
+            document.addEventListener('keyup', function (e) {
+                pressedKeys[e.key.toUpperCase()] = false;
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key == 'ArrowDown') {
+                    e.preventDefault();
+                } pressedKeys[e.key.toUpperCase()] = true;
+            });
 
             let touchX;
             let touchY;
@@ -192,7 +199,7 @@ function errorPage() {
             const updateGame = setInterval(function () {
                 const boundingRect = player.getBoundingClientRect();
                 // Up
-                if ((isTouching && touchY < boundingRect.top - 100) || pressedKeys[38] || pressedKeys[87]) {
+                if ((isTouching && touchY < boundingRect.top - 100) || pressedKeys['ARROWUP'] || pressedKeys['W']) {
                     if (onGround) {
                         for (const element of movingPlatformsUp) {
                             if (element.dataset.direction == 'up' && detectOverlap(playerRect, element.children[0])) {
@@ -207,15 +214,15 @@ function errorPage() {
                     }
                 }
                 // Down
-                if ((isTouching && touchY > boundingRect.top + 100) || pressedKeys[40] || pressedKeys[83]) {
+                if ((isTouching && touchY > boundingRect.top + 100) || pressedKeys['ARROWDOWN'] || pressedKeys['S']) {
                     velocityY -= 0.2;
                 }
                 // Right
-                if ((isTouching && touchX > boundingRect.left + 100) || pressedKeys[39] || pressedKeys[68]) {
+                if ((isTouching && touchX > boundingRect.left + 100) || pressedKeys['ARROWRIGHT'] || pressedKeys['D']) {
                     velocityX += 0.055;
                 }
                 // Left
-                if ((isTouching && touchX < boundingRect.left - 100) || pressedKeys[37] || pressedKeys[65]) {
+                if ((isTouching && touchX < boundingRect.left - 100) || pressedKeys['ARROWLEFT'] || pressedKeys['A']) {
                     velocityX -= 0.055;
                 }
                 if (velocityX > 1) {

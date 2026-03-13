@@ -1,10 +1,14 @@
 ---
 name: Bug report (English)
-about: Report a bug or unexpected behavior in Somtoday Mod
+about: Report a bug - Please complete ALL fields
 title: "[Bug] "
 labels: bug
 assignees: ''
 ---
+
+## Before submitting
+- [ ] I have searched for existing issues and confirmed this bug has not been reported yet
+- [ ] I will complete ALL sections below (do not leave sections empty)
 
 ## Description
 A clear description of the bug.
