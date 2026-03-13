@@ -14,8 +14,8 @@ configure<ApplicationExtension> {
         applicationId = "com.jonazwetsloot.somtodaymod"
         minSdk = 23
         targetSdk = 36
-        versionCode = 54
-        versionName = "5.4"
+        versionCode = 55
+        versionName = "5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true

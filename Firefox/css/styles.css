@@ -7,16 +7,16 @@
 }
 
 /* General Style */
-body {
+html body {
     overflow-y: scroll !important;
-    background: transparent !important;
+    background: transparent;
 }
 
 /* Background on body is placed *above* the background image,
    so we apply the background to the HTML element instead,
    to prevent covering up the user's background */
 html {
-    background: var(--bg-neutral-none) !important;
+    background: var(--bg-neutral-none);
 }
 
 html.dark .cijfer.neutraal {
