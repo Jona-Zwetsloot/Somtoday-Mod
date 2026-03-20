@@ -7,9 +7,16 @@
 }
 
 /* General Style */
-body {
+html body {
     overflow-y: scroll !important;
-    background: var(--bg-elevated-none);
+    background: transparent;
+}
+
+/* Background on body is placed *above* the background image,
+   so we apply the background to the HTML element instead,
+   to prevent covering up the user's background */
+html {
+    background: var(--bg-neutral-none);
 }
 
 html.dark .cijfer.neutraal {
@@ -159,7 +166,7 @@ sl-studiewijzer-filter-button:not(:hover) {
     padding: 10px 20px;
     border: 2px solid var(--blue-0);
     color: var(--fg-on-primary-weak);
-    line-height: 15px;
+    line-height: 1.4em;
     border-radius: 16px;
     padding-left: 50px;
     position: relative;
@@ -177,6 +184,10 @@ sl-studiewijzer-filter-button:not(:hover) {
     margin-top: 40px;
     color: var(--text-strong);
     width: calc(100% + 15px);
+}
+
+#mod-cijferanalyse {
+    color: var(--text-strong);
 }
 
 #mod-grade-calculate input {
@@ -332,7 +343,7 @@ sl-rooster-week-header .mod-add-homework {
     width: 100%;
     height: 100%;
     z-index: 100000;
-    background: rgba(0, 0, 0, 0.85);
+    background: radial-gradient(circle at center, #001a33 0%, #000000 100%);
     cursor: crosshair;
     display: none;
 }
@@ -348,13 +359,27 @@ sl-rooster-week-header .mod-add-homework {
     z-index: 100001;
     color: #fff;
     font-family: 'Kanit', sans-serif;
-    font-size: 24px;
+    font-size: 20px;
     pointer-events: none;
     display: none;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 #grade-defender-ui.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.gd-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
 }
 
 #grade-defender-close {
@@ -363,14 +388,140 @@ sl-rooster-week-header .mod-add-homework {
     right: 20px;
     z-index: 100001;
     color: #fff;
-    font-size: 40px;
+    font-size: 30px;
     cursor: pointer;
     line-height: 30px;
     display: none;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 50, 50, 0.8);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+#grade-defender-close:hover {
+    transform: scale(1.1);
 }
 
 #grade-defender-close.active {
+    display: flex;
+}
+
+#grade-defender-shop-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100001;
+    background: #ff9900;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    box-shadow: 0 4px 15px rgba(255, 153, 0, 0.4);
+    transition: transform 0.2s;
+}
+
+#grade-defender-shop-btn:hover {
+    transform: scale(1.05);
+}
+
+#grade-defender-shop-btn.active {
     display: block;
+}
+
+#grade-defender-shop {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 80%;
+    max-width: 800px;
+    background: rgba(20, 20, 25, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    z-index: 100002;
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    backdrop-filter: blur(20px);
+}
+
+#grade-defender-shop.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.shop-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.shop-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s;
+}
+
+.shop-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.shop-item.unlocked {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.shop-item h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.shop-item button {
+    background: #0099ff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.shop-item button:disabled {
+    background: #444;
+    cursor: default;
+}
+
+.shop-item.unlocked button {
+    background: #00cc6a;
+}
+
+#shop-close {
+    background: #ff4444;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    float: right;
 }
 
 #grade-defender-gameover {
@@ -382,29 +533,54 @@ sl-rooster-week-header .mod-add-homework {
     color: #fff;
     text-align: center;
     display: none;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 68, 68, 0.5);
+    backdrop-filter: blur(10px);
 }
 
 #grade-defender-gameover.active {
     display: block;
+    animation: gameOverPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes gameOverPop {
+    from {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
 #grade-defender-gameover h1 {
     font-size: 60px;
-    margin: 0;
+    margin: 0 0 20px 0;
     color: #ff4444;
     text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 #grade-defender-restart {
-    background: #fff;
-    color: #000;
-    padding: 15px 30px;
+    background: linear-gradient(45deg, #0099ff, #00ccff);
+    color: #fff;
+    padding: 15px 40px;
     border-radius: 30px;
     font-size: 20px;
     cursor: pointer;
     margin-top: 20px;
     display: inline-block;
     font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 153, 255, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#grade-defender-restart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 153, 255, 0.5);
 }
 
 /* Live Wallpaper */

@@ -1,15 +1,15 @@
 {
   "extVersion": {
-    "message": "Somtoday Mod Chromium v5.3"
+    "message": "Somtoday Mod Chromium v5.5"
   },
   "newOne": {
-    "message": "Live backgrounds added by compiledkernel-idk"
+    "message": "Night mode improved by levkris, custom CSS setting added by Minionguyjpro"
   },
   "newTwo": {
-    "message": "Night mode added by levkris"
+    "message": "Grade Defender game improved by compiledkernel-idk"
   },
   "newThree": {
-    "message": "ELO renamed to Somtoday by timmah12341"
+    "message": "Background bug fixed by Jona Zwetsloot"
   },
   "extName": {
     "message": "Somtoday Mod"

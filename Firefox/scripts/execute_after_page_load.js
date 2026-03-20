@@ -52,7 +52,6 @@ async function autoLogin() {
     if (id('password-field')) {
         // If password is not set but password field is present, DO NOT click the login button!
         if (n(get('loginpass'))) {
-            console.log('pass is null');
             return;
         }
         id('password-field').value = get('loginpass');

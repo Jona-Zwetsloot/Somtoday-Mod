@@ -1,0 +1,57 @@
+{
+  "extVersion": {
+    "message": "Somtoday Mod Chromium v5.5"
+  },
+  "newOne": {
+    "message": "Night mode verbeterd door levkris, custom CSS instelling toegevoegd door Minionguyjpro"
+  },
+  "newTwo": {
+    "message": "Grade Defender game verbeterd door compiledkernel-idk"
+  },
+  "newThree": {
+    "message": "Achtergrond bug opgelost door Jona Zwetsloot"
+  },
+  "extName": {
+    "message": "Somtoday Mod"
+  },
+  "extDescription": {
+    "message": "Pas het uiterlijk van Somtoday aan met achtergronden, lettertypes, kleuren en meer!"
+  },
+  "activeText": {
+    "message": "Somtoday Mod is geactiveerd!"
+  },
+  "btnOne": {
+    "message": "Ga naar Somtoday"
+  },
+  "btnTwo": {
+    "message": "Instellingen"
+  },
+  "whatsNew": {
+    "message": "Bekijk wat er nieuw is"
+  },
+  "whatsNewHeader": {
+    "message": "Nieuw in deze release"
+  },
+  "back": {
+    "message": "Terug"
+  },
+  "enableDisable": {
+    "message": "Somtoday Mod aanzetten"
+  },
+  "toSomtoday": {
+    "message": "Naar Somtoday"
+  },
+  "resetAll": {
+    "message": "Reset alles"
+  },
+  "confirmReset": {
+    "message": "Wil je echt alle opslagdata wissen?"
+  },
+  "yes": {
+    "message": "Ja"
+  },
+  "no": {
+    "message": "Nee"
+  }
+
+}

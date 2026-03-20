@@ -1,5 +1,8 @@
 # Contributing
-Pull requests are welcome! Be clear about what you've changed, and I'll almost always approve it.
+Thank you for considering contributing to this project! Only pull requests with fully completed features will be merged as of march 2026, since I plan to focus on my upcoming exams. I might request you to modify parts of the code in your pull request.
+
+> [!IMPORTANT]  
+> In september 2026 I will be starting with my bachelor degree at university. Since I will then no longer have access to Somtoday and since Somtoday Mod already has quite enough features, I plan to only submit bugfixes and patches starting next schoolyear (unless someone else is willing to become a maintainer).
 
 <br>
 
