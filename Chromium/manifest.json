@@ -20,7 +20,10 @@
         "scripts/fireworks.js",
         "scripts/chart.js",
         "scripts/main_functions.js",
-        "scripts/execute_after_page_load.js"
+        "scripts/execute_after_page_load.js",
+        "scripts/legacy_platformer.js",
+        "scripts/platformer.js",
+        "scripts/grade_defender.js"
       ],
       "css": [
         "css/night.css",
@@ -28,7 +31,9 @@
         "css/somtoday-recap.css",
         "css/mod-settings.css",
         "css/custom-homework.css",
-        "css/platformer.css"
+        "css/platformer.css",
+        "css/legacy-platformer.css",
+        "css/minigames.css"
       ],
       "matches": [
         "*://*.somtoday.nl/*",
@@ -59,14 +64,18 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "sounds/background.mp3",
-        "sounds/tada.mp3",
-        "sounds/error.mp3",
-        "sounds/correct.mp3",
+        "sounds/*",
         "version_info.json",
-        "settings_content/familiar.html",
+        "settings_content/*",
+        "fonts/Kanit-SemiBold.ttf",
         "fonts/Kanit-ExtraLight.ttf",
-        "images/dark-mode.svg"
+        "images/dark-mode.svg",
+        "images/platformerv2/logo.svg",
+        "wasm/pkg/somtoday_analytics_bg.wasm",
+        "wasm/pkg/somtoday_analytics.js",
+        "platformer_levels/*",
+        "platformer_textures/*",
+        "platformer/*"
       ],
       "matches": [
         "*://*.somtoday.nl/*"

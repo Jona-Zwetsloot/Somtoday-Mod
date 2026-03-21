@@ -1,4 +1,6 @@
 :root.night {
+    background: var(--bg-neutral-none) !important;
+
     --bg-mask-normal: rgba(0, 0, 0, 0.9);
     --shadow-color: rgba(0, 0, 0, 0.8);
 
@@ -47,8 +49,10 @@
     --bg-elevated-weak: #191919;
     --bg-elevated-strong: #1f1f1f;
     --bg-primary-weakest: #1f1f1f !important;
-    --fg-on-primary-weakest: #575757;
-    --fg-on-positive-weakest: #3ca86c;
+    --fg-on-primary-weakest: #6e6e6e;
+    --fg-on-positive-weakest: #4bf196;
+    
+    --bg-alternative-weakest: #45277c;
 
     --bg-primary-normal: #575757;
     --bg-primary-strong: #343434;
@@ -110,6 +114,8 @@
     --fg-on-alternative-strong: #ffffff;
     --fg-on-alternative-max: #c8a0f0;
 
+    --fg-on-alternative-weakest: #d1b8f7;
+
     --text-strong: #ffffff;
     --text-moderate: #b0b0b0;
     --text-weak: #888888;
@@ -121,6 +127,9 @@
     --disabled-border: #2a2a2a;
 
     --scrollbar-color-track-border: #000;
+
+    --grey-70: #74839c;
+    --grey-80: #8a9bb1;
 }
 
 :root.night ::-webkit-scrollbar {
