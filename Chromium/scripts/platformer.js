@@ -12,7 +12,7 @@ async function startPlatformerGame() {
         return;
     }
 
-    const DEBUG_MODE = true; // IMPORTANT: DISABLE THIS IN PRODUCTION
+    const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 
     const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
