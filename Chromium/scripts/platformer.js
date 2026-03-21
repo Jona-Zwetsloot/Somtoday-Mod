@@ -12,7 +12,7 @@ async function startPlatformerGame() {
         return;
     }
 
-    const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
+    const DEBUG_MODE = true; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 
     const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
@@ -1024,6 +1024,22 @@ async function startPlatformerGame() {
         return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
     }
 
+    function circleRectHit(circleX, circleY, radius, rectX, rectY, rectW, rectH) {
+        const closestX = Math.max(rectX, Math.min(circleX, rectX + rectW));
+        const closestY = Math.max(rectY, Math.min(circleY, rectY + rectH));
+        const dx = circleX - closestX;
+        const dy = circleY - closestY;
+        return (dx * dx + dy * dy) < (radius * radius);
+    }
+ 
+    function circleCircleHit(x1, y1, r1, x2, y2, r2) {
+        const dx = x1 - x2;
+        const dy = y1 - y2;
+        const distSq = dx * dx + dy * dy;
+        const radSum = r1 + r2;
+        return distSq < (radSum * radSum);
+    }
+
     function countLevelCoins(l) {
         return l ? l.coins.filter(c => !c.ghost).reduce((t, c) => t + (c.blue ? 10 : 1), 0) : 0;
     }
@@ -1101,7 +1117,15 @@ async function startPlatformerGame() {
 
     function endGame() {
         gameAlive = false;
+        timing = false;
         stopMusic();
+        
+        for (const pool of Object.values(sfxPool)) {
+            for (const audio of pool) {
+                try { audio.pause(); audio.currentTime = 0; } catch(e) {}
+            }
+        }
+        
         tn('body', 0).classList.remove('mod-game-playing');
 
         document.getElementById('mod-game').style.display = 'none';
@@ -1116,7 +1140,15 @@ async function startPlatformerGame() {
 
     function closeEntirePlatformer() {
         gameAlive = false;
+        timing = false;
         stopMusic();
+        
+        for (const pool of Object.values(sfxPool)) {
+            for (const audio of pool) {
+                try { audio.pause(); audio.currentTime = 0; } catch(e) {}
+            }
+        }
+        
         tn('body', 0).classList.remove('mod-game-playing');
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -1130,9 +1162,9 @@ async function startPlatformerGame() {
     }
 
     function updateCam() {
-        let tx = px + PW / 2 - canvas.width * 0.4;
-        let ty = lvl.worldHeight - py - PH / 2 - canvas.height / 2;
-
+        let tx = px + PW / 2 - canvas.width / 2;
+        let ty = lvl.worldHeight - (py + PH / 2) - canvas.height / 2;
+ 
         for (const cam of lvl.cameras) {
             if (!cam.areaId) continue;
             const area = lvl.areas.find(a => a.areaId === cam.areaId);
@@ -1143,19 +1175,20 @@ async function startPlatformerGame() {
             if (cam.lockX && cam.targetCamX !== null) tx = cam.targetCamX - canvas.width / 2;
             if (cam.lockY && cam.targetCamY !== null) ty = lvl.worldHeight - cam.targetCamY - canvas.height / 2;
         }
-
+ 
         if (snapCam) {
             camX = tx;
             camY = ty;
             const stillInPortal = lvl.portals.some(pt => hit(px, py, PW, PH, pt.x, pt.y, pt.w, pt.h));
             if (!stillInPortal) snapCam = false;
         } else {
-            camX += (tx - camX) * 0.1;
-            camY += (ty - camY) * 0.1;
+            camX += (tx - camX) * 0.05;
+            camY += (ty - camY) * 0.05;
         }
         camX = Math.max(0, Math.min(camX, lvl.worldWidth - canvas.width));
         camY = Math.max(0, Math.min(camY, lvl.worldHeight - canvas.height));
     }
+ 
 
     function wx(x) { return x - camX; }
     function wy(y, h) { return lvl.worldHeight - y - h - camY; }
@@ -1478,47 +1511,39 @@ async function startPlatformerGame() {
         const jumpHeld = mJump || KEY['ArrowUp'] || KEY['KeyW'] || KEY['Space'];
         if (!jumpHeld) jumpQ = false;
         const wantJump = jumpQ || (jumpHeld && onGround);
-
-        if (wantJump) {
-            let jumped = false;
-            let orbHit = false;
-
-            for (const orb of lvl.orbs) {
-                if (orb.ghost) continue;
-                const orbHitSize = orb.r * 2;
-                if (orb.actTimer <= 0 && (
-                    hit(px, py, PW, PH, orb.x - orb.r, orb.y - orb.r, orbHitSize, orbHitSize) ||
-                    (orb.x >= px && orb.x <= px + PW && orb.y >= py && orb.y <= py + PH)
-                )) {
-                    vy = orb.strength * 370;
-                    onGround = false;
-                    orb.actTimer = 0.18;
-                    jumpAnim = 0.3;
-                    orbHit = true;
-                    jumped = true;
-                    playSfx('orb-jump');
-                    break;
-                }
-            }
-
-            if (!orbHit && onGround) {
-                vy = JUMP_V;
+ 
+        const PLAYER_INNER_SIZE = 12;
+        const playerInnerX = px + (PW - PLAYER_INNER_SIZE) / 2;
+        const playerInnerY = py + (PH - PLAYER_INNER_SIZE) / 2;
+ 
+        for (const orb of lvl.orbs) {
+            if (orb.ghost) continue;
+            
+            const touchingOrbInner = circleRectHit(orb.x, orb.y, orb.r, playerInnerX, playerInnerY, PLAYER_INNER_SIZE, PLAYER_INNER_SIZE);
+            
+            if (touchingOrbInner && jumpHeld && orb.actTimer <= 0) {
+                vy = orb.strength * 370;
                 onGround = false;
+                orb.actTimer = 0.18;
                 jumpAnim = 0.3;
-                jumped = true;
+                jumpQ = false;
+                playSfx('orb-jump');
+                break;
             }
-
-            if (jumped) jumpQ = false;
         }
-
+ 
+        if (wantJump && onGround) {
+            vy = JUMP_V;
+            onGround = false;
+            jumpAnim = 0.3;
+            jumpQ = false;
+        }
+ 
         if (!jumpHeld) {
             for (const orb of lvl.orbs) {
                 if (orb.ghost) continue;
-                const orbHitSize = orb.r * 2;
-                if (orb.actTimer <= 0 && (
-                    hit(px, py, PW, PH, orb.x - orb.r, orb.y - orb.r, orbHitSize, orbHitSize) ||
-                    (orb.x >= px && orb.x <= px + PW && orb.y >= py && orb.y <= py + PH)
-                )) {
+                const touchingOrbInner = circleRectHit(orb.x, orb.y, orb.r, playerInnerX, playerInnerY, PLAYER_INNER_SIZE, PLAYER_INNER_SIZE);
+                if (touchingOrbInner && orb.actTimer <= 0) {
                     orb.actTimer = 0.18;
                 }
             }
@@ -2632,6 +2657,16 @@ async function startPlatformerGame() {
 
         ctx.strokeStyle = 'rgba(0,255,0,0.9)';
         ctx.strokeRect(wx(px), wy(py, PH), PW, PH);
+
+        ctx.strokeStyle = 'rgba(0,255,0,0.9)';
+        ctx.strokeRect(wx(px), wy(py, PH), PW, PH);
+ 
+        const PLAYER_INNER_SIZE = 12;
+        const innerX = wx(px) + (PW - PLAYER_INNER_SIZE) / 2;
+        const innerY = wy(py, PH) + (PH - PLAYER_INNER_SIZE) / 2;
+        ctx.strokeStyle = 'rgba(255,255,0,0.9)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(innerX, innerY, PLAYER_INNER_SIZE, PLAYER_INNER_SIZE);
 
         ctx.strokeStyle = 'rgba(80,160,255,0.55)';
         for (const f of lvl.floors) { if (!f.ghost) ctx.strokeRect(wx(f.x), wy(f.y, f.h), f.w, f.h); }
