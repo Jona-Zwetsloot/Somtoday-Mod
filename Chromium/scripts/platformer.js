@@ -15,6 +15,8 @@ async function startPlatformerGame() {
     const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 
+    const BACKEND_URL = 'https://somtoday-mod-platformer-backend.onrender.com';
+
     const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
     consoleHunter();
 
@@ -25,93 +27,69 @@ async function startPlatformerGame() {
     }
 
     tn('body', 0).insertAdjacentHTML('beforeend', `
-<div id="mod-menu">
-  <div class="mod-menu-overlay">
-    <div class="mod-menu-panel">
-      <div id="mod-screen-main" class="mod-screen">
-        <button class="mod-menu-close-x" id="mod-menu-close">✕</button>
-        <div class="mod-menu-logo">
-            <img draggable="false" src="${chrome.runtime.getURL('images/platformerv2/logo.svg')}">
+    <div id="mod-menu">
+    <div class="mod-menu-overlay">
+        <div class="mod-menu-panel">
+        <div id="mod-screen-main" class="mod-screen">
+            <button class="mod-menu-close-x" id="mod-menu-close">✕</button>
+            <div class="mod-menu-logo">
+                <img draggable="false" src="${chrome.runtime.getURL('images/platformerv2/logo.svg')}">
+            </div>
+            <div class="mod-menu-coins-display">
+            <span class="mod-menu-coin-icon">🪙</span>
+            <span id="mod-menu-total-coins">0</span>
+            </div>
+            <div class="mod-menu-play-area">
+            <div class="mod-menu-side-btn" id="mod-menu-codes">
+                <div class="mod-menu-side-btn-circle">🔑</div>
+                <span class="mod-menu-side-btn-label">Codes</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;">
+                <button class="mod-menu-play-circle" id="mod-menu-play">
+                <span class="mod-menu-play-icon">▶</span>
+                </button>
+                <div class="mod-menu-play-label">SPELEN</div>
+            </div>
+            <div class="mod-menu-side-btn" id="mod-menu-shop">
+                <div class="mod-menu-side-btn-circle">🛒</div>
+                <span class="mod-menu-side-btn-label">Shop</span>
+            </div>
+            </div>
+            <button class="mod-credits-float-btn" id="mod-menu-credits-btn" title="Credits">📜</button>
         </div>
-        <div class="mod-menu-coins-display">
-          <span class="mod-menu-coin-icon">🪙</span>
-          <span id="mod-menu-total-coins">0</span>
-        </div>
-        <div class="mod-menu-play-area">
-          <div class="mod-menu-side-btn" id="mod-menu-codes">
-            <div class="mod-menu-side-btn-circle">🔑</div>
-            <span class="mod-menu-side-btn-label">Codes</span>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;">
-            <button class="mod-menu-play-circle" id="mod-menu-play">
-              <span class="mod-menu-play-icon">▶</span>
-            </button>
-            <div class="mod-menu-play-label">SPELEN</div>
-          </div>
-          <div class="mod-menu-side-btn" id="mod-menu-shop">
-            <div class="mod-menu-side-btn-circle">🛒</div>
-            <span class="mod-menu-side-btn-label">Shop</span>
-          </div>
-        </div>
-        <button class="mod-credits-float-btn" id="mod-menu-credits-btn" title="Credits">📜</button>
-      </div>
 
-      <div id="mod-screen-levels" class="mod-screen mod-screen-hidden">
-        <div class="mod-menu-header">
-          <button class="mod-menu-back" id="mod-levels-back">← Terug</button>
-          <div class="mod-menu-header-title">Selecteer Level</div>
-          <div class="mod-menu-coins-sm">
-            <span>🪙</span>
-            <span id="mod-levels-coins">0</span>
-          </div>
+        <div id="mod-screen-levels" class="mod-screen mod-screen-hidden">
+            <div class="mod-menu-header">
+            <button class="mod-menu-back" id="mod-levels-back">← Terug</button>
+            <div class="mod-menu-header-title">Selecteer Level</div>
+            <div class="mod-menu-coins-sm">
+                <span>🪙</span>
+                <span id="mod-levels-coins">0</span>
+            </div>
+            </div>
+            <div class="mod-level-grid" id="mod-level-grid"></div>
         </div>
-        <div class="mod-level-grid" id="mod-level-grid"></div>
-      </div>
-
-      <div id="mod-screen-codes" class="mod-screen mod-screen-hidden">
-        <div class="mod-menu-header">
-          <button class="mod-menu-back" id="mod-codes-back">← Terug</button>
-          <div class="mod-menu-header-title">Voer Code In</div>
-          <div class="mod-menu-coins-sm">
-            <span>🪙</span>
-            <span id="mod-codes-coins">0</span>
-          </div>
         </div>
-        <div class="mod-codes-body">
-          <div class="mod-codes-icon">🔐</div>
-          <p class="mod-codes-desc">Voer een code in om speciale beloningen te ontvangen</p>
-          <div class="mod-codes-input-wrap">
-            <input type="text" class="mod-codes-input" id="mod-codes-input" placeholder="CODE123" maxlength="20">
-            <button class="mod-codes-submit" id="mod-codes-submit">Verzenden</button>
-          </div>
-          <div class="mod-codes-status" id="mod-codes-status"></div>
-          <div class="mod-codes-history" id="mod-codes-history" style="display:none;">
-            <div class="mod-codes-history-title">Munten van codes</div>
-            <div class="mod-codes-history-val" id="mod-codes-history-val">0</div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
-<div id="mod-game" style="display:none;">
-<canvas id="mod-canvas"></canvas>
-<div id="mod-hud">
-<span id="mod-playtime"></span>
-<span id="mod-coins-hud"></span>
-<span id="mod-level-title"></span>
-<button id="mod-pause-btn">&#9646;&#9646;</button>
-<span id="mod-close-button">&times;</span>
-</div>
-<div id="mod-mobile-controls">
-<button id="mod-btn-left">&#9664;</button>
-<button id="mod-btn-jump">&#9650;</button>
-<button id="mod-btn-right">&#9654;</button>
-</div>
-</div>`);
+    </div>
+    <div id="mod-game" style="display:none;">
+    <canvas id="mod-canvas"></canvas>
+    <div id="mod-hud">
+    <span id="mod-playtime"></span>
+    <span id="mod-coins-hud"></span>
+    <span id="mod-level-title"></span>
+    <button id="mod-pause-btn">&#9646;&#9646;</button>
+    <span id="mod-close-button">&times;</span>
+    </div>
+    <div id="mod-mobile-controls">
+    <button id="mod-btn-left">&#9664;</button>
+    <button id="mod-btn-jump">&#9650;</button>
+    <button id="mod-btn-right">&#9654;</button>
+    </div>
+    </div>`);
 
     function showScreen(screenId) {
-        ['mod-screen-main', 'mod-screen-levels', 'mod-screen-codes'].forEach(sid => {
+        ['mod-screen-main', 'mod-screen-levels'].forEach(sid => {
             const el = document.getElementById(sid);
             if (el) el.classList.toggle('mod-screen-hidden', sid !== screenId);
         });
@@ -123,11 +101,6 @@ async function startPlatformerGame() {
         const total = totalCoins + codeCoins;
         document.getElementById('mod-menu-total-coins').textContent = total;
         document.getElementById('mod-levels-coins').textContent = total;
-        document.getElementById('mod-codes-coins').textContent = total;
-        if (codeCoins > 0) {
-            document.getElementById('mod-codes-history').style.display = 'block';
-            document.getElementById('mod-codes-history-val').textContent = codeCoins;
-        }
     }
 
     function getLevelBestTime(levelIdx) {
@@ -190,11 +163,118 @@ async function startPlatformerGame() {
     });
 
     document.getElementById('mod-menu-codes').addEventListener('click', () => {
-        showScreen('mod-screen-codes');
+        const overlay = document.createElement('div');
+        overlay.className = 'mod-coming-soon-overlay';
+        overlay.id = 'mod-codes-overlay';
+        overlay.innerHTML = `
+            <div class="mod-coming-soon-box" style="max-width: 440px; padding: 32px 40px;">
+                <div class="mod-codes-icon">🔐</div>
+                <h3>Codes</h3>
+                <p class="mod-codes-desc">Voer een code in om speciale beloningen te ontvangen</p>
+                <div class="mod-codes-input-wrap">
+                    <input type="text" class="mod-codes-input" id="mod-codes-input" placeholder="CODE123" maxlength="20">
+                    <button class="mod-codes-submit" id="mod-codes-submit">Verzenden</button>
+                </div>
+                <div class="mod-codes-status" id="mod-codes-status"></div>
+                <div class="mod-codes-history" id="mod-codes-history" style="display:none;">
+                    <div class="mod-codes-history-title">Munten van codes</div>
+                    <div class="mod-codes-history-val" id="mod-codes-history-val">0</div>
+                </div>
+                <button class="mod-coming-soon-close" id="mod-codes-close">Sluiten</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        const codeCoins = parseInt(get('platformer-code-coins') || '0');
+        if (codeCoins > 0) {
+            document.getElementById('mod-codes-history').style.display = 'block';
+            document.getElementById('mod-codes-history-val').textContent = codeCoins;
+        }
+        
+        const closeOverlay = () => {
+            overlay.remove();
+            updateMenuCoins();
+        };
+        
+        document.getElementById('mod-codes-close').addEventListener('click', closeOverlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+        
+        document.getElementById('mod-codes-submit').addEventListener('click', async () => {
+            const input = document.getElementById('mod-codes-input');
+            const status = document.getElementById('mod-codes-status');
+            const code = input.value.trim().toUpperCase();
+
+            if (!code) {
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Voer een code in';
+                return;
+            }
+
+            const usedCodes = JSON.parse(get('platformer-used-codes') || '[]');
+            if (usedCodes.includes(code)) {
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Deze code is al gebruikt';
+                return;
+            }
+
+            status.className = 'mod-codes-status mod-codes-status-loading';
+            status.textContent = 'Code valideren... dit kan tot 50 seconden duren';
+
+            try {
+                const resp = await fetch(`${BACKEND_URL}/redeem`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, uuid: CODE_UUID }),
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.success) {
+                    const reward = data.reward.coins || 0;
+                    const currentCodeCoins = parseInt(get('platformer-code-coins') || '0');
+                    set('platformer-code-coins', currentCodeCoins + reward);
+
+                    usedCodes.push(code);
+                    set('platformer-used-codes', JSON.stringify(usedCodes));
+
+                    status.className = 'mod-codes-status mod-codes-status-success';
+                    status.textContent = `🎉 +${reward} munten ontvangen!`;
+                    input.value = '';
+
+                    const newTotal = currentCodeCoins + reward;
+                    document.getElementById('mod-codes-history').style.display = 'block';
+                    document.getElementById('mod-codes-history-val').textContent = newTotal;
+                    updateMenuCoins();
+                } else if (resp.status === 409) {
+                    usedCodes.push(code);
+                    set('platformer-used-codes', JSON.stringify(usedCodes));
+                    status.className = 'mod-codes-status mod-codes-status-error';
+                    status.textContent = 'Deze code is al gebruikt';
+                } else if (resp.status === 404) {
+                    status.className = 'mod-codes-status mod-codes-status-error';
+                    status.textContent = 'Ongeldige code';
+                } else {
+                    status.className = 'mod-codes-status mod-codes-status-error';
+                    status.textContent = 'Er is een fout opgetreden, probeer opnieuw';
+                }
+            } catch(e) {
+                status.className = 'mod-codes-status mod-codes-status-error';
+                status.textContent = 'Geen verbinding met server, probeer het later opnieuw';
+            }
+        });
+        
+        document.getElementById('mod-codes-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('mod-codes-submit').click();
+            }
+        });
     });
 
     document.getElementById('mod-menu-close').addEventListener('click', () => {
         closeEntirePlatformer();
+    });
+
+    document.getElementById('mod-levels-back').addEventListener('click', () => {
+        showScreen('mod-screen-main');
     });
 
     document.getElementById('mod-menu-credits-btn').addEventListener('click', async () => await openCreditsPopup());
@@ -214,14 +294,6 @@ async function startPlatformerGame() {
         document.body.appendChild(overlay);
         document.getElementById('mod-cs-close').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-    });
-
-    document.getElementById('mod-levels-back').addEventListener('click', () => {
-        showScreen('mod-screen-main');
-    });
-
-    document.getElementById('mod-codes-back').addEventListener('click', () => {
-        showScreen('mod-screen-main');
     });
 
     const canvas = id('mod-canvas');
@@ -711,74 +783,6 @@ async function startPlatformerGame() {
             grid.appendChild(card);
         });
     }
-
-    const BACKEND_URL = 'https://somtoday-mod-platformer-backend.onrender.com';
-
-    document.getElementById('mod-codes-submit').addEventListener('click', async () => {
-        const input = document.getElementById('mod-codes-input');
-        const status = document.getElementById('mod-codes-status');
-        const code = input.value.trim().toUpperCase();
-
-        if (!code) {
-            status.className = 'mod-codes-status mod-codes-status-error';
-            status.textContent = 'Voer een code in';
-            return;
-        }
-
-        const usedCodes = JSON.parse(get('platformer-used-codes') || '[]');
-        if (usedCodes.includes(code)) {
-            status.className = 'mod-codes-status mod-codes-status-error';
-            status.textContent = 'Deze code is al gebruikt';
-            return;
-        }
-
-        status.className = 'mod-codes-status mod-codes-status-loading';
-        status.textContent = 'Code valideren... dit kan tot 50 seconden duren';
-
-        try {
-            const resp = await fetch(`${BACKEND_URL}/redeem`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code, uuid: CODE_UUID }),
-            });
-            const data = await resp.json();
-
-            if (resp.ok && data.success) {
-                const reward = data.reward.coins || 0;
-                const currentCodeCoins = parseInt(get('platformer-code-coins') || '0');
-                set('platformer-code-coins', currentCodeCoins + reward);
-
-                usedCodes.push(code);
-                set('platformer-used-codes', JSON.stringify(usedCodes));
-
-                status.className = 'mod-codes-status mod-codes-status-success';
-                status.textContent = `🎉 +${reward} munten ontvangen!`;
-                input.value = '';
-
-                updateMenuCoins();
-            } else if (resp.status === 409) {
-                usedCodes.push(code);
-                set('platformer-used-codes', JSON.stringify(usedCodes));
-                status.className = 'mod-codes-status mod-codes-status-error';
-                status.textContent = 'Deze code is al gebruikt';
-            } else if (resp.status === 404) {
-                status.className = 'mod-codes-status mod-codes-status-error';
-                status.textContent = 'Ongeldige code';
-            } else {
-                status.className = 'mod-codes-status mod-codes-status-error';
-                status.textContent = 'Er is een fout opgetreden, probeer opnieuw';
-            }
-        } catch(e) {
-            status.className = 'mod-codes-status mod-codes-status-error';
-            status.textContent = 'Geen verbinding met server, probeer het later opnieuw';
-        }
-    });
-
-    document.getElementById('mod-codes-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('mod-codes-submit').click();
-        }
-    });
 
     updateMenuCoins();
     populateLevelGrid();
@@ -3403,10 +3407,6 @@ async function startPlatformerGame() {
         render(dt);
         requestAnimationFrame(loop);
     }
-
-    elapsed = 0; timing = true; sessionCoins = 0; sessionTotalCoins = 0;
-    loadLvl(0);
-    requestAnimationFrame(loop);
 
     function getAudioUrl(file) {
         if (isExtension) {

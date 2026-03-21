@@ -176,6 +176,7 @@ body.mod-game-playing,
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
 .mod-menu-overlay::before {
@@ -567,25 +568,6 @@ body.mod-game-playing,
 
 .mod-level-lock { font-size: 18px; color: #555; }
 
-#mod-screen-codes {
-    overflow: hidden;
-    background: #080812;
-    border-radius: 15px;
-}
-
-.mod-codes-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 28px 28px 24px;
-    gap: 14px;
-    overflow-y: auto;
-    flex: 1;
-}
-
-.mod-codes-body::-webkit-scrollbar { width: 5px; }
-.mod-codes-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
 .mod-codes-icon {
     font-size: 48px;
     filter: drop-shadow(0 0 16px rgba(192,132,252,0.4));
@@ -604,6 +586,7 @@ body.mod-game-playing,
     gap: 8px;
     width: 100%;
     max-width: 360px;
+    margin-bottom: 24px;
 }
 
 .mod-codes-input {
@@ -658,7 +641,7 @@ body.mod-game-playing,
 .mod-codes-status {
     min-height: 40px;
     width: 100%;
-    max-width: 360px;
+    max-width: 328px;
     text-align: center;
     font-size: 14px;
     font-weight: 600;
@@ -668,6 +651,7 @@ body.mod-game-playing,
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    margin-bottom: 24px;
 }
 
 .mod-codes-status:empty { padding: 0; min-height: 0; }
