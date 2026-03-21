@@ -544,25 +544,28 @@ async function startPlatformerGame() {
                 const obj = { type: 'end', x, y, w, h };
                 lvl.ends.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'text') {
-                const baseFont = c.getAttribute('font') || '20px sans-serif';
+                const fontSize = parseFloat(c.getAttribute('fontSize')) || 20;
+                const fontFamily = c.getAttribute('fontFamily') || 'sans-serif';
+                const bold = c.getAttribute('bold') === 'true';
                 const baseColor = c.getAttribute('color') || '#ffffff';
-                const TAG_COLORS = { y: '#fce512', r: '#fc1212', g: '#4caf50', bl: '#5b9cf6', o: '#fc9312', p: '#c084fc', w: '#ffffff', gray: '#9b9b9c' };
-                function parseSegments(node, bold, color) {
+                const baseFont = (bold ? 'bold ' : '') + fontSize + 'px ' + fontFamily;
+                const TAG_COLORS_LOCAL = { y: '#fce512', r: '#fc1212', g: '#4caf50', bl: '#5b9cf6', o: '#fc9312', p: '#c084fc', w: '#ffffff', gray: '#9b9b9c' };
+                function parseSegments(node, isBold, color) {
                     const segs = [];
                     for (const child of node.childNodes) {
                         if (child.nodeType === 3) {
-                            if (child.nodeValue) segs.push({ text: child.nodeValue, bold, color });
+                            if (child.nodeValue) segs.push({ text: child.nodeValue, bold: isBold, color });
                         } else if (child.nodeType === 1) {
                             const tn2 = child.tagName.toLowerCase();
-                            const newBold = bold || tn2 === 'b';
-                            const newColor = TAG_COLORS[tn2] !== undefined ? TAG_COLORS[tn2] : color;
+                            const newBold = isBold || tn2 === 'b';
+                            const newColor = TAG_COLORS_LOCAL[tn2] !== undefined ? TAG_COLORS_LOCAL[tn2] : color;
                             segs.push(...parseSegments(child, newBold, newColor));
                         }
                     }
                     return segs;
                 }
-                const segments = parseSegments(c, false, baseColor);
-                const obj = { type: 'text', x, y, segments, baseFont, ghost };
+                const segments = parseSegments(c, bold, baseColor);
+                const obj = { type: 'text', x, y, segments, baseFont, fontSize, fontFamily, bold, ghost };
                 lvl.texts.push(obj); lvl.drawOrder.push(obj);
             } else if (tag === 'portal') {
                 const portalId = c.getAttribute('portal-id') || null;
@@ -2423,7 +2426,7 @@ async function startPlatformerGame() {
         ctx.fill();
         ctx.restore();
     }
-
+    
     function drawText(t) {
         if (!t.segments || t.segments.length === 0) return;
         ctx.save();
@@ -2431,11 +2434,11 @@ async function startPlatformerGame() {
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.shadowBlur = 0;
-        const sizeMatch = t.baseFont.match(/(\d+)px/);
-        const basePx = sizeMatch ? parseInt(sizeMatch[1]) : 20;
-        const fontRest = t.baseFont.replace(/(?:bold\s*)?\d+px/, '').trim();
-        function segFont(bold) {
-            return (bold ? 'bold ' : '') + basePx + 'px ' + fontRest;
+        const basePx = t.fontSize || 20;
+        const fontFamily = t.fontFamily || 'sans-serif';
+        const baseBold = !!t.bold;
+        function segFont(segBold) {
+            return ((segBold || baseBold) ? 'bold ' : '') + basePx + 'px ' + fontFamily;
         }
         let totalW = 0;
         for (const seg of t.segments) {
