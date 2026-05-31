@@ -5031,21 +5031,6 @@ function onload() {
                 </div>\`;
             ">Reset</div>`;
 
-
-            // Backgrounds
-            let slideshow = '';
-            let i = 0;
-            let background = get(`background${i}`);
-            while (background && typeof background == 'string') {
-                slideshow += `
-                <img tabindex="0" onclick="
-                    document.getElementById('mod-background-wrapper').classList.add('mod-modified');
-                    this.remove();
-                " src="${background}">`;
-                i++;
-                background = get(`background${i}`);
-            }
-
             // Update details for multiple versions
             const updatechecker = `
             <a id="mod-update-checker" class="mod-setting-button" tabindex="0">
@@ -5108,7 +5093,6 @@ function onload() {
                 '{{addSlider_blur}}': addSlider('Blur', 'blur', 0, 200, 'px', 0),
                 '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*'),
                 '{{display_bg_slideshow}}': get('backgroundtype') == 'slideshow' ? 'block' : 'none',
-                '{{slideshow}}': slideshow,
                 '{{display_bg_color}}': get('backgroundtype') == 'color' ? 'block' : 'none',
                 '{{display_bg_live}}': get('backgroundtype') == 'live' ? 'block' : 'none',
                 '{{addSetting_backgroundcolor}}': addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff'),
@@ -5301,6 +5285,57 @@ function onload() {
                 }
             });
 
+            // Backgrounds
+            const slideshowWrapper = id('mod-background-wrapper');
+            const slideshowLabel = slideshowWrapper.getElementsByTagName('label')[0];
+            const slideCount = n(get('slides')) ? 0 : get('slides');
+            // Insert placeholder divs (will be replaced with <img> elements)
+            for (let i = 0; i < slideCount; i++) {
+                slideshowWrapper.insertBefore(document.createElement('div'), slideshowLabel);
+            }
+
+            // Add slideshow image asynchronous
+            async function addImage(url, element = null) {
+                return new Promise((resolve, reject) => {
+                    if (n(slideshowLabel)) {
+                        resolve();
+                    }
+
+                    const img = document.createElement('img');
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.addEventListener('click', function () {
+                        id('mod-background-wrapper').classList.add('mod-modified');
+                        this.remove();
+                    })
+                    img.tabIndex = 0;
+                    img.src = url;
+                    if (element) {
+                        element.replaceWith(img);
+                    }
+                    else {
+                        slideshowWrapper.insertBefore(img, slideshowLabel);
+                    }
+                })
+            }
+
+            // Replace all placeholder <div> elements with their corresponding <img> elements
+            addSlide(0);
+            async function addSlide(i) {
+                const div = slideshowWrapper.getElementsByTagName('div')[0];
+                const background = get(`background${i}`);
+
+                if (i >= slideCount) {
+                    slideshowWrapper.classList.remove('mod-loading');
+                    return;
+                }
+
+                await addImage(background, div);
+                await new Promise(resolve => setTimeout(resolve, 1));
+
+                addSlide(i + 1);
+            }
+
             // Backgrounds section event listeners
             if (id('mod-background-preview-image') && id('mod-background-preview-video')) {
                 const isbackgroundvideo = get('isbackgroundvideo') && get('isbackgroundvideo') != 'false';
@@ -5318,7 +5353,7 @@ function onload() {
                             reader.readAsDataURL(this.files[i]);
                             reader.onload = function () {
                                 id('mod-background-wrapper').classList.add('mod-modified');
-                                id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                                addImage(reader.result);
                             };
                         }
                     }
@@ -5777,12 +5812,14 @@ function onload() {
         else if (id('mod-bg-slideshow').style.display == 'block') {
             modMessage('Bezig met opslaan', 'Je achtergrondafbeeldingen worden nu opgeslagen. Dit kan even duren.', null, null, null, null, true);
             set('backgroundtype', 'slideshow');
-            if (id('mod-background-wrapper').classList.contains('mod-modified')) {
+            if (id('mod-background-wrapper').classList.contains('mod-modified') == true && id('mod-background-wrapper').classList.contains('mod-loading') == false) {
                 await removeSlideshowBackgrounds();
                 let i = 0;
                 for (const element of id('mod-background-wrapper').getElementsByTagName('img')) {
-                    await saveSlideshowBackground(element, i);
-                    i++;
+                    if (element.complete && element.naturalWidth != 0) {
+                        await saveSlideshowBackground(element, i);
+                        i++;
+                    }
                 }
                 set('slides', i);
             }
