@@ -673,13 +673,14 @@ input:checked+.slider:before {
     transform-origin: top left;
 }
 
-#theme-wrapper>div {
+#theme-wrapper {
     display: flex;
     flex-wrap: wrap;
 }
 
 .theme {
     flex-basis: 180px;
+    max-width: 500px;
     flex-grow: 1;
     flex-shrink: 1;
     user-select: none;

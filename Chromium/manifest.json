@@ -33,7 +33,8 @@
         "css/custom-homework.css",
         "css/platformer.css",
         "css/legacy-platformer.css",
-        "css/minigames.css"
+        "css/minigames.css",
+        "css/easter-eggs.css"
       ],
       "matches": [
         "*://*.somtoday.nl/*",

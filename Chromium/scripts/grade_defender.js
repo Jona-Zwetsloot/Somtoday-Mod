@@ -148,7 +148,7 @@ function gradeDefenderGame() {
         id('grade-defender-shop-btn').remove();
         id('grade-defender-shop').remove();
         id('grade-defender-gameover').remove();
-        tn('html', 0).style.overflowY = 'scroll';
+        tn('body', 0).style.overflowY = 'scroll';
 
         const urlParams = new URLSearchParams(window.location.search);
         urlParams.delete('mod-play');
@@ -196,7 +196,7 @@ function gradeDefenderGame() {
         }
     });
 
-    tn('html', 0).style.overflowY = 'hidden';
+    tn('body', 0).style.overflowY = 'hidden';
 
     function createParticles(x, y, color, count) {
         for (let i = 0; i < count; i++) {

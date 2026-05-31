@@ -61,6 +61,7 @@ function toBrightnessValue(color, target) {
     }
     return color;
 }
+
 function addNightTheme() {
     if (id('mod-night-theme')) {
         return;
