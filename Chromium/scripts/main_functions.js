@@ -1404,10 +1404,26 @@ function onload() {
         // Custom CSS - inject at the end so it overrides mod and Somtoday CSS
         if (!n(get('customcss')) && get('customcss').trim() !== '') {
             // Sanitize CSS to prevent breaking out of style tag and potential code injection
-            let sanitizedCSS = sanitizeString(get('customcss'))
+            let sanitizedCSS = get('customcss')
                 .replace(/javascript:[^'"]+/gi, '')  // Remove javascript: URLs
                 .replace(/@import[^;\n]+/gi, '');  // Remove @import to prevent loading external CSS
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style mod-custom-css">' + sanitizedCSS + '</style>');
+
+            const customCSS = document.createElement('style');
+            customCSS.setAttribute('class', 'mod-style mod-custom-css');
+            customCSS.innerText = sanitizedCSS;
+            tn('head', 0).appendChild(customCSS);
+
+            // Force !important on every rule via CSSOM
+            for (const sheet of document.styleSheets) {
+                if (sheet.ownerNode !== customCSS) continue;
+                for (const rule of sheet.cssRules) {
+                    if (!(rule instanceof CSSStyleRule)) continue;
+                    for (const prop of rule.style) {
+                        rule.style.setProperty(prop, rule.style.getPropertyValue(prop), 'important');
+                    }
+                }
+            }
         }
     }
 
@@ -5154,7 +5170,7 @@ function onload() {
                     addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' +
                     addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
                 ) + '<div class="br"></div><div class="br"></div>' +
-                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red !important;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
+                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
                 '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
@@ -5335,6 +5351,8 @@ function onload() {
 
                 addSlide(i + 1);
             }
+            const notLoaded = slideshowWrapper.querySelectorAll('div');
+            notLoaded.forEach(el => el.remove());
 
             // Backgrounds section event listeners
             if (id('mod-background-preview-image') && id('mod-background-preview-video')) {
