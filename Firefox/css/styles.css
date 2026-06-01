@@ -16,7 +16,7 @@ html body {
    so we apply the background to the HTML element instead,
    to prevent covering up the user's background */
 html {
-    background: var(--bg-neutral-none);
+    background: var(--bg-neutral-none) !important;
 }
 
 html.dark .cijfer.neutraal {

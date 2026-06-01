@@ -5101,7 +5101,7 @@ function onload() {
                         ${getIcon('upload', null, 'var(--fg-on-primary-weak)')}
                         <p>Of upload lettertype</p>
                     </label>
-                    <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt">
+                    <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt,.woff,.woff2">
                     <div class="example-box-wrapper">
                         <div id="font-box">
                             <h3 style="letter-spacing:normal;">Lettertype</h3>

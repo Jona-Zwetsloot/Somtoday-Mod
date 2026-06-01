@@ -178,7 +178,8 @@ window.getResourceAsText = function (file) {
         const resource = window.getResource(file);
         // Base64 URI
         if (resource.startsWith('data:')) {
-            window.getResourceAsTextCache[file] = window.atob(resource);
+            const base64 = resource.split(',')[1];
+            window.getResourceAsTextCache[file] = decodeURIComponent(escape(window.atob(base64)));
         }
         // File URL
         else {

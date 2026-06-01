@@ -1,17 +1,6 @@
 // MINIGAME
 // Platformer v2 minigame
 async function startTheDungeon() {
-    if (!isExtension) {
-        tn('body', 0).insertAdjacentHTML('beforeend', `
-<div id="mod-game-unavailable" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:99999;font-family:sans-serif;">
-  <div style="background:#1a1a2e;border:1.5px solid rgba(155,155,156,0.25);border-radius:18px;padding:48px 56px;text-align:center;max-width:480px;">
-    <div style="font-size:48px;margin-bottom:16px;">🎮</div>
-    <p style="color:#ffffff;font-size:20px;margin:0;">Sorry, maar Somtoday Mod platformer v2 is niet beschikbaar op ${platform}</p>
-  </div>
-</div>`);
-        return;
-    }
-
     const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 

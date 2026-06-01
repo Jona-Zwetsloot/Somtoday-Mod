@@ -526,17 +526,18 @@ input:checked+.slider:before {
 #mod-background-wrapper label svg {
     width: 100%;
     height: 100%;
-    padding: 50px 15px;
+    padding: 58px 15px;
     box-sizing: border-box;
+    transition: padding .3s ease;
 }
 
-#mod-background-wrapper img:hover {
-    filter: opacity(0.5);
+#mod-background-wrapper:not(.loading) label:hover svg {
+    padding: 54px 15px;
 }
 
 #mod-background-wrapper label,
-#mod-background-wrapper img {
-    cursor: pointer;
+#mod-background-wrapper img,
+#mod-background-wrapper div {
     height: 150px;
     width: 150px;
     background: var(--bg-elevated-none);
@@ -546,6 +547,17 @@ input:checked+.slider:before {
     margin-right: 15px;
     margin-bottom: 15px;
     vertical-align: top;
+    transition: background .3s ease;
+}
+
+#mod-background-wrapper:not(.loading) img:hover {
+    cursor: pointer;
+    filter: opacity(0.5);
+}
+
+#mod-background-wrapper:not(.loading) label:hover {
+    cursor: pointer;
+    background: var(--bg-elevated-strong);
 }
 
 .dodgerblue {
@@ -673,13 +685,14 @@ input:checked+.slider:before {
     transform-origin: top left;
 }
 
-#theme-wrapper>div {
+#theme-wrapper {
     display: flex;
     flex-wrap: wrap;
 }
 
 .theme {
     flex-basis: 180px;
+    max-width: 500px;
     flex-grow: 1;
     flex-shrink: 1;
     user-select: none;

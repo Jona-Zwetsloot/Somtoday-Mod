@@ -61,6 +61,7 @@ function toBrightnessValue(color, target) {
     }
     return color;
 }
+
 function addNightTheme() {
     if (id('mod-night-theme')) {
         return;
@@ -113,12 +114,7 @@ function addNightTheme() {
     // The dark-mode image uses #111111 as bg color, which is already pretty dark, and does not match the real bg color used
     // This means that instead of giving night-mode a new image, we modify the image used for dark-mode to use #20262D as bg color
     if (darkImage) {
-        if (isExtension) {
-            darkImage.src = chrome.runtime.getURL('images/dark-mode.svg');
-        }
-        else {
-            // [GENERATION] SET_DARK_IMAGE
-        }
+        darkImage.src = window.getResource('images/dark-mode.svg');
     }
     darkDiv.insertAdjacentElement('afterend', nightDiv);
 

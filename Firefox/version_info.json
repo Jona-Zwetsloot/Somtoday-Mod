@@ -1,6 +1,6 @@
 {
     "version": 5.5,
-    "platform": "Firefox",
+    "platform": "Chromium",
     "minified": false,
     "last_update": "13-03-2025",
     "version_type": "beta",

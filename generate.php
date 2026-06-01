@@ -76,7 +76,7 @@ class Generate
     // Append all Javascript content scripts to the result
     public static function appendScripts(): void
     {
-        $scripts = Generate::getManifest()['content_scripts']['js'];
+        $scripts = Generate::getManifest()['content_scripts'][0]['js'];
         foreach ($scripts as $script) {
             Generate::$result .= file_get_contents("{$_GET['source']}/$script", true);
         }
@@ -97,23 +97,23 @@ class Generate
     public static function insertCSS(): void
     {
         $css = '';
-        $styles = Generate::getManifest()['content_scripts']['css'];
+        $styles = Generate::getManifest()['content_scripts'][0]['css'];
         foreach ($styles as $style) {
             $css .= file_get_contents("{$_GET['source']}/$style", true);
         }
         $css = Generate::prepareCSS($css);
-        Generate::$result = str_replace("// [GENERATION] APPLY_STYLES", "tn('head', 0).insertAdjacentHTML('beforeend', '<style class=\"mod-style\">$css</style>');", Generate::$result);
+        Generate::$result = str_replace("// [GENERATION] APPLY_STYLES", "tn('head', 0).insertAdjacentHTML('beforeend', '<style>$css</style>');", Generate::$result);
     }
 
     // Get base64 data URI of a resource (image/font)
-    public static function getBase64DataUri(string $file): string
+    public static function getBase64DataUri(string $file, string $contents): string
     {
         if (!file_exists($file)) {
             throw new RuntimeException("File not found: $file");
         }
 
         $mimeType = mime_content_type($file);
-        $data = base64_encode(file_get_contents($file, true));
+        $data = base64_encode($contents);
 
         return "data:{$mimeType};base64,{$data}";
     }
@@ -121,18 +121,21 @@ class Generate
     // Get all files inside a directory as base64 URI
     public static function recursiveGetFiles(string $path): array
     {
-        if (!file_exists($path)) return [];
+        $realPath = __DIR__ . "/{$_GET['source']}/$path";
+        if (!file_exists($realPath)) {
+            throw new RuntimeException("File not found: $path");
+        }
 
-        if (is_dir($path)) {
+        if (is_dir($realPath)) {
             $result = [];
-            $files = scandir(__DIR__ . "/{$_GET['source']}/$path");
+            $files = scandir($realPath);
             foreach ($files as $file) {
                 if ($file === '.' || $file === '..') continue;
 
                 $result = array_merge($result, Generate::recursiveGetFiles("$path/$file"));
             }
         } else {
-            $result[$path] = Generate::getBase64DataUri(__DIR__ . "{$_GET['source']}/$path");
+            $result[$path] = file_get_contents($realPath);
         }
         return $result;
     }
@@ -142,9 +145,12 @@ class Generate
     {
         if (empty(Generate::$files)) {
             Generate::$files = [];
-            $resources = Generate::getManifest()['resources'];
+            $resources = Generate::getManifest()['web_accessible_resources'][0]['resources'];
             foreach ($resources as $resource) {
-                Generate::$files = array_merge(Generate::$files, Generate::recursiveGetFiles(str_replace('/*', '', $resource)));
+                $accessibleResource = str_replace('/*', '', $resource);
+                if ($accessibleResource == 'sounds') continue;
+
+                Generate::$files = array_merge(Generate::$files, Generate::recursiveGetFiles($accessibleResource));
             }
         }
         return Generate::$files;
@@ -508,7 +514,10 @@ $minified
         $versionInfo['minified'] = $minified;
 
         $files['version_info.json'] = json_encode($versionInfo);
-        $result = str_replace("// [GENERATION] DEFINE_FILEMAP", 'fileMap = ' . json_encode($files) . ';', Generate::$result);
+        foreach ($files as $file => $content) {
+            $files[$file] = Generate::getBase64DataUri(__DIR__ . "/{$_GET['source']}/$file", $content);
+        }
+        $result = str_replace("// [GENERATION] DEFINE_FILEMAP", 'fileMap = ' . json_encode($files, $minified ? 0 : JSON_PRETTY_PRINT) . ';', Generate::$result);
 
         if ($minified) {
             return \JShrink\Minifier::minify($result);
@@ -655,14 +664,14 @@ $minified
                 "strict_min_version" => "109.0",
             ]
         ];
-        file_put_contents('Firefox/manifest.json', json_encode($firefox));
+        file_put_contents('Firefox/manifest.json', json_encode($firefox, JSON_PRETTY_PRINT));
 
         $chromium = $manifest;
         $chromium['background'] = [
             "service_worker" => "sw.js",
         ];
         $chromium['minimum_chrome_version'] = 120;
-        file_put_contents('Chromium/manifest.json', json_encode($chromium));
+        file_put_contents('Chromium/manifest.json', json_encode($chromium, JSON_PRETTY_PRINT));
 
         Generate::zipFolder(__DIR__ . '/chromium', __DIR__ . '/chromium.zip');
         Generate::zipFolder(__DIR__ . '/firefox', __DIR__ . '/firefox.zip');
@@ -684,7 +693,6 @@ Generate::build();
 echo '<div>';
 echo '<h3>Done.</h3>';
 echo '<p>Source code across versions is updated and builds have been generated.</p>';
-echo '<p>Please remember to manually update ' . ($_GET['source'] == 'Firefox' ? 'Chromium' : 'Firefox') . '/manifest.json if you changed ' . $_GET['source'] . '/manifest.json</p>';
 echo '<a href="generate">Back</a>';
 echo '</div>';
 exit;
