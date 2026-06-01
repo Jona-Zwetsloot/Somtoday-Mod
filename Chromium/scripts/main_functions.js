@@ -3585,10 +3585,10 @@ function onload() {
         // Bandwith issues almost took my site down for a month in summer 2025 when I still hosted these files myself
         // I have a bandwith limit of 100GB/month, so now I use the Chrome extension storage or Netlify for this
         if (isExtension) {
-            return chrome.runtime.getURL('sounds/' + file + '.mp3');
+            return chrome.runtime.getURL('sounds/' + file + '.opus');
         }
         else {
-            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.mp3';
+            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.opus';
         }
     }
     function somtodayRecap() {

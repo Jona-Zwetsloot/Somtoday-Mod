@@ -3413,9 +3413,9 @@ async function startPlatformerGame() {
 
     function getAudioUrl(file) {
         if (isExtension) {
-            return chrome.runtime.getURL('sounds/' + file + '.mp3');
+            return chrome.runtime.getURL('sounds/' + file + '.opus');
         } else {
-            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.mp3';
+            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.opus';
         }
     }
 

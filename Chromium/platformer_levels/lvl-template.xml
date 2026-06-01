@@ -21,7 +21,7 @@
 -->
 <level
     title       = "Level 1 - Introductie"
-    song        = "sounds/lvl0.mp3"
+    song        = "sounds/lvl0.opus"
     worldWidth  = "5000"
     worldHeight = "1600"
     spawnX      = "60"
