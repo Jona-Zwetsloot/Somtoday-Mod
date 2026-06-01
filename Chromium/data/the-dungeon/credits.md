@@ -27,6 +27,14 @@
 
 ---
 
+## 🌱 Textures
+
+| File | Source |
+|------|--------|
+| `dirt.png` | [Jeff Ottinger](https://opengameart.org/users/jottinger) on [OpenGameArt](https://opengameart.org/content/tileable-200x200-dirt-texture) |
+
+---
+
 ## 📄 License Notices
 
 **Kevin MacLeod tracks** are licensed under the

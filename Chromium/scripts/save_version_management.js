@@ -1,56 +1,13 @@
 // VERSION & SAVE MANAGEMENT
-// This script is used to save data for both the Tampermonkey and the Extension version. Also contains localStorage as fallback.
-// If you see warning signs and you want to remove them, copy the get and set for the version you are using and place them outside the if statement
+// This script is used to save data for both the Extension and the Userscript version. Also contains indexedDB and localStorage as fallback storage.
 
-// [GENERATION] START_IGNORE
-let version_json = {};
+let versionJson = JSON.parse(window.getResourceAsText('version_info.json'));
 
-function loadJson() {
-    try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', chrome.runtime.getURL('version_info.json'), false);
-        xhr.send();
-        if (xhr.status === 200) {
-            version_json = JSON.parse(xhr.responseText);
-            getFromJson.data = version_json;
-        } else {
-            version_json = {};
-            getFromJson.data = {};
-        }
-    } catch (err) {
-        console.error('Somtoday Mod ERROR: Could not load version_info.json', err);
-        version_json = {};
-        getFromJson.data = {};
-    }
-}
-
-function getFromJson(key) {
-    if (!getFromJson.data) loadJson();
-
-    const value = getFromJson.data[key];
-    if (value == null) {
-        return '';
-    }
-
-    if (typeof value === 'string') {
-        try {
-            return JSON.parse(value);
-        } catch {
-            return value;
-        }
-    }
-
-    return value;
-}
-
-loadJson();
-
-const version = getFromJson('version');
-const platform = getFromJson('platform');
-const minified = getFromJson('minified');
-const version_name = getFromJson('version_name');
-const contributors = getFromJson('contributors');
-// [GENERATION] END_IGNORE
+const version = versionJson.version;
+const platform = versionJson.platform;
+const minified = versionJson.minified;
+const version_name = versionJson.version_name;
+const contributors = versionJson.contributors;
 
 let data;
 const isExtension = platform != 'Userscript' && platform != 'Android';

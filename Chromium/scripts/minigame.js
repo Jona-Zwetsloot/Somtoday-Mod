@@ -2,7 +2,6 @@
 // All minigames
 function errorPage() {
     if (!n(tn('hmy-button', 0))) {
-        // [GENERATION] PLATFORMER_STYLE
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
 
         const overlay = document.createElement('div');
@@ -10,9 +9,9 @@ function errorPage() {
         overlay.innerHTML = `
             <div id="mod-game-select-box">
                 <h2>Kies een game</h2>
-                <a data-game="platformer2" class="mod-setting-button">Platformer v2</a>
-                <a data-game="platformer1" class="mod-setting-button">Platformer v1</a>
-                <a data-game="gradedefender" class="mod-setting-button">Grade Defender</a>
+                <a data-game="the-dungeon" class="mod-setting-button">The dungeon</a>
+                <a data-game="the-escape" class="mod-setting-button">The escape</a>
+                <a data-game="grade-defender" class="mod-setting-button">Grade defender</a>
                 <a id="mod-game-select-close">Annuleren</a>
             </div>
         `;
@@ -26,9 +25,9 @@ function errorPage() {
                 document.body.removeChild(overlay);
 
                 execute([
-                    game === 'platformer2' ? startPlatformerGame :
-                    game === 'platformer1' ? startLegacyPlatformerGame :
-                    game === 'gradedefender' ? gradeDefenderGame : null
+                    game === 'the-dungeon' ? startTheDungeon :
+                    game === 'the-escape' ? startTheEscape :
+                    game === 'grade-defender' ? startGradeDefender : null
                 ]);
             } else if (e.target.id === 'mod-game-select-close') {
                 document.body.removeChild(overlay);
@@ -46,9 +45,9 @@ function errorPage() {
 
         if (autoGame) {
             const gameFunc =
-                autoGame === 'platformer2' ? startPlatformerGame :
-                autoGame === 'platformer1' ? startLegacyPlatformerGame :
-                autoGame === 'gradedefender' ? gradeDefenderGame : null;
+                autoGame === 'the-dungeon' ? startTheDungeon :
+                autoGame === 'the-escape' ? startTheEscape :
+                autoGame === 'grade-defender' ? startGradeDefender : null;
 
             if (gameFunc) gameFunc();
         }

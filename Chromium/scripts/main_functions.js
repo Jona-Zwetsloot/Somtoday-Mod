@@ -8,6 +8,8 @@ function onload() {
         return;
     }
 
+    // [GENERATION] APPLY_STYLES
+
     const mathQuestions = ['compose the formula of f\'x() where f(x) = 2 * sin(9x + 3)', 'rewrite 2 * log3(243) + 28 to the form of log(a)', 'find the value(s) of x in the equation x^2 + 9 = -6x', 'give the point(s) where  12 = 2y + 6x and y = x^2 - 5x intersect (round on 2 decimals)', 'rewrite -sin(8x) to the form of cos(ax + b)'];
     const mathAnswers = ['Answer: f\'(x) = 18 * cos(9x + 3)', 'Answer: log(10^38)', 'Answer: x = -3', 'Answer: (-1,65; 10,94), (3,65; -4,94)', 'Answer: cos(8x + 0.5pi)'];
     const selectedQuestion = Math.floor(Math.random() * mathQuestions.length);
@@ -216,7 +218,7 @@ function onload() {
                 if (p == partykeys.length) {
                     toggleConfetti();
                     try {
-                        let tada = new Audio(getAudioUrl('tada'));
+                        let tada = new Audio(window.getAudioUrl('tada'));
                         tada.volume = 0.5;
                         tada.play();
                     } catch (e) {
@@ -1016,8 +1018,6 @@ function onload() {
         });
     }
 
-    // [GENERATION] INSERT_FIREWORKSJS
-
     // Add new year countdown
     let newYearCountdownClosed = false;
     function newYearCountdown() {
@@ -1351,7 +1351,6 @@ function onload() {
         if (get('bools').charAt(BOOL_INDEX.TEXT_SELECTION) == '1') {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">*{user-select:auto !important;}</style>');
         }
-        // [GENERATION] APPLY_STYLES
         // General style
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + '</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}}</style>');
@@ -1561,11 +1560,6 @@ function onload() {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">' + (darkmode ? '#mod-setting-panel ::placeholder{color:var(--action-neutral-normal) !important;}' : '') + ':root, :root.dark.dark {--mod-transparent:rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + ');--mod-ui-transparent:rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');}</style>');
         }
     }
-
-    // Get modlogo SVG
-    window.logo = function (id, classname, color, style) {
-        return '<svg xmlns="http://www.w3.org/2000/svg"' + (n(id) ? '' : ' id="' + id + '"') + (n(classname) ? '' : ' class="' + classname + '"') + (n(style) ? '' : ' style="' + style + '"') + ' viewBox="0 0 190.5 207" width="190.5" height="207"><g transform="translate(-144.8 -76.5)"><g><path d="M261 107.8v.3c0 3.7 3 6.7 6.6 6.7H299a6.8 6.8 0 0 1 6.7 7V143.2c0 3.7 3 6.7 6.7 6.7h16.1a6.8 6.8 0 0 1 6.7 7V201.6c0 3.7-3 6.6-6.7 6.7h-16.1a6.8 6.8 0 0 0-6.7 7v23.1c0 3.7-3 6.7-6.7 6.7h-10.5a6.8 6.8 0 0 0-6.7 7l-.1 24.4v.3c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.7-7v-24.6c0-3.8-2.8-6.9-6.3-6.9s-6.4 3.1-6.4 7v24.8c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.6-7l.1-24.4v-.3c0-3.7-3-6.7-6.6-6.7h-10.5a6.8 6.8 0 0 1-6.7-7V215c0-3.6-3-6.6-6.7-6.7h-15.8a6.8 6.8 0 0 1-6.7-7V156.6c0-3.7 3-6.7 6.7-6.7h15.8a6.8 6.8 0 0 0 6.7-7v-21.4c0-3.6 3-6.6 6.7-6.7h31a6.8 6.8 0 0 0 6.7-7l.1-24.3v-.3c0-3.6 3-6.6 6.7-6.7h29a6.8 6.8 0 0 1 6.8 7z" fill="' + color + '" /><path d="M289.8 179.2c1.3 0 2.9.3 4.6.9 2.2.7 4 1.7 5 2.7v.2c.8.6 1.3 1.5 1.4 2.6 0 .9-.2 1.7-.6 2.3l-6.8 10.8a60.2 60.2 0 0 1-27.5 19.8c-8.5 3.2-17 4.7-24.7 4.5l-13.2-.1a1.6 1.6 0 0 1-1.7-1.5v-3.3a1.6 1.6 0 0 1 1.7-1.5h.1c7.9.3 16.3-1 24.7-4.2a56 56 0 0 0 34.3-31.4v-.3c.5-1 1.4-1.5 2.3-1.5z" fill="#000000" stroke="none" /><g class="glasses"><path d="M171.4 150.8v-9h137.2v9z" fill="#000000" stroke="none" /><path d="M175.7 155.5v-6h57.5v6z" fill="#000000" stroke="none" /><path d="M179.8 160v-9h48.9v9z" fill="#000000" stroke="none" /><path d="M184 164.5v-9h44.7v9z" fill="#000000" stroke="none" /><path d="M188.6 168.6v-7h31.7v7z" fill="#000000" stroke="none" /><path d="M245.9 155.5v-6h57.4v6z" fill="#000000" stroke="none" /><path d="M250 160v-9h48.8v9z" fill="#000000" stroke="none" /><path d="M254 164.5v-9h41v9z" fill="#000000" stroke="none" /><path d="M258.8 168.6v-7h31.6v7z" fill="#000000" stroke="none" /><path d="M184.5 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M188.8 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M197.6 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M202.1 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M254.8 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M259.1 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M268 159.2V155h4.4v4.3z" fill="#ffffff" stroke="none" /><path d="M272.4 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /></g></g></g></svg>';
-    };
 
     // Construct an icon in SVG format. Only contains icons used by this mod. Icons thanks to Font Awesome: https://fontawesome.com/
     function getIcon(name, classname, color, start) {
@@ -2544,24 +2538,6 @@ function onload() {
 
     // GRADE TOOLS
 
-    // [GENERATION] ANDROID_START_IGNORE
-
-    async function getFontBase64(font) {
-        if (isExtension) {
-            const response = await fetch(chrome.runtime.getURL('fonts/' + font + '.ttf'));
-            const blob = await response.blob();
-            return await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        }
-        else {
-            // [GENERATION] HARDCODED_FONTS
-        }
-    }
-
     // Download image of average of all grades
     function downloadGrades() {
         const cijferoverzicht = tn('sl-cijfer-overzicht', 0);
@@ -3010,7 +2986,7 @@ function onload() {
             const canvas = id('mod-grade-canvas');
             const ctx = canvas.getContext('2d'); !n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0));
             // Use data urls for font in SVG
-            const kanit = await getFontBase64('Kanit-ExtraLight');
+            const kanit = await window.getResourceAsBase64('fonts/Kanit-ExtraLight.woff2');
             // Add SVG with HTML to the canvas
             const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '"><defs><style type="text/css">@font-face{font-family:Kanit;src:url(\'' + kanit + '\')}</style></defs><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' + html + '</div></foreignObject></svg>';
             const svgObjectUrl = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svg);
@@ -3039,9 +3015,6 @@ function onload() {
             console.log(html);
         }
     }
-    // [GENERATION] ANDROID_END_IGNORE
-
-    // [GENERATION] INSERT_CHARTJS
 
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
@@ -3539,8 +3512,6 @@ function onload() {
         }
     }
 
-    // NOTE: Removed grade defender from main_functions.js because it is now in a separate file, and cannot be accessed from the menu anymore.
-
     // Manage calculation tool and graph on subject grades page
     function subjectGradesPage() {
         if (!n(tn('sl-vakresultaten', 0))) {
@@ -3581,16 +3552,6 @@ function onload() {
     let totalWeight = 0;
     let availablePages = [];
     let music;
-    function getAudioUrl(file) {
-        // Bandwith issues almost took my site down for a month in summer 2025 when I still hosted these files myself
-        // I have a bandwith limit of 100GB/month, so now I use the Chrome extension storage or Netlify for this
-        if (isExtension) {
-            return chrome.runtime.getURL('sounds/' + file + '.opus');
-        }
-        else {
-            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.opus';
-        }
-    }
     function somtodayRecap() {
         if (!ignoreRecapConditions) {
             if (get('bools').charAt(BOOL_INDEX.RECAP) == "0") {
@@ -3612,7 +3573,7 @@ function onload() {
         }
         if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
-                music = new Audio(getAudioUrl('background'));
+                music = new Audio(window.getAudioUrl('background'));
             }
             catch (e) {
                 console.warn(e);
@@ -4090,7 +4051,7 @@ function onload() {
                             audioHasFired = true;
                             if (correct) {
                                 try {
-                                    new Audio(getAudioUrl('correct')).play();
+                                    new Audio(window.getAudioUrl('correct')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -4100,7 +4061,7 @@ function onload() {
                             }
                             else {
                                 try {
-                                    new Audio(getAudioUrl('error')).play();
+                                    new Audio(window.getAudioUrl('error')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -4385,7 +4346,7 @@ function onload() {
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             setTimeout(function () {
                 try {
-                    new Audio(getAudioUrl('tada')).play();
+                    new Audio(window.getAudioUrl('tada')).play();
                 }
                 catch (e) {
                     console.warn(e);
@@ -4592,7 +4553,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.getElementsByClassName('correction')[0].innerHTML = ' ' + real;
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio(getAudioUrl('correct')).play();
+                        new Audio(window.getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4602,7 +4563,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio(getAudioUrl('error')).play();
+                        new Audio(window.getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4914,7 +4875,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.classList.add('right');
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio(getAudioUrl('correct')).play();
+                        new Audio(window.getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -4924,7 +4885,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio(getAudioUrl('error')).play();
+                        new Audio(window.getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -5073,8 +5034,8 @@ function onload() {
             const night = document.getElementsByTagName('html')[0].classList.contains('night');
 
             // Fetch settings template HTML
-            let settingsContent = getSettingsFile();
-            if (n(settingsContent) || typeof settingsContent != 'string') {
+            let settingsContent = window.getResourceAsText('data/settings.html');
+            if (n(settingsContent)) {
                 settingsContent = '<h3 style="margin-top: 200px;">Error</h3><p style="margin-bottom: 200px;">Could not generate the settings HTML at this moment. Try again later.</h3>';
             }
 
@@ -5654,41 +5615,6 @@ function onload() {
                 tryRemove(id('mod-font-select-script'));
             }
             id('somtoday-mod').insertAdjacentHTML('beforeend', '<style id="mod-font-select-script" onload=\'let x, i, j, l, ll, selElmnt, a, b, c; x = document.getElementsByClassName("mod-custom-select"); l = x.length; for (i = 0; i < l; i++) { selElmnt = x[i].getElementsByTagName("select")[0]; ll = selElmnt.length; a = document.createElement("DIV"); a.setAttribute("class", "select-selected"); a.setAttribute("tabindex", "0"); a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML; x[i].appendChild(a); b = document.createElement("DIV"); b.setAttribute("class", "select-items select-hide"); for (j = 1; j < ll; j++) { c = document.createElement("DIV"); c.innerHTML = selElmnt.options[j].innerHTML; c.setAttribute("tabindex", "0"); c.style.setProperty("font-family", "\\"" + selElmnt.options[j].innerHTML + "\\", sans-serif", "important"); c.addEventListener("click", function(e) { let y, i, k, s, h, sl, yl; s = this.parentNode.parentNode.getElementsByTagName("select")[0]; sl = s.length; h = this.parentNode.previousSibling; for (i = 0; i < sl; i++) { if (this.style.fontFamily.indexOf(s.options[i].innerHTML + ",") != -1 || this.style.fontFamily.indexOf(s.options[i].innerHTML + "\\",") != -1) { s.selectedIndex = i; h.innerHTML = this.innerHTML; y = this.parentNode.getElementsByClassName("same-as-selected"); yl = y.length; for (k = 0; k < yl; k++) { y[k].removeAttribute("class"); } this.setAttribute("class", "same-as-selected"); break; } } h.click(); document.getElementById("mod-font-select").classList.add("mod-modified"); if (document.getElementById("mod-font-preview")) { document.getElementById("mod-font-preview").remove(); } document.getElementById("mod-font-file").value = ""; let event = new Event("input", { bubbles: false }); document.getElementById("mod-font-file").dispatchEvent(event); document.getElementById("font-box").children[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementById("font-box").children[1].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); document.getElementsByClassName("select-selected")[0].style.setProperty("font-family", "\\"" + document.getElementById("mod-font-select").value + "\\", sans-serif", "important"); }); b.appendChild(c); } x[i].appendChild(b); a.addEventListener("click", function(e) { e.stopPropagation(); closeAllSelect(this); this.nextSibling.classList.toggle("select-hide"); this.classList.toggle("select-arrow-active"); }); } function closeAllSelect(elmnt) { let x, y, i, xl, yl, arrNo = []; x = document.getElementsByClassName("select-items"); y = document.getElementsByClassName("select-selected"); xl = x.length; yl = y.length; for (i = 0; i < yl; i++) { if (elmnt == y[i]) { arrNo.push(i) } else { y[i].classList.remove("select-arrow-active"); } } for (i = 0; i < xl; i++) { if (arrNo.indexOf(i)) { x[i].classList.add("select-hide"); } } } document.addEventListener("click", closeAllSelect, {passive: true});\'></style>');
-        }
-    }
-
-    const settingFileCache = {};
-    function getSettingsFile(type) {
-        // Set default settings type
-        if (n(type)) {
-            type = 'familiar';
-        }
-
-        // Extensions fetch setting content from easy to edit HTML file
-        // Other platforms can't do this, so during the generation process it's automatically hardcoded here
-        // Currently, only type 'familiar' is supported
-        if (isExtension) {
-            // On Firefox, chrome.runtime.getURL takes a few ms to load, in which the scrollHeight becomes 0
-            // This causes the scroll position to be lost, so we cache the results to prevent this behaviour
-            if (settingFileCache[type]) {
-                return settingFileCache[type];
-            }
-
-            let url = chrome.runtime.getURL('settings_content/' + type + '.html');
-
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            xhr.send(null);
-
-            if (xhr.status === 200) {
-                settingFileCache[type] = xhr.responseText;
-                return xhr.responseText;
-            } else {
-                return '';
-            }
-        }
-        else {
-            // [GENERATION] HARDCODED_SETTINGS
         }
     }
 

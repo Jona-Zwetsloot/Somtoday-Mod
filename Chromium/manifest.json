@@ -21,8 +21,8 @@
         "scripts/chart.js",
         "scripts/main_functions.js",
         "scripts/execute_after_page_load.js",
-        "scripts/legacy_platformer.js",
-        "scripts/platformer.js",
+        "scripts/the_dungeon.js",
+        "scripts/the_escape.js",
         "scripts/grade_defender.js"
       ],
       "css": [
@@ -65,18 +65,11 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "sounds/*",
         "version_info.json",
-        "settings_content/*",
-        "fonts/Kanit-SemiBold.ttf",
-        "fonts/Kanit-ExtraLight.ttf",
-        "images/dark-mode.svg",
-        "images/platformerv2/logo.svg",
-        "wasm/pkg/somtoday_analytics_bg.wasm",
-        "wasm/pkg/somtoday_analytics.js",
-        "platformer_levels/*",
-        "platformer_textures/*",
-        "platformer/*"
+        "sounds/*",
+        "images/*",
+        "fonts/*",
+        "data/*"
       ],
       "matches": [
         "*://*.somtoday.nl/*"

@@ -1,6 +1,6 @@
 // MINIGAME
 // Platformer v2 minigame
-async function startPlatformerGame() {
+async function startTheDungeon() {
     if (!isExtension) {
         tn('body', 0).insertAdjacentHTML('beforeend', `
 <div id="mod-game-unavailable" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:99999;font-family:sans-serif;">
@@ -33,7 +33,7 @@ async function startPlatformerGame() {
         <div id="mod-screen-main" class="mod-screen">
             <button class="mod-menu-close-x" id="mod-menu-close">✕</button>
             <div class="mod-menu-logo">
-                <img draggable="false" src="${chrome.runtime.getURL('images/platformerv2/logo.svg')}">
+                <img draggable="false" src="${window.getResource('images/the-dungeon/logo.svg')}">
             </div>
             <div class="mod-menu-coins-display">
             <span class="mod-menu-coin-icon">🪙</span>
@@ -301,6 +301,9 @@ async function startPlatformerGame() {
     const MAX_CANVAS_WIDTH = 2600;
 
     function resizeCanvas() {
+        if (!canvas) {
+            return;
+        }
         const cw = Math.min(window.innerWidth, MAX_CANVAS_WIDTH);
         canvas.width = cw;
         canvas.height = window.innerHeight;
@@ -319,6 +322,9 @@ async function startPlatformerGame() {
     }
 
     function updateMobileVis() {
+        if (!id('mod-mobile-controls')) {
+            return;
+        }
         id('mod-mobile-controls').style.display = isMobile() ? 'flex' : 'none';
         id('mod-pause-btn').style.display = isMobile() ? 'inline-block' : 'none';
     }
@@ -356,7 +362,7 @@ async function startPlatformerGame() {
         let inAudio = null;
         if (src) {
             try {
-                inAudio = new Audio(getAudioUrl(src));
+                inAudio = new Audio(window.getAudioUrl(src));
                 inAudio.loop = true;
                 inAudio.volume = 0;
                 inAudio.play().catch(() => {});
@@ -385,7 +391,7 @@ async function startPlatformerGame() {
         musicAudio = null;
         if (!src) return;
         try {
-            musicAudio = new Audio(getAudioUrl(src));
+            musicAudio = new Audio(window.getAudioUrl(src));
             musicAudio.loop = true;
             musicAudio.volume = musicVolume;
             musicAudio.play().catch(() => {});
@@ -411,7 +417,7 @@ async function startPlatformerGame() {
                 resolve(entry);
             };
             img.onerror = () => resolve(null);
-            img.src = chrome.runtime.getURL(src);
+            img.src = window.getResource(src);
         });
     }
 
@@ -735,9 +741,8 @@ async function startPlatformerGame() {
     const parser = new DOMParser();
     for (let i = 0; ; i++) {
         try {
-            const resp = await fetch(chrome.runtime.getURL(`platformer_levels/lvl-${i}.xml`));
-            if (!resp.ok) break;
-            const xml = parser.parseFromString(await resp.text(), 'text/xml');
+            const resp = window.getResourceAsText(`data/the-dungeon/lvl-${i}.xml`);
+            const xml = parser.parseFromString(resp, 'text/xml');
             if (xml.querySelector('parseerror')) break;
             const lvlParsed = parseLvl(xml, i);
             await loadLevelTextures(lvlParsed);
@@ -3411,19 +3416,11 @@ async function startPlatformerGame() {
         requestAnimationFrame(loop);
     }
 
-    function getAudioUrl(file) {
-        if (isExtension) {
-            return chrome.runtime.getURL('sounds/' + file + '.opus');
-        } else {
-            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.opus';
-        }
-    }
-
     function playSfx(name) {
         if (!sfxPool[name]) sfxPool[name] = [];
         const pool = sfxPool[name];
         let a = pool.find(x => x.paused || x.ended);
-        if (!a) { a = new Audio(getAudioUrl(name)); pool.push(a); }
+        if (!a) { a = new Audio(window.getAudioUrl(name)); pool.push(a); }
         a.currentTime = 0;
         a.volume = sfxVolume;
         a.play().catch(() => {});
@@ -3451,8 +3448,7 @@ async function openCreditsPopup() {
         let licenseBlocks = '';
 
         try {
-            const resp = await fetch(chrome.runtime.getURL('platformer/credits.md'));
-            const md = await resp.text();
+            const md = window.getResourceAsText('data/the-dungeon/credits.md');
             const lines = md.split('\n');
 
             let section = null;
