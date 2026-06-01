@@ -670,7 +670,7 @@ $minified
         $chromium['background'] = [
             "service_worker" => "sw.js",
         ];
-        $chromium['minimum_chrome_version'] = 120;
+        $chromium['minimum_chrome_version'] = "120";
         file_put_contents('Chromium/manifest.json', json_encode($chromium, JSON_PRETTY_PRINT));
 
         Generate::zipFolder(__DIR__ . '/chromium', __DIR__ . '/chromium.zip');

@@ -76,5 +76,5 @@
     "background": {
         "service_worker": "sw.js"
     },
-    "minimum_chrome_version": 120
+    "minimum_chrome_version": "120"
 }

@@ -25,6 +25,25 @@
         font-size: 1.3rem;
     }
 
+    #mod-game-select-box .mod-setting-button {
+        background: var(--bg-elevated-none) !important;
+        border-radius: 32px !important;
+        corner-shape: squircle;
+        text-align: center;
+        box-shadow: var(--shadow-centred-weak);
+    }
+
+    #mod-game-select-box .mod-setting-button:hover {
+        background: var(--bg-elevated-strong) !important;
+    }
+
+    #mod-game-select-box .mod-setting-button img {
+        width: 200px;
+        border-radius: 26px;
+        box-shadow: var(--shadow-centred-weak);
+        corner-shape: squircle;
+    }
+
     #mod-game-select-close {
         margin-top: 4px;
         font-size: 0.9rem;
