@@ -4864,22 +4864,24 @@ function onload() {
             nicknames += `
             </div>
             <div class="br"></div>
-            <div tabindex="0" class="mod-button" onclick="
-                document.getElementById('nickname-wrapper').insertAdjacentHTML('beforeend', \`
-                <div>
-                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
-                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
-                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
-                </div>\`);
-            ">Nickname toevoegen</div>
-            <div tabindex="0" class="mod-button" onclick="
-                document.getElementById('nickname-wrapper').innerHTML = \`
-                <div>
-                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
-                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
-                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
-                </div>\`;
-            ">Reset</div>`;
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <div tabindex="0" class="mod-button" onclick="
+                    document.getElementById('nickname-wrapper').insertAdjacentHTML('beforeend', \`
+                    <div>
+                        <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                        <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                        <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                    </div>\`);
+                ">${window.getIcon('plus', null, 'var(--fg-on-primary-weak)')}Nickname toevoegen</div>
+                <div tabindex="0" class="mod-button" onclick="
+                    document.getElementById('nickname-wrapper').innerHTML = \`
+                    <div>
+                        <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                        <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                        <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                    </div>\`;
+                ">${window.getIcon('rotate-left', null, 'var(--fg-on-primary-weak)')}Reset</div>
+            </div>`;
 
             // Update details for multiple versions
             const updatechecker = `
@@ -4942,7 +4944,7 @@ function onload() {
                 '{{addSlider_sepia}}': addSlider('Sepia', 'sepia', 0, 100, '%', 0),
                 '{{addSlider_invert}}': addSlider('Invert', 'invert', 0, 100, '%', 0),
                 '{{addSlider_blur}}': addSlider('Blur', 'blur', 0, 200, 'px', 0),
-                '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*'),
+                '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*', null, `<div tabindex="0" class="mod-button" id="mod-random-background">${window.getIcon('shuffle', null, 'var(--fg-on-primary-weak)')}<span>Random</span></div>`),
                 '{{display_bg_slideshow}}': get('backgroundtype') == 'slideshow' ? 'block' : 'none',
                 '{{display_bg_color}}': get('backgroundtype') == 'color' ? 'block' : 'none',
                 '{{display_bg_live}}': get('backgroundtype') == 'live' ? 'block' : 'none',
@@ -4963,18 +4965,20 @@ function onload() {
                 '{{font_settings}}': `
                     <h3>Lettertype</h3>` +
                     (openDyslexicEnabled ? '<div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>' : '') + `
-                    <div class="mod-custom-select notranslate">
-                        <select id="mod-font-select" title="Selecteer een lettertype">
-                            <option selected disabled hidden>
-                                ${n(get('customfontname')) ? get('fontname') : sanitizeString(get('customfontname'))}
-                            </option>
-                            <option>${fonts.join('</option><option>')}</option>
-                        </select>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                        <div class="mod-custom-select notranslate">
+                            <select id="mod-font-select" title="Selecteer een lettertype">
+                                <option selected disabled hidden>
+                                    ${n(get('customfontname')) ? get('fontname') : sanitizeString(get('customfontname'))}
+                                </option>
+                                <option>${fonts.join('</option><option>')}</option>
+                            </select>
+                        </div>
+                        <label tabindex="0" class="mod-file-label" for="mod-font-file">
+                            ${window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                            <span>Of upload lettertype</span>
+                        </label>
                     </div>
-                    <label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">
-                        ${window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
-                        <p>Of upload lettertype</p>
-                    </label>
                     <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt,.woff,.woff2">
                     <div class="example-box-wrapper">
                         <div id="font-box">
@@ -4985,7 +4989,7 @@ function onload() {
                     <div class="br"></div><div class="br"></div><div class="br"></div>`,
                 '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Gebruik een eigen profielafbeelding in plaats van je schoolfoto.' + (avatarHiddenOverridden ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Verberg profielfoto</b> wordt genegeerd omdat je een custom profielafbeelding hebt ingesteld. Reset deze instelling om je initialen te tonen.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
                 '{{grade_reveal_setting}}': '<div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>',
-                '{{letterbeoordelingen_setting}}': '<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>',
+                '{{letterbeoordelingen_setting}}': `<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">${window.getIcon('edit', null, 'var(--fg-on-primary-weak)')}Instellen</div></div>`,
                 '{{extra_settings}}': addSetting('Analyse op cijferpagina', 'Laat een korte analyse zien op de cijfer-pagina van een vak.', 'bools18', 'checkbox', true) +
                     (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) +
                     addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developers om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) +
@@ -5014,7 +5018,7 @@ function onload() {
                 '{{platform}}': 'Somtoday ' + platform,
                 '{{contributors_list}}': contributorContent,
                 '{{updateinfo}}': isExtension ? updateinfo : '',
-                '{{export_import_buttons}}': (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json">')
+                '{{export_import_buttons}}': (platform == 'Android' ? '' : `<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"><div id="export-settings" class="mod-button">${window.getIcon('export', null, 'var(--fg-on-primary-weak)')}<span>Exporteer Mod-instellingen</span></div><div id="import-settings" class="mod-button">${window.getIcon('import', null, 'var(--fg-on-primary-weak)')}<span>Importeer Mod-instellingen</span></div></div><input type="file" id="import-settings-json" class="hidden" accept="application/json">`)
             };
             for (const key in replacements) {
                 settingsContent = settingsContent.replaceAll(key, replacements[key]);
@@ -5331,7 +5335,7 @@ function onload() {
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
                                 const fileList = dataTransfer.files;
-                                element.nextElementSibling.files = fileList;
+                                element.parentElement.previousElementSibling.files = fileList;
                             }
                         });
                     } else {
@@ -5342,14 +5346,14 @@ function onload() {
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
                                 const fileList = dataTransfer.files;
-                                element.nextElementSibling.files = fileList;
+                                element.parentElement.previousElementSibling.files = fileList;
                             }
                         });
                     }
                     let inputEvent = new Event('input', {
                         bubbles: false,
                     });
-                    element.nextElementSibling.dispatchEvent(inputEvent);
+                    element.parentElement.previousElementSibling.dispatchEvent(inputEvent);
                 });
                 element.addEventListener('dragover', function (event) {
                     event.preventDefault();
@@ -5364,22 +5368,16 @@ function onload() {
             // File reset buttons
             for (const element of cn('mod-file-reset')) {
                 element.addEventListener('click', function () {
-                    element.classList.toggle('mod-active');
-                    if (element.dataset.key == 'background') {
-                        if (!n(id('mod-random-background'))) {
-                            if (id('mod-random-background').classList.contains('mod-active')) {
-                                id('mod-random-background').classList.remove('mod-active');
-                            }
+                    const shouldBeActive = !element.classList.contains('mod-active');
+                    for (const btn of element.parentElement.getElementsByClassName('mod-active')) {
+                        btn.classList.remove('mod-active');
+                        if (btn.classList.contains('mod-file-label')) {
+                            setHTML(btn.children[1], 'Kies een bestand');
+                            element.parentElement.previousElementSibling.value = null;
                         }
                     }
-                    if (!n(element.previousElementSibling)) {
-                        if (!n(element.previousElementSibling.getElementsByTagName('label')[0])) {
-                            if (element.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
-                                element.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
-                                setHTML(element.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
-                                element.previousElementSibling.getElementsByTagName('input')[0].value = null;
-                            }
-                        }
+                    if (shouldBeActive) {
+                        element.classList.add('mod-active');
                     }
                 });
             }
@@ -5843,20 +5841,59 @@ function onload() {
             } else {
                 code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get(key) ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
             }
-            code += (n(description) ? '' : '<p>' + description + '</p>') + '</div>';
+            code += (n(description) ? '' : '<p>' + description + '</p>');
         } else if (type == 'range') {
-            code += '<div class="mod-range-preview">' + window.getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p></div>';
+            code += '<div class="mod-range-preview">' + window.getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p>';
         } else if (type == 'text' || type == 'password') {
-            code += '<input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="' + type + '" placeholder="' + param1 + '" value="' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"/></div>';
+            code += '<input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="' + type + '" placeholder="' + param1 + '" value="' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '">';
         } else if (type == 'number') {
-            code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '"/></div>';
+            code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '">';
         } else if (type == 'color') {
-            code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color"/></div>';
+            code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color">';
         } else if (type == 'file') {
-            code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + window.getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
+            code += `
+            <input
+                ${ n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"' }
+                oninput="
+                    const fileLabel = this.nextElementSibling.getElementsByClassName('mod-file-label')[0];
+                    fileLabel.classList.remove('mod-active');
+                    if (this.files.length != 0) {
+                        const name = this.files[0].name.toLowerCase();
+                        if (
+                            (this.accept == 'image/*' && this.files[0]['type'].startsWith('image/')) ||
+                            (this.accept == 'image/*, video/*' && (this.files[0]['type'].startsWith('image/') || this.files[0]['type'].startsWith('video/'))) ||
+                            (this.accept != 'image/*, video/*' && this.accept != 'image/*')
+                        ) {
+                            for (const btn of this.nextElementSibling.getElementsByClassName('mod-active')) {
+                                btn.classList.remove('mod-active');
+                            }
+                            fileLabel.children[1].innerText = name;
+                            fileLabel.classList.add('mod-active');
+                        } else {
+                            fileLabel.children[1].innerText = 'Kies een bestand';
+                            this.value = null;
+                        }
+                    } else {
+                        fileLabel.children[1].innerText = 'Kies een bestand';
+                    }
+                "
+                class="mod-file-input mod-custom-setting"
+                type="file"
+                accept="${param1}" id="${key}"
+            >
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <label tabindex="0" class="mod-file-label" for="${key}">
+                    ${window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                    <span>Kies een bestand</span>
+                </label>
+                <div tabindex="0" class="mod-button mod-file-reset" data-key="${key}">${window.getIcon('rotate-left', null, 'var(--text-moderate)')}<span>Reset</span></div>
+                ${param3 ?? ''}
+            </div>
+            `;
         } else if (type == 'textarea') {
-            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;height:128px;font-family:monospace !important;font-size:12px;padding:10px;resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>';
+            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;height:128px;font-family:monospace !important;font-size:12px;padding:10px;resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>';
         }
+        code += '</div>';
         return code;
     }
 

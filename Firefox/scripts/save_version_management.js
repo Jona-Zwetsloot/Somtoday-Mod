@@ -57,7 +57,9 @@ else if (((typeof chrome !== 'undefined') && chrome.storage) && chrome.storage.l
         catch (e) {
             setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Couldn\'t save value. Somtoday Mod is probably updating right now.\nError: ' + e));
         }
-        data[key] = value;
+        if (data != null) {
+            data[key] = value;
+        }
     }
     if (!isExtension) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Extension storage is used while the platform is set to ' + platform + '.'));

@@ -258,7 +258,7 @@ input:checked+.slider:before {
     position: relative;
     font-family: Arial, sans-serif;
     margin-top: 10px;
-    width: 240px;
+    min-width: 240px;
     display: inline-block;
     margin-right: 15px;
     margin-bottom: 8px;
@@ -273,6 +273,7 @@ input:checked+.slider:before {
     border-radius: 6px;
     border: var(--thinnest-solid-neutral-normal) !important;
     background-color: var(--bg-elevated-weakest);
+    padding-right: 30px !important;
 }
 
 .select-selected:after {
@@ -336,6 +337,11 @@ input:checked+.slider:before {
 .select-items div:hover,
 .same-as-selected {
     background-color: rgba(0, 0, 0, 0.1);
+}
+
+#export-settings svg,
+#import-settings svg {
+    height: 1.4em !important;
 }
 
 #mod-message textarea {
@@ -538,7 +544,7 @@ input:checked+.slider:before {
     background: var(--bg-elevated-strong);
     border-color: var(--bg-elevated-strong);
     color: var(--text-strong);
-    box-shadow: var(--shadow-centred-weak);
+    box-shadow: none;
 }
 
 #mod-background-wrapper {
@@ -646,7 +652,7 @@ input:checked+.slider:before {
 
 #mod-background-type a.active {
     border-bottom: 3px solid var(--fg-on-primary-weak);
-    font-weight: 700;
+    text-shadow: 1px 0 0 currentColor;
 }
 
 .br {
@@ -815,14 +821,18 @@ input:checked+.slider:before {
 .mod-button {
     -webkit-user-select: none;
     user-select: none;
-    transition: 0.2s border ease !important;
     margin-bottom: 8px;
-    display: block;
+    display: flex;
+    gap: 10px;
+    align-items: center;
     width: fit-content;
     padding: 10px 18px;
-    border: 2px solid var(--fg-on-primary-weak);
-    border-radius: 12px;
+    border: 1px solid var(--bg-elevated-strong);
+    border-radius: 100vh;
     color: var(--fg-on-primary-weak) !important;
+    background: var(--bg-elevated-none);
+    font-weight: normal;
+    transition: background .2s ease !important;
 }
 
 .mod-file-label.mod-drag-and-drop {
@@ -830,30 +840,21 @@ input:checked+.slider:before {
     font-weight: 700;
 }
 
-.mod-button {
-    display: inline-block;
-    margin-right: 10px;
-}
-
 .mod-file-label:hover,
 .mod-button:hover {
-    border: 2px solid var(--bg-primary-weak);
+    background: var(--bg-elevated-strong);
     cursor: pointer;
 }
 
+.mod-button.mod-active svg path,
 label.mod-file-label.mod-active svg path {
-    fill: white !important;
+    fill: var(--text-inverted) !important;
 }
 
 div.mod-button.mod-active,
 label.mod-file-label.mod-active {
     background: var(--fg-on-primary-weak);
     color: var(--text-inverted) !important;
-}
-
-.mod-file-label p {
-    margin-left: 10px;
-    display: inline;
 }
 
 input[type="file"].mod-file-input {
