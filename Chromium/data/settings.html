@@ -123,7 +123,10 @@
         {{extra_settings}}
     </div>
     
-    {{browser_settings}}
+    <h3 class="category" data-category="browser" tabindex="0">Browser</h3>
+    <div id="category-browser">
+        {{browser_settings}}
+    </div>
 
     <h3 class="category" data-category="autologin" tabindex="0">Autologin</h3>
     <div id="category-autologin">
@@ -143,5 +146,5 @@
     <p style="user-select:none;">Bedankt voor het gebruiken van <span id="somtoday-mod-version-easter-egg">{{platform}}</span>! {{updateinfo}}</p>
     {{export_import_buttons}}
     <p style="margin-top:-15px;"><b>Gemaakt door</b></p>
-    <div id="mod-contributors">{{contributors_list}}</div>
+    <div class="mod-credits-gh-pills">{{contributors_list}}</div>
 </div>

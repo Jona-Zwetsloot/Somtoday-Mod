@@ -4,16 +4,10 @@ async function startTheDungeon() {
     const DEBUG_MODE = false; // IMPORTANT: DISABLE THIS IN PRODUCTION
     let debugVisible = false;
 
-    const BACKEND_URL = 'https://somtoday-mod-platformer-backend.onrender.com';
+    const BACKEND_URL = 'https://geweldige-geluidseffecten.netlify.app/platformer';
 
     const consoleHunter = console.log.bind(console, "Wat doe je hier? Zoek je een code... Wat een 'CONSOLEHUNTER' ben jij zeg...");
     consoleHunter();
-
-    let CODE_UUID = get('platformer-uuid');
-    if (!CODE_UUID) {
-        CODE_UUID = crypto.randomUUID();
-        set('platformer-uuid', CODE_UUID);
-    }
 
     tn('body', 0).insertAdjacentHTML('beforeend', `
     <div id="mod-menu">
@@ -85,8 +79,8 @@ async function startTheDungeon() {
     }
 
     function updateMenuCoins() {
-        const totalCoins = parseInt(get('platformer-total-coins') || '0');
-        const codeCoins = parseInt(get('platformer-code-coins') || '0');
+        const totalCoins = parseInt(n(get('platformer-total-coins')) ? '0' : get('platformer-total-coins'));
+        const codeCoins = parseInt(n(get('platformer-code-coins')) ? '0' : get('platformer-code-coins'));
         const total = totalCoins + codeCoins;
         document.getElementById('mod-menu-total-coins').textContent = total;
         document.getElementById('mod-levels-coins').textContent = total;
@@ -94,7 +88,7 @@ async function startTheDungeon() {
 
     function getLevelBestTime(levelIdx) {
         const data = get(`platformer-besttime-${levelIdx}`);
-        return data ? parseFloat(data) : null;
+        return n(data) ? null : parseFloat(data);
     }
 
     function setLevelBestTime(levelIdx, time) {
@@ -106,7 +100,7 @@ async function startTheDungeon() {
 
     function getCompletedLevels() {
         const data = get('platformer-progress');
-        return data ? JSON.parse(data) : {};
+        return n(data) ? {} : JSON.parse(data);
     }
 
     function markLevelCompleted(levelIdx, coins) {
@@ -174,7 +168,7 @@ async function startTheDungeon() {
         `;
         document.body.appendChild(overlay);
         
-        const codeCoins = parseInt(get('platformer-code-coins') || '0');
+        const codeCoins = parseInt(n(get('platformer-code-coins')) ? '0' : get('platformer-code-coins'));
         if (codeCoins > 0) {
             document.getElementById('mod-codes-history').style.display = 'block';
             document.getElementById('mod-codes-history-val').textContent = codeCoins;
@@ -199,7 +193,7 @@ async function startTheDungeon() {
                 return;
             }
 
-            const usedCodes = JSON.parse(get('platformer-used-codes') || '[]');
+            const usedCodes = JSON.parse(n(get('platformer-used-codes')) ? '[]' : get('platformer-used-codes'));
             if (usedCodes.includes(code)) {
                 status.className = 'mod-codes-status mod-codes-status-error';
                 status.textContent = 'Deze code is al gebruikt';
@@ -210,16 +204,12 @@ async function startTheDungeon() {
             status.textContent = 'Code valideren... dit kan tot 50 seconden duren';
 
             try {
-                const resp = await fetch(`${BACKEND_URL}/redeem`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, uuid: CODE_UUID }),
-                });
-                const data = await resp.json();
+                const resp = await fetch(`${BACKEND_URL}/${code}.json`);
 
-                if (resp.ok && data.success) {
-                    const reward = data.reward.coins || 0;
-                    const currentCodeCoins = parseInt(get('platformer-code-coins') || '0');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const reward = data.coins || 0;
+                    const currentCodeCoins = parseInt(n(get('platformer-code-coins')) ? '0' : get('platformer-code-coins'));
                     set('platformer-code-coins', currentCodeCoins + reward);
 
                     usedCodes.push(code);
@@ -233,11 +223,6 @@ async function startTheDungeon() {
                     document.getElementById('mod-codes-history').style.display = 'block';
                     document.getElementById('mod-codes-history-val').textContent = newTotal;
                     updateMenuCoins();
-                } else if (resp.status === 409) {
-                    usedCodes.push(code);
-                    set('platformer-used-codes', JSON.stringify(usedCodes));
-                    status.className = 'mod-codes-status mod-codes-status-error';
-                    status.textContent = 'Deze code is al gebruikt';
                 } else if (resp.status === 404) {
                     status.className = 'mod-codes-status mod-codes-status-error';
                     status.textContent = 'Ongeldige code';
@@ -246,6 +231,7 @@ async function startTheDungeon() {
                     status.textContent = 'Er is een fout opgetreden, probeer opnieuw';
                 }
             } catch(e) {
+                console.log(e);
                 status.className = 'mod-codes-status mod-codes-status-error';
                 status.textContent = 'Geen verbinding met server, probeer het later opnieuw';
             }
@@ -326,9 +312,9 @@ async function startTheDungeon() {
     let musicAudio = null;
     let musicFading = null;
     let currentSong = null;
-    let sfxVolume = parseFloat(get('platformer-sfxVolume') ?? 1);
+    let sfxVolume = parseFloat(n(get('platformer-sfx-volume')) ? 1 : get('platformer-sfx-volume'));
     if (isNaN(sfxVolume)) sfxVolume = 1;
-    let musicVolume = parseFloat(get('platformer-musicVolume') ?? 1);
+    let musicVolume = parseFloat(n(get('platformer-music-volume')) ? 1 : get('platformer-music-volume'));
     if (isNaN(musicVolume)) musicVolume = 1;
 
     function _killAudio(a) {
@@ -3087,7 +3073,7 @@ async function startTheDungeon() {
 
         for (const [label, vol, setVol, y] of [
             ['Muziek', musicVolume, (v) => {
-                set('platformer-musicVolume', v);
+                set('platformer-music-volume', v);
                 musicVolume = v;
                 if (musicAudio) musicAudio.volume = v;
                 if (musicFading) {
@@ -3096,7 +3082,7 @@ async function startTheDungeon() {
                     if (musicFading.inAudio) musicFading.inAudio.volume = v * t;
                 }
             }, sliderY1],
-            ['Geluiden', sfxVolume, (v) => { set('platformer-sfxVolume', v); sfxVolume = v; }, sliderY2],
+            ['Geluiden', sfxVolume, (v) => { set('platformer-sfx-volume', v); sfxVolume = v; }, sliderY2],
         ]) {
             ctx.fillStyle = '#aaa';
             ctx.font = '14px sans-serif';
@@ -3220,6 +3206,7 @@ async function startTheDungeon() {
         drawBtn(bx, canvas.height / 2 + 110, bw, bh, lvl?.playAgainText || 'Opnieuw spelen', '#3f8541', () => { elapsed = 0; timing = true; sessionCoins = 0; sessionTotalCoins = 0; loadLvl(0); });
         drawBtn(bx, canvas.height / 2 + 180, bw, bh, 'Menu', '#555', () => endGame());
         ctx.restore();
+        playSfx('tada');
     }
 
     function drawHUD() {
@@ -3424,17 +3411,13 @@ async function openCreditsPopup() {
                     '<a href="$2" target="_blank" rel="noopener">$1</a>');
         }
 
-        const contributors = [
-            {
-                username: 'levkris',
-                avatar: 'https://avatars.githubusercontent.com/u/105733478?v=4',
-                github: 'https://github.com/levkris',
-            },
-        ];
+        const contributors = {
+            "levkris": "https:\/\/avatars.githubusercontent.com\/u\/105733478?s=64&v=4"
+        };
 
         let musicRows = '';
         let sfxRows = '';
-        let licenseBlocks = '';
+        let textureRows = '';
 
         try {
             const md = window.getResourceAsText('data/the-dungeon/credits.md');
@@ -3449,7 +3432,7 @@ async function openCreditsPopup() {
                     const title = h[1].trim();
                     if (/music/i.test(title)) section = 'music';
                     else if (/sound/i.test(title)) section = 'sfx';
-                    else if (/license/i.test(title)) section = 'license';
+                    else if (/textures/i.test(title)) section = 'textures';
                     else section = null;
                     continue;
                 }
@@ -3478,8 +3461,14 @@ async function openCreditsPopup() {
                     </tr>`;
                 }
 
-                if (section === 'license' && line.trim()) {
-                    licenseBlocks += `<p class="mod-credits-license-text">${mdInline(line.trim())}</p>`;
+                if (section === 'textures' && line.startsWith('|')) {
+                    const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+                    if (cells.length < 2) continue;
+                    if (/^[-:\s]+$/.test(cells[0]) || /bestand|file/i.test(cells[0])) continue;
+                    textureRows += `<tr>
+                        <td>${mdInline(cells[0])}</td>
+                        <td>${mdInline(cells[1])}</td>
+                    </tr>`;
                 }
             }
 
@@ -3487,23 +3476,16 @@ async function openCreditsPopup() {
             console.warn('Could not load credits.md', e);
         }
 
-        const contributorHTML = contributors.map(c => `
-            <a class="mod-credits-gh-pill" href="${c.github}" target="_blank" rel="noopener">
-                ${c.avatar ? `<img src="${c.avatar}" alt="${c.username}" class="mod-credits-gh-avatar">` : ''}
-                <span class="mod-credits-gh-name">${c.username}</span>
-                <svg class="mod-credits-gh-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
-                    0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755
-                    -1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07
-                    1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332
-                    -5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005
-                    -.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552
-                    3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22
-                    0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015
-                    3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
+        let contributorHTML = '';
+        for (const [key, value] of Object.entries(contributors)) {
+            contributorHTML += `
+            <a class="mod-credits-gh-pill" href="https://github.com/${sanitizeString(key)}/" target="_blank" rel="noopener">
+                <img src="${sanitizeString(value)}" alt="${sanitizeString(key)}" class="mod-credits-gh-avatar">
+                <span class="mod-credits-gh-name">${sanitizeString(key)}</span>
+                ${window.getIcon('github', 'mod-credits-gh-icon', 'currentColor')}
             </a>
-        `).join('');
+            `;
+        }
 
         const overlay = document.createElement('div');
         overlay.className = 'mod-coming-soon-overlay';
@@ -3520,7 +3502,7 @@ async function openCreditsPopup() {
                 <div class="mod-credits-scroll">
 
                     <section class="mod-credits-section">
-                        <h3 class="mod-credits-section-title">👾 Contributors</h3>
+                        <h3 class="mod-credits-section-title">👾 Creator of The Dungeon</h3>
                         <div class="mod-credits-gh-pills">${contributorHTML}</div>
                     </section>
                     <div class="mod-credits-divider"></div>
@@ -3547,10 +3529,13 @@ async function openCreditsPopup() {
                     <div class="mod-credits-divider"></div>
                     ` : ''}
 
-                    ${licenseBlocks ? `
-                    <section class="mod-credits-section mod-credits-license-section">
-                        <h3 class="mod-credits-section-title">📄 Licentie-informatie</h3>
-                        ${licenseBlocks}
+                    ${textureRows ? `
+                    <section class="mod-credits-section">
+                        <h3 class="mod-credits-section-title">🌱 Textures</h3>
+                        <table class="mod-credits-table">
+                            <thead><tr><th>Bestand</th><th>Bron</th></tr></thead>
+                            <tbody>${textureRows}</tbody>
+                        </table>
                     </section>
                     ` : ''}
 

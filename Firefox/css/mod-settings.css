@@ -497,26 +497,47 @@ input:checked+.slider:before {
 
 .mod-setting-button {
     padding: 10px 12px;
-    background: var(--bg-elevated-weak);
+    background: var(--bg-elevated-weakest);
     border-radius: 8px;
-    margin-right: 8px;
     display: inline-block;
     margin-bottom: 10px;
     transition: background 0.3s ease !important;
     cursor: pointer;
     user-select: none;
     color: var(--text-moderate) !important;
+    border: 1px solid var(--bg-elevated-strong);
+    border-radius: 100vh;
+    margin-right: 4px;
+    text-decoration: none;
+    font-size: 0.95em;
 }
 
 .mod-setting-button:hover {
     background: var(--bg-elevated-strong);
-    color: var(--text-moderate);
+    color: var(--text-strong) !important;
 }
 
 .mod-setting-button svg {
     margin-right: 10px;
     height: 18px;
     margin-bottom: -3px;
+}
+
+#mod-setting-panel .mod-credits-gh-pills {
+    margin-bottom: 30px;
+}
+
+#mod-setting-panel .mod-credits-gh-pill {
+    background: var(--bg-elevated-none);
+    border-color: var(--bg-elevated-strong);
+}
+
+#mod-setting-panel .mod-credits-gh-pill:hover,
+#mod-setting-panel .mod-credits-gh-pill:focus {
+    background: var(--bg-elevated-strong);
+    border-color: var(--bg-elevated-strong);
+    color: var(--text-strong);
+    box-shadow: var(--shadow-centred-weak);
 }
 
 #mod-background-wrapper {

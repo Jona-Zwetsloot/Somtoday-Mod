@@ -1,6 +1,6 @@
 # CREDITS
 
-## Contributors
+## 👾 Creator of The Dungeon
 
 | Avatar | Username | GitHub |
 |--------|----------|--------|
@@ -32,14 +32,3 @@
 | File | Source |
 |------|--------|
 | `dirt.png` | [Jeff Ottinger](https://opengameart.org/users/jottinger) on [OpenGameArt](https://opengameart.org/content/tileable-200x200-dirt-texture) |
-
----
-
-## 📄 License Notices
-
-**Kevin MacLeod tracks** are licensed under the
-[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
-
-**Tension** (Audio File ID: 151135) was downloaded on 2026-02-21 from Pixabay
-by user `u_74nysi6w4k` under the [Pixabay Content License](https://pixabay.com/service/terms/).
-Licensed from: [spmusic](https://pixabay.com/users/spmusic-34490764/).
