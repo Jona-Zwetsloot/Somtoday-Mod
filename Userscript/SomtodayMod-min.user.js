@@ -1374,8 +1374,6 @@ nicknames+=`
 
                     <span class="mod-credits-gh-name">${sanitizeString(key)}</span>
 
-                    ${window.getIcon('github', 'mod-credits-gh-icon', 'currentColor')}
-
                 </a>
 
                 `;}

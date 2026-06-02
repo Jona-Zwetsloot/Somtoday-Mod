@@ -4895,7 +4895,6 @@ function onload() {
                 <a class="mod-credits-gh-pill" href="https://github.com/${sanitizeString(key)}/" target="_blank" rel="noopener">
                     <img src="${sanitizeString(value)}" alt="${sanitizeString(key)}" class="mod-credits-gh-avatar">
                     <span class="mod-credits-gh-name">${sanitizeString(key)}</span>
-                    ${window.getIcon('github', 'mod-credits-gh-icon', 'currentColor')}
                 </a>
                 `;
             }
