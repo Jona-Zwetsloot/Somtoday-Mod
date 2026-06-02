@@ -493,6 +493,9 @@ input:checked+.slider:before {
     width: 100%;
     margin-top: -10px;
     top: -5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .mod-setting-button {
@@ -500,14 +503,12 @@ input:checked+.slider:before {
     background: var(--bg-elevated-weakest);
     border-radius: 8px;
     display: inline-block;
-    margin-bottom: 10px;
     transition: background 0.3s ease !important;
     cursor: pointer;
     user-select: none;
     color: var(--text-moderate) !important;
     border: 1px solid var(--bg-elevated-strong);
     border-radius: 100vh;
-    margin-right: 4px;
     text-decoration: none;
     font-size: 0.95em;
 }
@@ -621,7 +622,7 @@ input:checked+.slider:before {
 .mod-background-type-content {
     padding: 20px;
     background: var(--bg-elevated-weakest);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--bg-elevated-strong);
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
 }
@@ -629,7 +630,7 @@ input:checked+.slider:before {
 #mod-background-type {
     display: flex;
     flex-wrap: wrap;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--bg-elevated-strong);
     border-bottom: none;
     padding-top: 3px;
     border-top-left-radius: 16px;
@@ -1007,5 +1008,9 @@ input[type="color"] {
     #mod-background-wrapper img {
         width: calc(50% - 10px);
         margin-right: 10px;
+    }
+
+    .mod-setting-button {
+        flex-grow: 1;
     }
 }
