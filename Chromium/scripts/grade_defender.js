@@ -84,7 +84,6 @@ function startGradeDefender() {
     const logoSvg = window.logo(null, null, '#fff');
     // Need to parse the SVG string to extraction proper dimensions if needed, but for now wrap in base64
     logoImg.src = 'data:image/svg+xml;base64,' + btoa(logoSvg);
-    console.log(logoImg.src);
 
     function saveData() {
         const data = {
