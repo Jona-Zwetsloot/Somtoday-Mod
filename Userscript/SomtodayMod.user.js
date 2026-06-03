@@ -2918,8 +2918,8 @@ function onload() {
         let gl;
         if (!preview) {
             stopLiveWallpaper();
+            tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
         }
-        tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
         const canvas = id(preview ? 'mod-live-preview' : 'mod-background-live');
         gl = canvas.getContext("webgl");
         if (!gl) return;
@@ -6902,6 +6902,9 @@ function onload() {
                     } else {
                         this.style.color = 'darkred';
                     }
+                "
+                onblur="
+                    this.parentElement.previousElementSibling.dispatchEvent(new Event('input'));
                 "
             >
             </div>

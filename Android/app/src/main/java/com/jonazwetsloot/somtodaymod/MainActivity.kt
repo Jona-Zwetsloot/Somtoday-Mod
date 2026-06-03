@@ -704,8 +704,8 @@ else if(newyear){insertElement.insertAdjacentHTML(position,'<svg id="mod-logo-de
 if(!n(tn('sl-header',0))&&(easter||halloween||bevrijdingsdag||newyear)){tn('sl-header',0).style.overflow='hidden';id('mod-logo-decoration').addEventListener('click',function(){this.classList.add('mod-logo-decoration-clicked');setTimeout(function(){tn('body',0).classList.add('mod-logo-decoration-hidden');if(id('mod-logo-decoration')){id('mod-logo-decoration').remove();}},900);});}}}}
 function stopLiveWallpaper(){tryRemove(id('mod-background-live'));}
 function randomColor(offset=0){const seed=Math.random()*100;return[Math.round((0.5+0.5*Math.cos(seed+offset+0))*255),Math.round((0.5+0.5*Math.cos(seed+offset+2))*255),Math.round((0.5+0.5*Math.cos(seed+offset+4))*255),];}
-function startLiveWallpaper(preview=false,col1,col2,col3){let liveWallpaperFrame;let gl;if(!preview){stopLiveWallpaper();}
-tn('body',0).insertAdjacentHTML('beforeend','<canvas id="mod-background-live"></canvas>');const canvas=id(preview?'mod-live-preview':'mod-background-live');gl=canvas.getContext("webgl");if(!gl)return;const vsSource=`
+function startLiveWallpaper(preview=false,col1,col2,col3){let liveWallpaperFrame;let gl;if(!preview){stopLiveWallpaper();tn('body',0).insertAdjacentHTML('beforeend','<canvas id="mod-background-live"></canvas>');}
+const canvas=id(preview?'mod-live-preview':'mod-background-live');gl=canvas.getContext("webgl");if(!gl)return;const vsSource=`
 
             attribute vec4 aVertexPosition;
 
@@ -1887,6 +1887,12 @@ code+=(n(description)?'':'<p>'+description+'</p>');}else if(type=='range'){code+
                         this.style.color = 'darkred';
 
                     }
+
+                "
+
+                onblur="
+
+                    this.parentElement.previousElementSibling.dispatchEvent(new Event('input'));
 
                 "
 
