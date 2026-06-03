@@ -1522,43 +1522,44 @@ function onload() {
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
         if (get('ui') != 0 || get('backgroundtype') == 'live') {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--text-weakest:var(--text-weak);--border-neutral-normal:transparent;' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
-        const purple100 = toBrightnessValue(get('secondarycolor'), 41);
-        const purple80 = toBrightnessValue(get('secondarycolor'), 53);
-        const purple50 = toBrightnessValue(get('secondarycolor'), 88);
-        const purple30 = toBrightnessValue(get('secondarycolor'), 126);
-        const purple10 = toBrightnessValue(get('secondarycolor'), 201);
-        const purple0 = toBrightnessValue(get('secondarycolor'), 231);
-        const green100 = toBrightnessValue(get('secondarycolor'), 46);
-        const green90 = toBrightnessValue(get('secondarycolor'), 68);
-        const green80 = toBrightnessValue(get('secondarycolor'), 113);
-        const green50 = toBrightnessValue(get('secondarycolor'), 183);
-        const green20 = toBrightnessValue(get('secondarycolor'), 209);
-        const green10 = toBrightnessValue(get('secondarycolor'), 228);
-        const green0 = toBrightnessValue(get('secondarycolor'), 245);
-        const blue100 = toBrightnessValue(get('primarycolor'), 48);
-        const blue80 = toBrightnessValue(get('primarycolor'), 56);
-        const blue70 = toBrightnessValue(get('primarycolor'), 81);
-        const blue60 = toBrightnessValue(get('primarycolor'), 89);
-        const blue40 = toBrightnessValue(get('primarycolor'), 140);
-        const blue30 = toBrightnessValue(get('primarycolor'), 169);
-        const blue20 = toBrightnessValue(get('primarycolor'), 198);
-        const blue0 = toBrightnessValue(get('primarycolor'), 241);
-        const yellow60 = toBrightnessValue(get('secondarycolor'), 162);
-        const yellow50 = toBrightnessValue(get('secondarycolor'), 173);
-        const yellow20 = toBrightnessValue(get('secondarycolor'), 198);
-        const orange60 = toBrightnessValue(get('secondarycolor'), 141);
-        const orange30 = toBrightnessValue(get('secondarycolor'), 180);
+        let css = (darkmode ? '#mod-setting-panel ::placeholder{ color: var(--action-neutral-normal) !important; }' : '') + ' :root, :root.dark.dark { --mod-transparent: rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + '); --mod-ui-transparent: rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + '); --mod-semi-transparant: ' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + '; --mod-border-neutral-normal: rgb(' + (darkmode ? '55,64,72' : '208,214,220') + ');';
         if (get('primarycolor') != '#0067c2' || get('secondarycolor') != '#e69b22') {
             const rgbcolor = hexToRgb(get('primarycolor'));
+            let cssVariables = '';
+            const blueBrightness = ['241', '220', '198', '169', '140', '115', '89', '81', '56', '52', '48'];
+            const greenBrightness = ['245', '228', '209', '200', '192', '183', '160', '137', '114', '68', '46'];
+            const yellowBrightness = ['241', '220', '198', '190', '180', '173', '162', '137', '114', '68', '46'];
+            const purpleBrightness = ['231', '201', '170', '126', '100', '88', '77', '65', '53', '50', '41'];
+            const orangeBrightness = ['241', '220', '198', '180', '168', '155', '141', '90', '56', '52', '48'];
+            for (let i = 0; i < blueBrightness.length; i++) {
+                cssVariables += `--blue-${i * 10}: ${toBrightnessValue(get('primarycolor'), blueBrightness[i])};`;
+                cssVariables += `--green-${i * 10}: ${toBrightnessValue(get('secondarycolor'), greenBrightness[i])};`;
+                cssVariables += `--yellow-${i * 10}: ${toBrightnessValue(get('secondarycolor'), yellowBrightness[i])};`;
+                cssVariables += `--purple-${i * 10}: ${toBrightnessValue(get('secondarycolor'), purpleBrightness[i])};`;
+                cssVariables += `--orange-${i * 10}: ${toBrightnessValue(get('secondarycolor'), orangeBrightness[i])};`;
+            }
             // Generate and adjust colors based on highest color channel value
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">' + (darkmode ? '#mod-setting-panel ::placeholder{color:var(--action-neutral-normal) !important;}' : '') + ':root, :root.dark.dark {--mod-transparent:rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + ');--mod-ui-transparent:rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');--purple-100:' + purple100 + ';--purple-80:' + purple80 + ';--purple-50:' + purple50 + ';--purple-30:' + purple30 + ';--purple-10:' + purple10 + ';--purple-0:' + purple0 + ';--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--green-100:' + green100 + ';--green-90:' + green90 + ';--green-80:' + green80 + ';--green-50:' + green50 + ';--green-20:' + green20 + ';--green-10:' + green10 + ';--green-0:' + green0 + ';--thinnest-solid-neutral-strong:var(--b-thinnest) solid var(--border-neutral-normal);--blue-60:' + blue60 + ';--blue-70:' + blue70 + ';--yellow-60:' + yellow60 + ';--blue-0:' + blue0 + ';--blue-80:' + blue80 + ';--blue-30:' + blue30 + ';--blue-20:' + blue20 + ';--blue-100:' + blue100 + ';--yellow-20:' + yellow20 + ';--blue-40:' + blue40 + ';--yellow-50:' + yellow50 + ';--orange-30:' + orange30 + ';--orange-60:' + orange60 + ';}sl-account-modal i{--bg-neutral-moderate:' + (darkmode ? '#282e34' : '#dadfe3') + ';--fg-on-neutral-moderate:' + (darkmode ? '#eaedf0' : '#374048') + ';--bg-primary-weak:' + (darkmode ? '#1a344d' : '#e5f3ff') + ';--fg-on-primary-weak:' + (darkmode ? '#e5f3ff' : '#004180') + ';--bg-alternative-weak:' + (darkmode ? '#342060' : '#ece3ff') + ';--fg-on-alternative-weak:' + (darkmode ? '#d4c0fd' : '#29017d') + ';--bg-accent-weak:' + (darkmode ? '#4d3919' : '#fff4e3') + ';--fg-on-accent-weak:' + (darkmode ? '#fff4e3' : '#4d3919') + ';--bg-positive-weak:' + (darkmode ? '#133914' : '#ebf9ec') + ';--fg-on-positive-weak:' + (darkmode ? '#baf5bc' : '#145716') + ';}</style>');
+            css += cssVariables + `}
+            sl-account-modal i {
+                --bg-neutral-moderate: ${darkmode ? '#282e34' : '#dadfe3'};
+                --fg-on-neutral-moderate: ${darkmode ? '#eaedf0' : '#374048'};
+                --bg-primary-weakest: ${darkmode ? '#1a344d' : '#e5f3ff'};
+                --fg-on-primary-weakest: ${darkmode ? '#e5f3ff' : '#004180'};
+                --bg-alternative-weak: ${darkmode ? '#342060' : '#ece3ff'};
+                --fg-on-alternative-weak: ${darkmode ? '#d4c0fd' : '#29017d'};
+                --bg-accent-weak: ${darkmode ? '#4d3919' : '#fff4e3'};
+                --fg-on-accent-weak: ${darkmode ? '#fff4e3' : '#4d3919'};
+                --bg-positive-weakest: ${darkmode ? '#133914' : '#ebf9ec'};
+                --fg-on-positive-weakest: ${darkmode ? '#baf5bc' : '#145716'};
+            }`;
         }
         else {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">' + (darkmode ? '#mod-setting-panel ::placeholder{color:var(--action-neutral-normal) !important;}' : '') + ':root, :root.dark.dark {--mod-transparent:rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + ');--mod-ui-transparent:rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');}</style>');
+            css += '}';
         }
+        tn('head', 0).insertAdjacentHTML('beforeend', `<style id="mod-css-variables">${css}</style>`);
     }
 
     // Show a message on top of the page. Similair to browser confirm().
@@ -2014,20 +2015,27 @@ function onload() {
     }
 
     // Live Wallpaper
-    let liveWallpaperFrame;
-    let gl;
     function stopLiveWallpaper() {
-        if (liveWallpaperFrame) {
-            cancelAnimationFrame(liveWallpaperFrame);
-            liveWallpaperFrame = null;
-        }
         tryRemove(id('mod-background-live'));
     }
 
-    function startLiveWallpaper() {
-        stopLiveWallpaper();
+    function randomColor(offset = 0) {
+        const seed = Math.random() * 100;
+        return [
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 0)) * 255),
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 2)) * 255),
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 4)) * 255),
+        ];
+    }
+
+    function startLiveWallpaper(preview = false, col1, col2, col3) {
+        let liveWallpaperFrame;
+        let gl;
+        if (!preview) {
+            stopLiveWallpaper();
+        }
         tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
-        const canvas = id('mod-background-live');
+        const canvas = id(preview ? 'mod-live-preview' : 'mod-background-live');
         gl = canvas.getContext("webgl");
         if (!gl) return;
 
@@ -2039,21 +2047,31 @@ function onload() {
             }
         `;
 
+        if (!preview) {
+            if (n(get('livecolor1')) || n(get('livecolor2')) || n(get('livecolor3'))) {
+                set('livecolor1', rgbToHex(randomColor(0)));
+                set('livecolor2', rgbToHex(randomColor(2)));
+                set('livecolor3', rgbToHex(randomColor(4)));
+            }
+            col1 = hexToRgb(get('livecolor1'));
+            col2 = hexToRgb(get('livecolor2'));
+            col3 = hexToRgb(get('livecolor3'));
+        }
+
         // Fragment shader with random color noise
         const fsSource = `
             precision mediump float;
             uniform float u_time;
             uniform vec2 u_resolution;
-            uniform float u_seed;
 
             void main() {
                 vec2 uv = gl_FragCoord.xy / u_resolution.xy;
                 float t = u_time * 0.5;
 
-                // Randomize base colors based on seed
-                vec3 col1 = 0.5 + 0.5 * cos(u_seed + vec3(0,2,4));
-                vec3 col2 = 0.5 + 0.5 * cos(u_seed + 2.0 + vec3(0,2,4));
-                vec3 col3 = 0.5 + 0.5 * cos(u_seed + 4.0 + vec3(0,2,4));
+                // Colors as RGB 0-1
+                vec3 col1 = vec3(${col1[0] / 255},${col1[1] / 255},${col1[2] / 255});
+                vec3 col2 = vec3(${col2[0] / 255},${col2[1] / 255},${col2[2] / 255});
+                vec3 col3 = vec3(${col3[0] / 255},${col3[1] / 255},${col3[2] / 255});
 
                 // Create plasma/noise effect
                 float v = 0.0;
@@ -2082,12 +2100,10 @@ function onload() {
             uniformLocations: {
                 time: gl.getUniformLocation(shaderProgram, 'u_time'),
                 resolution: gl.getUniformLocation(shaderProgram, 'u_resolution'),
-                seed: gl.getUniformLocation(shaderProgram, 'u_seed')
             }
         };
 
         const buffers = initBuffers(gl);
-        const seed = parseFloat(get('live_seed')) || Math.random() * 100;
 
         function render(now) {
             if (!gl) return;
@@ -2111,7 +2127,6 @@ function onload() {
 
             gl.uniform1f(programInfo.uniformLocations.time, now);
             gl.uniform2f(programInfo.uniformLocations.resolution, canvas.width, canvas.height);
-            gl.uniform1f(programInfo.uniformLocations.seed, seed);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -2885,7 +2900,6 @@ function onload() {
             });
             tempImg.src = svgObjectUrl;
             tn('sl-root', 0).removeAttribute('inert');
-            console.log(html);
         }
     }
 
@@ -4922,9 +4936,13 @@ function onload() {
                 '{{icon_circle_info}}': window.getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
                 '{{icon_circle_exclamation}}': window.getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
                 '{{icon_upload}}': window.getIcon('upload', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_shuffle}}': window.getIcon('shuffle', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_palette}}': window.getIcon('palette', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_edit}}': window.getIcon('edit', null, 'var(--fg-on-primary-weak)'),
                 '{{updatechecker}}': isExtension ? '' : updatechecker,
                 '{{addSetting_primarycolor}}': addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2'),
                 '{{addSetting_secondarycolor}}': addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2'),
+                '{{addLiveColors}}': addSetting(null, null, 'livecolor1', 'color', '#000000') + addSetting(null, null, 'livecolor2', 'color', '#000000') + addSetting(null, null, 'livecolor3', 'color', '#000000'),
                 '{{backgroundtype_image_active}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'active' : '',
                 '{{backgroundtype_slideshow_active}}': get('backgroundtype') == 'slideshow' ? 'active' : '',
                 '{{backgroundtype_color_active}}': get('backgroundtype') == 'color' ? 'active' : '',
@@ -4932,7 +4950,7 @@ function onload() {
                 '{{display_bg_image}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none',
                 '{{display_mod_filters}}': n(get('background')) ? 'display:none;' : '',
                 '{{video_style}}': n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';',
-                '{{video_src}}': (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? get('background') : '',
+                '{{video_src}}': (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? `src="${get('background')}"` : '',
                 '{{image_style}}': (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;' : ''),
                 '{{image_src}}': (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')),
                 '{{addSlider_brightness}}': addSlider('Helderheid', 'brightness', 0, 200, '%', 100),
@@ -4951,7 +4969,7 @@ function onload() {
                 '{{addSetting_backgroundcolor}}': addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff'),
                 '{{addSetting_ui_transparency}}': night ? '<div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Somtoday Mod Night mode ondersteunt momenteel geen UI transparantie en/of blur.</div>' : addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
                 '{{addSetting_ui_blur}}': night ? '' : addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur'),
-                '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
+                '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 3%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
                 '{{layout_2}}': '<div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div>',
                 '{{layout_3}}': '<div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div>',
                 '{{layout_4}}': '<div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div>',
@@ -5007,7 +5025,7 @@ function onload() {
                     addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
                 '{{browser_settings}}': (platform == 'Android' ? '' :
                     addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' +
-                    addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
+                    addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
                 ) + '<div class="br"></div><div class="br"></div>' +
                     addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
                 '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
@@ -5125,7 +5143,7 @@ function onload() {
             addTheme('Biljard', '6253916', '#27f56c', '#13bd4c');
             addTheme('Arcade', '28920045', '#fd4ff4', '#fd4ff4');
             addTheme('Ski\'s', '257961', '#f71111', '#f71111');
-            addTheme('Schaken', '277124', '#e8e8e8', '#514642');
+            addTheme('Schaken', '277124', '#514642', '#e8e8e8');
             addTheme('Kerstmis', '1708601', '#0dac0d', '#a50c0c');
             id('theme-wrapper').insertAdjacentHTML('afterend', `<div id="more-themes" tabindex="0" class="mod-button">Meer bekijken</div>`);
             document.getElementById('more-themes').addEventListener('click', function () {
@@ -5468,14 +5486,120 @@ function onload() {
                     }
                 });
             }
-            // Live wallpaper randomize
-            if (id('mod-live-randomize')) {
-                id('mod-live-randomize').addEventListener('click', function () {
-                    set('backgroundtype', 'live');
-                    set('live_seed', Math.random() * 100);
-                    startLiveWallpaper();
+
+            // Live wallpaper
+            if (id('mod-live-random')) {
+                let liveType, col1, col2, col3;
+
+                id('primarycolor').addEventListener('change', function () {
+                    if (liveType == 'primary') {
+                        id('mod-live-primary').click();
+                    }
                 });
+
+                id('secondarycolor').addEventListener('change', function () {
+                    if (liveType == 'secondary') {
+                        id('mod-live-secondary').click();
+                    }
+                });
+
+                id('livecolor1').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col1[0] != rgb[0] || col1[1] != rgb[1] || col1[2] != rgb[2]) {
+                        col1 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+                id('livecolor2').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col2[0] != rgb[0] || col2[1] != rgb[1] || col2[2] != rgb[2]) {
+                        col2 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+                id('livecolor3').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col3[0] != rgb[0] || col3[1] != rgb[1] || col3[2] != rgb[2]) {
+                        col3 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+
+                function resetLiveButtons(e) {
+                    if (e) return;
+
+                    id('mod-bg-live').dataset.type = liveType;
+                    id('mod-live-random').classList.remove('mod-active');
+                    id('mod-live-primary').classList.remove('mod-active');
+                    id('mod-live-secondary').classList.remove('mod-active');
+                    id('mod-live-custom').classList.remove('mod-active');
+
+                    id('livecolor1').value = rgbToHex(col1);
+                    id('livecolor1').dispatchEvent(new Event('input', { bubbles: false }));
+                    id('livecolor2').value = rgbToHex(col2);
+                    id('livecolor2').dispatchEvent(new Event('input', { bubbles: false }));
+                    id('livecolor3').value = rgbToHex(col3);
+                    id('livecolor3').dispatchEvent(new Event('input', { bubbles: false }));
+
+                    id(`mod-live-${liveType}`).classList.add('mod-active');
+
+                    if (liveType == 'custom') {
+                        show(id('mod-live-colors'));
+                    }
+                    else {
+                        hide(id('mod-live-colors'));
+                    }
+
+                    startLiveWallpaper(true, col1, col2, col3);
+                }
+
+                id('mod-live-random').addEventListener('click', function () {
+                    liveType = 'random';
+                    col1 = randomColor(0);
+                    col2 = randomColor(2);
+                    col3 = randomColor(4);
+
+                    resetLiveButtons();
+                });
+                id('mod-live-primary').addEventListener('click', function () {
+                    const baseColor = id('primarycolor').value;
+
+                    liveType = 'primary';
+                    col1 = hexToRgb(baseColor);
+                    col2 = hexToRgb(adjust(baseColor, -50));
+                    col3 = hexToRgb(adjust(baseColor, 50));
+
+                    resetLiveButtons();
+                });
+                id('mod-live-secondary').addEventListener('click', function () {
+                    const baseColor = id('secondarycolor').value;
+
+                    liveType = 'secondary';
+                    col1 = hexToRgb(baseColor);
+                    col2 = hexToRgb(adjust(baseColor, -50));
+                    col3 = hexToRgb(adjust(baseColor, 50));
+
+                    resetLiveButtons();
+                });
+                id('mod-live-custom').addEventListener('click', function () {
+                    liveType = 'custom';
+
+                    resetLiveButtons();
+                });
+
+                if (n(get('livetype'))) {
+                    id('mod-live-random').click();
+                }
+                else {
+                    liveType = get('livetype');
+                    col1 = hexToRgb(get('livecolor1'));
+                    col2 = hexToRgb(get('livecolor2'));
+                    col3 = hexToRgb(get('livecolor3'));
+
+                    resetLiveButtons();
+                }
             }
+
             // Letterbeoordelingen
             if (id('mod-change-letterbeoordelingen')) {
                 id('mod-change-letterbeoordelingen').addEventListener('click', function () {
@@ -5646,6 +5770,9 @@ function onload() {
         else if (id('mod-bg-live').style.display == 'block') {
             set('backgroundtype', 'live');
         }
+        if (id('mod-bg-live')?.dataset?.type) {
+            set('livetype', id('mod-bg-live').dataset.type);
+        }
         const selectedtheme = cn('theme-selected', 0);
         if (!n(selectedtheme)) {
             if (id('primarycolor').classList.contains('mod-modified') == false) {
@@ -5655,7 +5782,7 @@ function onload() {
                 set('secondarycolor', selectedtheme.dataset.secondaryColor);
             }
             set('preset', selectedtheme.dataset.name);
-            if (selectedtheme.id != 'Standaard') {
+            if (selectedtheme.id != 'Standaard' && selectedtheme.dataset.url) {
                 toDataURL(selectedtheme.dataset.url, function (dataUrl) {
                     set('background', dataUrl);
                     set('backgroundtype', 'image');
@@ -5744,6 +5871,10 @@ function onload() {
         set('background', '');
         set('backgroundtype', 'image');
         set('backgroundcolor', darkmode ? '#20262d' : '#ffffff');
+        set('livetype', '');
+        set('livecolor1', '');
+        set('livecolor2', '');
+        set('livecolor3', '');
         set('ui', 0);
         set('uiblur', 0);
         set('fontname', 'Open Sans');
@@ -5834,7 +5965,7 @@ function onload() {
         if (get(key) == null && !key.startsWith('bools')) {
             set(key, value);
         }
-        let code = '<div><h3>' + name + '</h3>' + ((n(description) || type == 'checkbox') ? '' : '<div><p>' + description + '</p></div>');
+        let code = '<div>' + (n(name) ? '' : '<h3>' + name + '</h3>') + ((n(description) || type == 'checkbox') ? '' : '<div><p>' + description + '</p></div>');
         if (type == 'checkbox') {
             if (key.startsWith('bools')) {
                 code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get('bools').charAt(parseInt(key.charAt(5) + key.charAt(6))) == '1' ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
@@ -5849,11 +5980,54 @@ function onload() {
         } else if (type == 'number') {
             code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '">';
         } else if (type == 'color') {
-            code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color">';
+            code += `
+            <div class="br"></div>
+            <div class="br"></div>
+            <input
+                type="color"
+                title="${name ?? 'Kleur kiezen'}"
+                class="mod-custom-setting"
+                value="${n(get(key)) ? value : get(key)}"
+                id="${key}"
+                oninput="
+                    this.classList.add('mod-modified');
+                    this.nextElementSibling.getElementsByClassName('mod-color')[0].style.background = this.value;
+                    this.nextElementSibling.getElementsByClassName('mod-color-textinput')[0].value = this.value;
+                    this.nextElementSibling.getElementsByClassName('mod-color-textinput')[0].style.color = 'var(--fg-on-primary-weak)';
+                "
+            >
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+            <label tabindex="0" class="mod-color" for="${key}" style="background: ${n(get(key)) ? value : get(key)}">
+                <p>Kies een kleur</p>
+            </label>
+            <input
+                class="mod-color-textinput"
+                title="Voer een hex kleurencode in"
+                value="${n(get(key)) ? value : get(key)}"
+                oninput="
+                    if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) {
+                        this.parentElement.previousElementSibling.value = this.value;
+                        this.style.color = 'var(--fg-on-primary-weak)';
+                        this.parentElement.getElementsByClassName('mod-color')[0].style.background = this.value;
+                    } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) {
+                        const sixDigitCode = '#' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3);
+                        this.parentElement.previousElementSibling.value = sixDigitCode;
+                        this.style.color = 'var(--fg-on-primary-weak)';
+                        this.parentElement.getElementsByClassName('mod-color')[0].style.background = sixDigitCode;
+                    } else {
+                        this.style.color = 'darkred';
+                    }
+                "
+            >
+            </div>
+            `;
         } else if (type == 'file') {
             code += `
             <input
-                ${ n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"' }
+                ${n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"'}
+                class="mod-file-input mod-custom-setting"
+                type="file"
+                accept="${param1}" id="${key}"
                 oninput="
                     const fileLabel = this.nextElementSibling.getElementsByClassName('mod-file-label')[0];
                     fileLabel.classList.remove('mod-active');
@@ -5877,9 +6051,6 @@ function onload() {
                         fileLabel.children[1].innerText = 'Kies een bestand';
                     }
                 "
-                class="mod-file-input mod-custom-setting"
-                type="file"
-                accept="${param1}" id="${key}"
             >
             <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
                 <label tabindex="0" class="mod-file-label" for="${key}">
@@ -5907,6 +6078,7 @@ function onload() {
         // URL can be a URL to an image, but also a Pexels ID.
         let smallimg = url;
         let bigimg = url;
+        let preview;
         if (!isNaN(parseInt(url))) {
             smallimg = 'https://images.pexels.com/photos/' + url + '/pexels-photo-' + url + '.jpeg?auto=compress&cs=tinysrgb&w=250';
             bigimg = 'https://images.pexels.com/photos/' + url + '/pexels-photo-' + url + '.jpeg?auto=compress&cs=tinysrgb&w=1600';
@@ -5920,13 +6092,16 @@ function onload() {
             }
         }
         // Set empty image as theme background if no url is given
-        if (!url) {
-            smallimg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        if (url) {
+            preview = `<img src="${smallimg}" alt="Achtergrondafbeelding: ${name}" loading="lazy">`;
+        }
+        else {
+            preview = '<span></span>';
         }
         const hidden = themeCount > 10 ? 'style="display: none;"' : '';
         id('theme-wrapper').insertAdjacentHTML('beforeend', `
-            <div ${hidden} tabindex="0" class="theme${themeclass}" id="${name}" data-name="${name}" data-url="${bigimg}" data-color="${primaryColor}" data-secondary-color="${secondaryColor}">
-                <img src="${smallimg}" alt="Achtergrondafbeelding: ${name}" loading="lazy">
+            <div ${hidden} tabindex="0" class="theme${themeclass}" id="${name}" data-name="${name}"${bigimg ? ` data-url="${bigimg}"` : ''} data-color="${primaryColor}" data-secondary-color="${secondaryColor}">
+                ${preview}
                 <h3>
                     <div style="background:${primaryColor};" title="${primaryColor}"></div>
                     ${name}

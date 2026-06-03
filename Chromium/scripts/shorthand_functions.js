@@ -85,7 +85,7 @@ function execute(functionarray) {
             }
             rateLimitDate = Date.now();
             if (get('bools') == null || (window.location.origin.indexOf('leerling') != -1 && get('bools').charAt(BOOL_INDEX.SHARE_DEBUG_DATA) == '1')) {
-                fetch('https://jonazwetsloot.nl/reporterror?product=Somtoday%20Mod%20' + platform + '&function=' + encodeURIComponent(element.name) + '&cause=' + encodeURIComponent(e.toString()) + '&page=' + encodeURIComponent(window.location.href.split('/').pop().split('?')[0]) + '&version=' + somtodayversion + '&productversion=' + version + '&settings=' + get('bools'));
+                fetch(`https://jonazwetsloot.nl/reporterror?product=${encodeURIComponent(`Somtoday Mod ${platform}`)}&function=${encodeURIComponent(element.name)}&cause=${encodeURIComponent(e.toString())}&page=${encodeURIComponent(window.location.href.split('/').pop().split('?')[0])}&version=${somtodayversion}&productversion=${version}&settings=${get('bools')}`);
             }
             setTimeout(console.error.bind(console, e));
         }

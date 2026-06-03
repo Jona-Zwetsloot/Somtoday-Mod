@@ -39,7 +39,7 @@
                 <div class="br"></div>
                 <h3>Filters</h3>
                 <p>Gebruik filters om de afbeelding aan te passen.</p>
-                <video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="{{video_style}}" src="{{video_src}}"></video>
+                <video id="mod-background-preview-video" class="mod-background-preview" autoplay muted loop style="{{video_style}}" {{video_src}}></video>
                 <img id="mod-background-preview-image" class="mod-background-preview" style="{{image_style}}" src="{{image_src}}" />
                 <div class="br"></div>
                 {{addSlider_brightness}}{{addSlider_contrast}}{{addSlider_saturate}}{{addSlider_opacity}}{{addSlider_huerotate}}{{addSlider_grayscale}}{{addSlider_sepia}}{{addSlider_invert}}{{addSlider_blur}}
@@ -60,9 +60,19 @@
         </div>
 
         <div id="mod-bg-live" style="display:{{display_bg_live}}" class="mod-background-type-content">
-            <p>Een live, bewegende achtergrond die willekeurige kleuren genereert.</p>
+            <h3>Live achtergrond</h3>
+            <p>Een dynamische en bewegende achtergrond vol kleur.</p>
+            <canvas id="mod-live-preview" class="mod-background-preview"></canvas>
             <div class="br"></div>
-            <div tabindex="0" class="mod-button" id="mod-live-randomize">Kies een willekeurig effect</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <div tabindex="0" class="mod-button" id="mod-live-random">{{icon_shuffle}}<span>Random</span></div>
+                <div tabindex="0" class="mod-button" id="mod-live-primary">{{icon_palette}}<span>Primair</span></div>
+                <div tabindex="0" class="mod-button" id="mod-live-secondary">{{icon_palette}}<span>Secundair</span></div>
+                <div tabindex="0" class="mod-button" id="mod-live-custom">{{icon_edit}}<span>Kies zelf</span></div>
+            </div>
+            <div id="mod-live-colors">
+                {{addLiveColors}}
+            </div>
         </div>
 
         <div class="br"></div>

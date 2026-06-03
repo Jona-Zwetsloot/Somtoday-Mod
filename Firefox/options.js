@@ -14,7 +14,7 @@ document.getElementById('whats-new').addEventListener('click', function() { docu
 document.getElementById('back').addEventListener('click', function() { document.getElementById('activated').style.display = 'block'; document.getElementById('new-in-this-release').style.display = 'none'; });
 // Color functions
 const hexToRgb = hex => hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => '#' + r + r + g + g + b + b).substring(1).match(/.{2}/g).map(x => parseInt(x, 16));
-const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => {
+const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map(x => {
     const hex = x.toString(16);
     return hex.length === 1 ? '0' + hex : hex;
 }).join('');
@@ -46,7 +46,7 @@ const adjust = (col, amt) => {
 function adjustColorChannel(channel, hex, value) {
     var rgb = hexToRgb(hex);
     rgb[channel] = rgb[channel] + value;
-    hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+    hex = rgbToHex(rgb);
     return hex;
 }
 // Insert custom styles based on user settings
