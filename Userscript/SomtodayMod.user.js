@@ -1706,7 +1706,7 @@ function onload() {
         }
     }
 
-    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'transparency', 'ui', 'uiblur', 'fontname', 'theme', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen', 'customcss'];
+    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'livetype', 'livecolor1', 'livecolor2', 'livecolor3', 'ui', 'uiblur', 'fontname', 'theme', 'preset', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen', 'customcss'];
     function exportSettings() {
         let settings = {};
         for (const key of settingKeys) {
@@ -6769,10 +6769,6 @@ function onload() {
         set('layout', 1);
         set('profilepic', '');
         set('username', '');
-        set('loginschool', '');
-        set('loginname', '');
-        set('loginpass', '');
-        set('letterbeoordelingen', '');
         set('brightness', '100%');
         set('contrast', '100%');
         set('saturate', '100%');
@@ -6783,11 +6779,15 @@ function onload() {
         set('invert', '0%');
         set('blur', '0px');
         set('menuwidth', 110);
+        set('isbackgroundvideo', false);
         set('customfont', '');
         set('customfontname', '');
+        set('letterbeoordelingen', '');
         set('customcss', '');
+        set('loginschool', '');
+        set('loginname', '');
+        set('loginpass', '');
         menuWidth = 110;
-        set('isbackgroundvideo', false);
         let i = 0;
         while (!n(get('background' + i))) {
             set('background' + i, '');
