@@ -3,7 +3,7 @@
 function onload() {
 
     // Make sure to have only one instance of the mod active at a time
-    if (!n(id('somtoday-mod-active'))) {
+    if (id('somtoday-mod-active')) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD:\nMultiple instances of Somtoday Mod are running.\nSomtoday Mod ' + platform + ' v' + version + ' will not be working until the other instance is deleted or deactivated.'));
         return;
     }
@@ -16,20 +16,20 @@ function onload() {
     tn('body', 0).insertAdjacentHTML('beforeend', '<div id="somtoday-mod"><div id="somtoday-mod-active" data-platform="' + platform + '" data-version="' + version + '"><!-- Well hello there! Great work, detective. --><!-- Nothing better to do? Solve this math question: ' + mathQuestions[selectedQuestion] + ' --><div data-info="expand-to-view-answer"><!-- ' + mathAnswers[selectedQuestion] + ' --></div></div></div>');
 
     // Stop script if 502 error occurs
-    if (!n(cn('cf-error-details cf-error-502', 0))) {
+    if (cn('cf-error-details cf-error-502', 0)) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Bad gateway (502)'));
         return;
     }
 
     // Stop script if any other error occurs
-    if (!n(tn('sl-error', 0))) {
+    if (tn('sl-error', 0)) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Unknown error'));
         execute([errorPage]);
         return;
     }
 
     // Stop script if Somtoday has outage
-    if (!n(cn('titlewrap', 0))) {
+    if (cn('titlewrap', 0)) {
         // Since https://som.today and the error page are very similar, check if the word 'storing' is present on the page
         if (cn('titlewrap', 0).parentElement.parentElement.innerHTML.indexOf('storing') != -1) {
             setTimeout(console.warn.bind(console, 'Somtoday Mod ERROR\nSomtoday is down.'));
@@ -47,7 +47,7 @@ function onload() {
     let isRecapping = false;
     let ignoreRecapConditions = false;
     let ignoreCountdownConditions = false;
-    if (!n(tn('sl-root', 0))) {
+    if (tn('sl-root', 0)) {
         somtodayversion = tn('sl-root', 0).getAttribute('ng-version');
     }
     let menuColor;
@@ -70,7 +70,7 @@ function onload() {
     document.addEventListener('click', function () {
         if (n(id('mod-message')) && tn('sl-root', 0).inert) {
             tn('sl-root', 0).inert = false;
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).inert = false;
             }
         }
@@ -228,7 +228,7 @@ function onload() {
                 }
             });
         }
-        if (!n(id('somtoday-mod-version-easter-egg')) && !id('somtoday-mod-version-easter-egg').classList.contains('mod-easter-egg')) {
+        if (id('somtoday-mod-version-easter-egg') && !id('somtoday-mod-version-easter-egg').classList.contains('mod-easter-egg')) {
             id('somtoday-mod-version-easter-egg').addEventListener('click', function () {
                 tn('body', 0).insertAdjacentHTML('beforeend', window.logo(null, 'mod-easter-egg-logo mod-add-eventlistener" data-add-event-listener="true', '#0099ff'));
                 for (const element of cn('mod-easter-egg-logo mod-add-eventlistener')) {
@@ -254,7 +254,7 @@ function onload() {
             for (const element of cn('afspraak-header')) {
                 element.children[element.children.length - 1].addEventListener('mouseover', function () { shakeOnHover(this, -30, 30, -30, 30); });
             }
-            if (!n(tn('sl-bericht-acties', 0))) {
+            if (tn('sl-bericht-acties', 0)) {
                 for (const element of tn('sl-bericht-acties', 0).children) {
                     element.addEventListener('mouseover', function () { shakeOnHover(this, -30, 30, -30, 30); });
                 }
@@ -610,7 +610,7 @@ function onload() {
                             id('mod-message').addEventListener('click', function () {
                                 closeModMessage();
                                 tn('sl-root', 0).inert = false;
-                                if (!n(tn('sl-modal', 0))) {
+                                if (tn('sl-modal', 0)) {
                                     tn('sl-modal', 0).inert = false;
                                 }
                             });
@@ -736,7 +736,7 @@ function onload() {
                 cn('menu-avatar', 0).click();
                 tryRemove(id('mod-top-menu'));
                 let checkLogoutButtonPresent = setInterval(function () {
-                    if (!n(cn('selector-option uitloggen', 0))) {
+                    if (cn('selector-option uitloggen', 0)) {
                         cn('selector-option uitloggen', 0).click();
                         clearInterval(checkLogoutButtonPresent);
                     }
@@ -749,10 +749,10 @@ function onload() {
         else if (get('layout') != 5) {
             tryRemove(id('mod-top-menu'));
         }
-        else if (!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && !n(id('mod-profile-link'))) {
-            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + ((!n(cn('avatar', 0).getElementsByClassName('initials')[0]) && !n(cn('avatar', 0).getElementsByClassName('initials')[0].children[0])) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + (n(get('profilepic')) ? cn('avatar', 0).getElementsByClassName('foto')[0].src : get('profilepic')) + '" />') + '</div>';
+        else if (cn('avatar', 0) && cn('avatar', 0).getElementsByClassName('foto')[0] && id('mod-profile-link')) {
+            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + ((cn('avatar', 0).getElementsByClassName('initials')[0] && cn('avatar', 0).getElementsByClassName('initials')[0].children[0]) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + (n(get('profilepic')) ? cn('avatar', 0).getElementsByClassName('foto')[0].src : get('profilepic')) + '" />') + '</div>';
         }
-        if (!n(id('mod-top-menu-title'))) {
+        if (id('mod-top-menu-title')) {
             let headerText = '';
             for (const element of tn('sl-tab-item')) {
                 if (element.classList.contains('active')) {
@@ -760,10 +760,10 @@ function onload() {
                 }
             }
             if (n(headerText)) {
-                if (!n(cn('desktop-title', 0))) {
+                if (cn('desktop-title', 0)) {
                     headerText = cn('desktop-title', 0).innerHTML;
                 }
-                else if (!n(tn('sl-scrollable-title', 0))) {
+                else if (tn('sl-scrollable-title', 0)) {
                     headerText = tn('sl-scrollable-title', 0).innerHTML;
                 }
             }
@@ -774,7 +774,7 @@ function onload() {
     // Reveal new grades with an animation
     function gradeReveal() {
         if (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) != '0') {
-            if (!n(tn('sl-laatsteresultaten', 0)) && !n(tn('sl-resultaat-item', 0))) {
+            if (tn('sl-laatsteresultaten', 0) && tn('sl-resultaat-item', 0)) {
                 let i = 0;
                 const lastGrade = get('lastgrade');
                 const lastGradeTitle = get('lastgradetitle');
@@ -920,7 +920,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -929,7 +929,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -948,7 +948,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -957,7 +957,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -1002,7 +1002,7 @@ function onload() {
             });
             saveReload(true);
             tn('sl-root', 0).inert = false;
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).inert = false;
             }
             if (closeModMessages) {
@@ -1197,8 +1197,8 @@ function onload() {
         // Every time the roster is modified, the week may have changed, so update custom homework as well
         execute([customHomework]);
         // Only execute roster simplify when enabled and on roster page
-        if (get('bools').charAt(BOOL_INDEX.ROSTER_SIMPLIFY) == "1" && !n(tn('sl-rooster-weken', 0))) {
-            if (!n(cn('tertiary normal action-primary-normal center', 0)) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
+        if (get('bools').charAt(BOOL_INDEX.ROSTER_SIMPLIFY) == "1" && tn('sl-rooster-weken', 0)) {
+            if (cn('tertiary normal action-primary-normal center', 0) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
                 // If "Vandaag" button is clicked Somtoday will load all weeks from scratch with js, within the pageUpdate timeout
                 // This means rosterSimplify has to be called again with a delay
                 cn('tertiary normal action-primary-normal center', 0).addEventListener('click', function () {
@@ -1222,7 +1222,7 @@ function onload() {
                             tn('sl-rooster-weken', 0).style.height = normalRosterHeight + 'px';
                             tn('sl-rooster-weken', 0).style.overflowY = 'visible';
                             // Update the time text at the left to display 'hh:mm' instead of 'nth hour'
-                            if (!n(tn('sl-rooster-tijden', 0))) {
+                            if (tn('sl-rooster-tijden', 0)) {
                                 let i = 0;
                                 for (const element of tn('sl-rooster-tijden', 0).children) {
                                     const span = element.getElementsByTagName('span')[0];
@@ -1239,7 +1239,7 @@ function onload() {
                 if (shouldUpdate) {
                     let timeIndicatorPositioned = false;
                     // Position time indicator at end if it is past the last lesson
-                    if (isWeekShown && !n(cn('tijdlijn', 0))) {
+                    if (isWeekShown && cn('tijdlijn', 0)) {
                         let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
                         if (!n(elements[0]) && !n(elements[elements.length - 1].getElementsByClassName('opacity-80')[0])) {
                             // Get hour number from last hour
@@ -1285,8 +1285,8 @@ function onload() {
                                 }
                             }
                             element.style.top = top + 'px';
-                            if (isWeekShown && !isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
-                                if (!n(cn('tijdlijn', 0))) {
+                            if (isWeekShown && !isNaN(lessonTime) && cn('tijdlijn', 0) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
+                                if (cn('tijdlijn', 0)) {
                                     cn('tijdlijn', 0).style.top = top + 'px';
                                 }
                                 timeIndicatorTop = top;
@@ -1299,16 +1299,16 @@ function onload() {
                         tn('sl-rooster-weken', 0).style.height = (Math.max(lastHour + 2, 5) * 84 - 54) + 'px';
                         tn('sl-rooster-weken', 0).style.overflowY = 'hidden';
                     }
-                    if (!n(tn('sl-vakantie-header', 0))) {
+                    if (tn('sl-vakantie-header', 0)) {
                         tn('sl-vakantie-header', 0).style.borderTop = 'none';
                     }
                     // Update the time text at the left to display 'nth hour' instead of 'hh:mm'
-                    if (isWeekShown && !n(tn('sl-rooster-tijden', 0))) {
+                    if (isWeekShown && tn('sl-rooster-tijden', 0)) {
                         let i = 1;
                         for (const element of tn('sl-rooster-tijden', 0).children) {
                             let span = element.getElementsByTagName('span')[0];
                             if (n(span)) {
-                                if (!n(tn('sl-rooster-tijden', 0).children[1])) {
+                                if (tn('sl-rooster-tijden', 0).children[1]) {
                                     setHTML(element, tn('sl-rooster-tijden', 0).children[1].innerHTML);
                                     span = element.getElementsByTagName('span')[0];
                                     setHTML(span, ' ');
@@ -1342,7 +1342,7 @@ function onload() {
         } else {
             highLightColor = adjust(get('primarycolor'), 35);
         }
-        while (!n(cn('mod-style', 0))) {
+        while (cn('mod-style', 0)) {
             cn('mod-style', 0).remove();
         }
         if (get('bools').charAt(BOOL_INDEX.SCROLLBAR) == '0') {
@@ -1565,10 +1565,10 @@ function onload() {
     // Show a message on top of the page. Similair to browser confirm().
     function modMessage(title, description, link1, link2, red1, red2, noBackgroundClick) {
         tn('sl-root', 0).inert = true;
-        if (!n(tn('sl-modal', 0))) {
+        if (tn('sl-modal', 0)) {
             tn('sl-modal', 0).inert = true;
         }
-        while (!n(id('mod-message'))) {
+        while (id('mod-message')) {
             tryRemove(id('mod-message'));
         }
         const element = n(id('somtoday-mod')) ? tn('body', 0) : id('somtoday-mod');
@@ -1576,22 +1576,22 @@ function onload() {
         if (!n(link1)) {
             id('mod-message-action1').focus();
             setTimeout(function () {
-                if (!n(id('mod-message-action1'))) {
+                if (id('mod-message-action1')) {
                     id('mod-message-action1').addEventListener('keyup', (event) => {
                         if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) {
                             event.preventDefault();
-                            if (!n(id('mod-message-action2'))) {
+                            if (id('mod-message-action2')) {
                                 id('mod-message-action2').focus();
                             }
                         }
                     }, { once: true });
                 }
             }, 50);
-            id('mod-message-action1').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
+            id('mod-message-action1').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (tn('sl-modal', 0)) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
         }
         if (!n(link2)) {
             setTimeout(function () {
-                if (!n(id('mod-message-action2'))) {
+                if (id('mod-message-action2')) {
                     id('mod-message-action2').addEventListener('keyup', (event) => {
                         if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) {
                             event.preventDefault();
@@ -1600,7 +1600,7 @@ function onload() {
                     }, { once: true });
                 }
             }, 50);
-            id('mod-message-action2').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
+            id('mod-message-action2').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (tn('sl-modal', 0)) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
             if (noBackgroundClick == null) {
                 id('mod-message').addEventListener('click', function () { if (!n('mod-message-action2')) { id('mod-message-action2').click(); } }, { once: true });
             }
@@ -1804,7 +1804,7 @@ function onload() {
     let logoClicks = 0;
     function modLogo() {
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
-            if (n(id('mod-menu-resizer')) && !n(tn('sl-tab-bar', 0))) {
+            if (n(id('mod-menu-resizer')) && tn('sl-tab-bar', 0)) {
                 tn('sl-tab-bar', 0).insertAdjacentHTML('beforeend', '<div id="mod-menu-resizer"></div>');
                 let moving = false;
                 if (get('layout') == 3) {
@@ -1867,7 +1867,7 @@ function onload() {
         }
 
         // Make sure we do not replace the logo while animations are playing
-        if (!n(cn('mod-logo-hat-clicked', 0)) || !n(cn('mod-logo-decoration-clicked', 0))) {
+        if (cn('mod-logo-hat-clicked', 0) || cn('mod-logo-decoration-clicked', 0)) {
             return;
         }
 
@@ -1916,7 +1916,7 @@ function onload() {
             const christmas = monthInt == 12 && dayInt > 10 && dayInt < 31;
             const sinterklaas = monthInt == 12 && dayInt <= 5;
 
-            if ((get('layout') == 1 || get('layout') == 4) && !n(tn('sl-header', 0)) && (birthday || christmas || sinterklaas)) {
+            if ((get('layout') == 1 || get('layout') == 4) && tn('sl-header', 0) && (birthday || christmas || sinterklaas)) {
                 tn('sl-header', 0).style.overflow = 'hidden';
                 tn('sl-header', 0).insertAdjacentHTML('beforeend', window.logo('mod-logo-inserted', null, 'var(--action-neutral-normal)', 'position:absolute;width:50px;height:54px;right:25px;bottom:-15px;z-index:-1;transition:bottom 0.4s ease 0.3s;'));
                 insertElement = id('mod-logo-inserted');
@@ -1998,7 +1998,7 @@ function onload() {
                     insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:21px;z-index:-10;"' : '') + ' viewBox="0 0 158 151"><defs><linearGradient x1="161.4" y1="148.1" x2="225.1" y2="148.1" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="241.6" y1="129.4" x2="292.1" y2="129.4" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="270.3" y1="182.9" x2="319.6" y2="182.9" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m196 129 21-10-6 22 14 18-22 1-12 18-8-19-22-6 18-15-1-20z" fill="url(#a)" transform="translate(-161 -105)"/><path d="m266 114 15-9-2 17 13 13-17 3-7 16-9-15-17-2 11-13-3-16z" fill="url(#b)" transform="translate(-161 -105)"/><path d="m302 171 18-3-10 15 7 17-16-4-14 11-1-16-16-9 17-8 3-16z" fill="url(#c)" transform="translate(-161 -105)"/><path d="M52 70c9 9 17 23 20 39 3 15 2 29-2 39M82 109c-2-6-3-13-3-21 0-18 6-34 15-43M81 147c2-26 17-48 37-55" fill="none" stroke="#e19600" stroke-width="6"/></g></svg>');
                 }
                 // Add decoration events
-                if (!n(tn('sl-header', 0)) && (easter || halloween || bevrijdingsdag || newyear)) {
+                if (tn('sl-header', 0) && (easter || halloween || bevrijdingsdag || newyear)) {
                     tn('sl-header', 0).style.overflow = 'hidden';
                     id('mod-logo-decoration').addEventListener('click', function () {
                         this.classList.add('mod-logo-decoration-clicked');
@@ -2728,7 +2728,7 @@ function onload() {
             else {
                 for (let i = 0; i < number; i++) {
                     let averagePageGradeIndex = 0;
-                    if (!n(tn('sl-vakgemiddelde-item', i))) {
+                    if (tn('sl-vakgemiddelde-item', i)) {
                         averagePageGradeIndex = tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer').length - 1;
                     }
                     const subjectIcon = n(tn('sl-resultaat-item', 0)) ?
@@ -2768,25 +2768,25 @@ function onload() {
                             font-size: 24px;
                         ">${gradeDescription}</p>` : '';
                     const red =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende'));
                     const green =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('ruimvoldoende')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('ruimvoldoende'));
                     let grey =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal'));
                     if (!grade || grade.replace(/\s/g, '') == '') {
                         grade = '-';
@@ -2872,7 +2872,7 @@ function onload() {
             // Insert canvas
             tn('body', 0).insertAdjacentHTML('beforeend', `<canvas id="mod-grade-canvas" width="${totalWidth}" height="${totalHeight}" style="display:none;"></canvas>`);
             const canvas = id('mod-grade-canvas');
-            const ctx = canvas.getContext('2d'); !n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0));
+            const ctx = canvas.getContext('2d');
             // Use data urls for font in SVG
             const kanit = await window.getResourceAsBase64('fonts/Kanit-ExtraLight.woff2');
             // Add SVG with HTML to the canvas
@@ -2887,14 +2887,14 @@ function onload() {
                 a.download = cijferoverzicht ? 'cijferoverzicht-' + cijferOverzichtPeriod.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png' : (n(tn('sl-resultaat-item', 0)) ? 'laatste-rapportcijfers.png' : 'cijfers.png');
                 a.dispatchEvent(new MouseEvent('click'));
                 tryRemove(id('mod-grade-canvas'));
-                if (!n(id('mod-message'))) {
+                if (id('mod-message')) {
                     closeModMessage();
                 }
             });
             tempImg.addEventListener('error', function (e) {
                 console.log(e);
                 tryRemove(id('mod-grade-canvas'));
-                if (!n(id('mod-message'))) {
+                if (id('mod-message')) {
                     closeModMessage();
                 }
             });
@@ -3114,7 +3114,7 @@ function onload() {
             else if (trend == "dalend") trendText = " <br>📉 Pas op, je laatste cijfers zijn wat lager dan gemiddeld.";
             suggestionText = advice + trendText;
         }
-        if (!n(id('mod-grade-suggestions'))) {
+        if (id('mod-grade-suggestions')) {
             id('mod-grade-suggestions').innerHTML = suggestionText;
         }
         if (points.length < 2) {
@@ -3341,7 +3341,7 @@ function onload() {
 
     // Add grade calculation tools when enabled
     function insertCalculationTool() {
-        if (n(id('mod-grade-calculate')) && !n(tn('sl-resultaat-item', 0)) && get('bools').charAt(BOOL_INDEX.CALCULATION_TOOL) == '1') {
+        if (n(id('mod-grade-calculate')) && tn('sl-resultaat-item', 0) && get('bools').charAt(BOOL_INDEX.CALCULATION_TOOL) == '1') {
             if (!subjectGradesPageContainsNumberGrades()) {
                 return;
             }
@@ -3382,11 +3382,11 @@ function onload() {
             return;
         }
         if ((tn('sl-resultaat-item', 0) || tn('sl-vakgemiddelde-item', 0) || tn('sl-cijfer-overzicht', 0)) && n(tn('sl-vakresultaten', 0)) && get('bools').charAt(BOOL_INDEX.GRADE_DOWNLOAD_BTN) == "1") {
-            if (n(id('mod-grades-download-computer')) && !n(tn('hmy-switch-group', 0))) {
+            if (n(id('mod-grades-download-computer')) && tn('hmy-switch-group', 0)) {
                 tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                 id('mod-grades-download-computer').addEventListener('click', downloadGrades);
             }
-            if (n(id('mod-grades-download-mobile')) && !n(cn('tabs ng-star-inserted', 0))) {
+            if (n(id('mod-grades-download-mobile')) && cn('tabs ng-star-inserted', 0)) {
                 if (document.documentElement.clientWidth > 767) {
                     cn('tabs ng-star-inserted', 0).getElementsByClassName('filler')[0].insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
@@ -3401,12 +3401,12 @@ function onload() {
 
     // Manage calculation tool and graph on subject grades page
     function subjectGradesPage() {
-        if (!n(tn('sl-vakresultaten', 0))) {
+        if (tn('sl-vakresultaten', 0)) {
             execute([insertCalculationTool]);
             const examPage = !n(tn('sl-examenresultaten', 0));
             // Insert graphs + analyse at subject grades page when enabled (2 or more grades need to be present)
             const firstCondition = n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1';
-            const secondCondition = !n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'));
+            const secondCondition = id('mod-grades-graphs') && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'));
             if (firstCondition || secondCondition) {
                 if (secondCondition) {
                     tryRemove(id('mod-grades-graphs'));
@@ -3452,13 +3452,13 @@ function onload() {
         let pages = 0;
         // Needed to collect all subject grades
         let closing = false;
-        if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
+        if (id('somtoday-recap') && n(id('somtoday-recap-wrapper')) && (tn('sl-vakresultaten', 0) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
             tryRemove(id('somtoday-recap'));
         }
         if (id('mod-recap-year')) {
             id('mod-recap-year').innerText = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '$1') : year;
         }
-        if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
+        if ((tn('sl-resultaat-item', 0) || tn('sl-vakgemiddelde-item', 0) || tn('sl-cijfer-overzicht', 0)) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
                 music = new Audio(window.getAudioUrl('background'));
             }
@@ -3530,14 +3530,14 @@ function onload() {
 
 
                 // Vertically center align page (to prevent absolute positioning from breaking drag list)
-                if (!n(cn('recap-page', 0))) {
+                if (cn('recap-page', 0)) {
                     cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
                 }
 
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Vertically center align page (to prevent absolute positioning from breaking drag list)
-                if (!n(cn('recap-page', 0))) {
+                if (cn('recap-page', 0)) {
                     cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
                 }
 
@@ -4804,15 +4804,15 @@ function onload() {
     function openSettings() {
         tryRemove(id('mod-setting-panel'));
         // Check if account modal is opened
-        if (!n(tn('sl-account-modal', 0))) {
+        if (tn('sl-account-modal', 0)) {
             setTimeout(function () {
                 // Set modsettings text
-                if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+                if (tn('sl-account-modal-header', 1) && tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0]) {
                     tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText = tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML;
                     setHTML(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0], 'Mod-instellingen');
                 }
                 // Make opening modsettings multiple times work
-                if (document.documentElement.clientWidth <= 767 && !n(tn('sl-account-modal', 0).getElementsByClassName('container')[0])) {
+                if (document.documentElement.clientWidth <= 767 && tn('sl-account-modal', 0).getElementsByClassName('container')[0]) {
                     if (!tn('sl-account-modal', 0).getElementsByClassName('container')[0].classList.contains('show-details')) {
                         if (tn('sl-account-modal-tab', 0).classList.contains('active')) {
                             tn('sl-account-modal-tab', 1).click();
@@ -4827,10 +4827,10 @@ function onload() {
             if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
                 tn('sl-account-modal', 0).insertAdjacentHTML('beforeend', '<div class="content" style="padding: 20px 40px;"></div>');
             }
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('content')[0] && tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0] && tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0]) {
                 tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = true;
             }
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0]) {
                 tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
             }
             if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
@@ -4983,6 +4983,7 @@ function onload() {
                 '{{font_settings}}': `
                     <h3>Lettertype</h3>` +
                     (openDyslexicEnabled ? '<div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>' : '') + `
+                    <div class="br"></div>
                     <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
                         <div class="mod-custom-select notranslate">
                             <select id="mod-font-select" title="Selecteer een lettertype">
@@ -5027,7 +5028,7 @@ function onload() {
                     addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' +
                     addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
                 ) + '<div class="br"></div><div class="br"></div>' +
-                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
+                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die weten hoe CSS werkt.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
                 '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
@@ -5456,7 +5457,7 @@ function onload() {
                     modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
                     id('mod-message-action1').addEventListener('click', function () {
                         execute([reset, setBackground, style, pageUpdate]);
-                        if (!n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
+                        if (id('mod-grades-graphs') && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && tn('sl-vakresultaten', 0)) {
                             tryRemove(id('mod-grades-graphs'));
                             tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                             setTimeout(gradeGraphs, 500);
@@ -5474,11 +5475,11 @@ function onload() {
             if (id('mod-random-background')) {
                 id('mod-random-background').addEventListener('click', function () {
                     id('mod-random-background').classList.toggle('mod-active');
-                    if (!n(id('mod-random-background').previousElementSibling)) {
+                    if (id('mod-random-background').previousElementSibling) {
                         if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
                             id('mod-random-background').previousElementSibling.classList.remove('mod-active');
                         }
-                        if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
+                        if ((((id('mod-random-background').previousElementSibling) && id('mod-random-background').previousElementSibling.previousElementSibling) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0]) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
                             id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
                             setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
                             id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
@@ -5618,14 +5619,14 @@ function onload() {
     function closeSettings(element) {
         id('mod-setting-button').classList.remove('active');
         tryRemove(id('mod-setting-panel'));
-        if (!n(tn('sl-account-modal', 0))) {
-            if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+        if (tn('sl-account-modal', 0)) {
+            if (tn('sl-account-modal-header', 1) && tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0]) {
                 tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText;
             }
             tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
-                if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
-                    if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('content')[0]) {
+                if (tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) {
+                    if (tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0]) {
                         tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].removeAttribute('inert');
                     }
                 }
@@ -5675,7 +5676,7 @@ function onload() {
         for (const element of cn('mod-slider')) {
             set(element.getElementsByTagName('input')[0].dataset.property, element.getElementsByTagName('input')[0].value + element.getElementsByTagName('input')[0].dataset.unit);
         }
-        if (!n(id('mod-font-file')) && id('mod-font-file').files[0]) {
+        if (id('mod-font-file') && id('mod-font-file').files[0]) {
             set('customfontname', id('mod-font-file').files[0].name);
             let reader = new FileReader();
             reader.readAsDataURL(id('mod-font-file').files[0]);
@@ -5686,7 +5687,7 @@ function onload() {
                 }, 100);
             };
         }
-        else if (!n(id('mod-font-select')) && id('mod-font-select').classList.contains('mod-modified')) {
+        else if (id('mod-font-select') && id('mod-font-select').classList.contains('mod-modified')) {
             set('customfont', '');
             set('customfontname', '');
             set('fontname', id('mod-font-select').value);
@@ -5798,10 +5799,10 @@ function onload() {
         else {
             filesProcessed++;
         }
-        if (!n(cn('layout-selected', 0))) {
+        if (cn('layout-selected', 0)) {
             set('layout', parseInt(cn('layout-selected', 0).id.charAt(7)));
         }
-        if (!n(id('mod-random-background'))) {
+        if (id('mod-random-background')) {
             if (id('mod-random-background').classList.contains('mod-active')) {
                 toDataURL('https://picsum.photos/1600/800', function (dataUrl) {
                     set('background', dataUrl);
@@ -5820,7 +5821,7 @@ function onload() {
                 set(element.dataset.key, '');
             }
         }
-        if (!n(id('grade-reveal-select'))) {
+        if (id('grade-reveal-select')) {
             const showOnlyForNewGrades = id('grade-reveal-select').children[0].classList.contains('active');
             const showAlways = id('grade-reveal-select').children[1].classList.contains('active');
             set('bools', get('bools').replaceAt(14, showOnlyForNewGrades ? '1' : (showAlways ? '2' : '0')));
@@ -5841,11 +5842,11 @@ function onload() {
             execute([setBackground, style, pageUpdate, openSettings, browserSettings, profilePicture]);
             // Update grade graphs
             tryRemove(id('mod-grades-graphs'));
-            if (get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
+            if (get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && tn('sl-vakresultaten', 0)) {
                 tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                 setTimeout(gradeGraphs, 500);
             }
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).style.zIndex = '100000';
             }
             if (get('layout') == 3) {
@@ -5899,6 +5900,7 @@ function onload() {
         set('menuwidth', 110);
         set('customfont', '');
         set('customfontname', '');
+        set('customcss', '');
         menuWidth = 110;
         set('isbackgroundvideo', false);
         let i = 0;
@@ -5906,7 +5908,7 @@ function onload() {
             set('background' + i, '');
             i++;
         }
-        if (!n(tn('sl-account-modal', 0))) {
+        if (tn('sl-account-modal', 0)) {
             execute([openSettings, profilePicture]);
         }
     }
@@ -6065,7 +6067,7 @@ function onload() {
             </div>
             `;
         } else if (type == 'textarea') {
-            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;height:128px;font-family:monospace !important;font-size:12px;padding:10px;resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>';
+            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>';
         }
         code += '</div>';
         return code;
@@ -6170,7 +6172,7 @@ function onload() {
 
     // Insert modsettings link in the setting menu
     function insertModSettingLink() {
-        if (!n(tn('sl-account-modal', 0)) && !n(tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[0]) && n(id('mod-setting-button'))) {
+        if (tn('sl-account-modal', 0) && tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[0] && n(id('mod-setting-button'))) {
             let modbtn = tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab').length - 1].cloneNode(true);
             modbtn.id = 'mod-setting-button';
             modbtn.addEventListener('click', openSettings);
@@ -6186,7 +6188,7 @@ function onload() {
             }
             setTimeout(function () {
                 // Save username and birthday
-                if (!n(cn('data-container', 1)) && !n(cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0]) && n(get('realname'))) {
+                if (cn('data-container', 1) && cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0] && n(get('realname'))) {
                     set('realname', cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0].innerHTML);
                 }
                 for (const parent of cn('data-container')) {
@@ -6202,7 +6204,7 @@ function onload() {
 
         }
         // Update background of modsetting link in settings menu
-        else if (!n(id('mod-setting-button'))) {
+        else if (id('mod-setting-button')) {
             id('mod-setting-button').getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
         }
     }

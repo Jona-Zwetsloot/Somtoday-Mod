@@ -84,7 +84,7 @@ function startTheEscape() {
     }
 
     function setTime() {
-        if (!n(id('legacy-playtime'))) {
+        if (id('legacy-playtime')) {
             if (n(get('gamerecord'))) {
                 id('legacy-playtime').innerHTML = 'Tijd: ' + time + 's';
             }
@@ -114,7 +114,7 @@ function startTheEscape() {
                 clearInterval(timer);
             }
             setTimeout(function () {
-                if (!n(id('legacy-game'))) {
+                if (id('legacy-game')) {
                     id('legacy-game').remove();
                     const urlParams = new URLSearchParams(window.location.search);
                     urlParams.delete('mod-play');

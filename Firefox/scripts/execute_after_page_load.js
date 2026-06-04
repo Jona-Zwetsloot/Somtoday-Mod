@@ -8,7 +8,7 @@ async function autoLogin() {
     // Wait until school input field is loaded
     const schoolField = await waitForElement('#organisatieSearchField, #organisatieInput');
 
-    if (!n(cn('feedbackPanelERROR', 0))) {
+    if (cn('feedbackPanelERROR', 0)) {
         set('logincredentialsincorrect', '1');
         return;
     } else if (!schoolField) {
@@ -16,10 +16,10 @@ async function autoLogin() {
     }
 
     // Fill in the school name
-    if (!n(id('organisatieSearchField'))) {
+    if (id('organisatieSearchField')) {
         id('organisatieSearchField').value = get('loginschool');
         // Always use this school
-        if (!n(cn('form--checkbox checkbox-label', 0)) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
+        if (cn('form--checkbox checkbox-label', 0) && cn('form--checkbox checkbox-label', 0).ariaChecked == 'false') {
             cn('form--checkbox checkbox-label', 0).click();
         }
     }

@@ -1,7 +1,7 @@
 // MINIGAMES
 // All minigames
 function errorPage() {
-    if (!n(tn('hmy-button', 0))) {
+    if (tn('hmy-button', 0)) {
         tn('hmy-button', 0).insertAdjacentHTML('afterend', '<a id="mod-play-game">Of speel een game</a>');
 
         const overlay = document.createElement('div');

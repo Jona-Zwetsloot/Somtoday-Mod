@@ -164,12 +164,13 @@ sl-studiewijzer-filter-button:not(:hover) {
     width: fit-content;
     margin-bottom: -15px;
     padding: 10px 20px;
-    border: 2px solid var(--blue-0);
-    color: var(--fg-on-primary-weak);
     line-height: 1.4em;
     border-radius: 16px;
     padding-left: 50px;
     position: relative;
+    color: var(--text-moderate);
+    border: 1px solid var(--mod-border-neutral-normal);
+    background: #06f2;
 }
 
 .mod-info-notice>svg {
@@ -592,14 +593,6 @@ sl-rooster-week-header .mod-add-homework {
     height: 100%;
     z-index: -1;
     pointer-events: none;
-}
-
-#mod-bg-live {
-    padding: 20px;
-    background: var(--bg-elevated-weakest);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
 }
 
 #mod-new-year {

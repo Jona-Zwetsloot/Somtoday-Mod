@@ -254,10 +254,19 @@ input:checked+.slider:before {
     border-radius: 50%;
 }
 
+textarea.mod-custom-setting {
+    width: 100%;
+    height: 128px;
+    font-family: monospace !important;
+    font-size: 12px;
+    padding: 10px;
+    resize: vertical;
+    outline-offset: 0 !important;
+}
+
 .mod-custom-select {
     position: relative;
     font-family: Arial, sans-serif;
-    margin-top: 10px;
     min-width: 240px;
     display: inline-block;
 }
@@ -345,7 +354,7 @@ input:checked+.slider:before {
 #mod-message textarea {
     height: 200px;
     padding: 12px 20px;
-    outline-offset: unset;
+    outline-offset: 0;
 }
 
 #mod-message .mod-message-button {
@@ -916,8 +925,7 @@ input[type="color"] {
 #username-wrapper>div {
     display: flex;
     margin-bottom: 10px;
-    gap: 15px;
-    row-gap: 2px;
+    gap: 2px 8px;
 }
 
 #nickname-wrapper>div input,

@@ -201,7 +201,7 @@ async function startTheDungeon() {
             }
 
             status.className = 'mod-codes-status mod-codes-status-loading';
-            status.textContent = 'Code valideren... dit kan tot 50 seconden duren';
+            status.textContent = 'Code valideren...';
 
             try {
                 const resp = await fetch(`${BACKEND_URL}/${code}.json`);
