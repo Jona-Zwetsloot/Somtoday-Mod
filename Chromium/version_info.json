@@ -1,10 +1,10 @@
 {
-    "version": 5.4,
+    "version": 5.5,
     "platform": "Chromium",
     "minified": false,
-    "last_update": "08-03-2025",
-    "version_type": "release",
-    "version_name": "5.4-release",
+    "last_update": "13-03-2025",
+    "version_type": "beta",
+    "version_name": "5.5-beta",
     "contributors": {
         "Jona-Zwetsloot": "https:\/\/avatars.githubusercontent.com\/u\/170928581?s=64&v=4",
         "levkris": "https:\/\/avatars.githubusercontent.com\/u\/105733478?s=64&v=4",

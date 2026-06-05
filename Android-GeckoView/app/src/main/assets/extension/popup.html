@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Jona Zwetsloot">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Somtoday Mod</title>
+    <script defer="defer" src="popup.js"></script>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --background: light-dark(#fff, #28292b);
+            --background-hover: light-dark(#ddd, #555);
+            --text: light-dark(#000, #eee);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif, serif;
+        }
+
+        body,
+        html {
+            width: 14rem;
+            margin: 0;
+            background: var(--background);
+        }
+
+        body>div>* {
+            display: flex;
+            width: 100%;
+        }
+
+        body>div>p {
+            padding: 10px;
+            font-size: 0.75rem;
+        }
+
+        body>div>div>* {
+            flex-grow: 1;
+        }
+
+        button,
+        a {
+            border: none;
+            background: unset;
+            padding: 10px;
+            color: var(--text);
+            font-size: 0.75rem;
+            display: flex;
+            text-decoration: none;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        button:hover,
+        a:hover {
+            background: var(--background-hover);
+        }
+
+        p {
+            margin: 0;
+        }
+
+        svg {
+            height: 1.3em;
+            fill: var(--text);
+        }
+
+        #confirmation button {
+            display: block;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="settings">
+        <button id="enable-disable">
+            <svg id="icon-unchecked" viewBox="0 0 448 512">
+                <path d="M384 80c8.8 0 16 7.2 16 16V416c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V96c0-8.8 7.2-16 16-16H384zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z" />
+            </svg>
+            <svg id="icon-checked" viewBox="0 0 448 512">
+                <path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z" />
+            </svg>
+            <p id="txt-enable-disable"></p>
+        </button>
+        <div>
+            <a id="to-somtoday" href="https://leerling.somtoday.nl" target="_blank">
+                <svg viewBox="0 0 512 512">
+                    <path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z" />
+                </svg>
+                <p id="txt-to-somtoday"></p>
+            </a>
+            <button id="reset-all">
+                <svg viewBox="0 0 512 512">
+                    <path d="M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z" />
+                </svg>
+                <p id="txt-reset-all"></p>
+            </button>
+        </div>
+    </div>
+    <div id="confirmation">
+        <p id="txt-confirm"></p>
+        <div>
+            <button id="yes"></button>
+            <button id="no"></button>
+        </div>
+    </div>
+</body>
+
+</html>

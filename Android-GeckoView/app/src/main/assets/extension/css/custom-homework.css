@@ -1,0 +1,191 @@
+sl-studiewijzer-week .week,
+sl-studiewijzer-dag {
+    position: relative;
+}
+
+@keyframes homeworkchecked {
+    0% {
+        margin-top: 32px;
+        position: absolute;
+        width: calc(100% - 32px);
+        z-index: 15;
+    }
+
+    100% {
+        margin-top: calc(64px * var(--mod-hours-to-move) + 28px);
+        position: absolute;
+        width: calc(100% - 32px);
+        z-index: 1;
+    }
+}
+
+sl-studiewijzer-items.mod-added {
+    margin-top: -4px;
+}
+
+.mod-huiswerk {
+    margin-top: -4px;
+    height: 58px;
+    position: relative;
+    background: var(--bg-elevated-weakest);
+    border-left: 4px solid var(--fg-warning-normal);
+    border-top: var(--thinnest-solid-neutral-normal);
+    border-right: var(--thinnest-solid-neutral-normal);
+    border-bottom: var(--thinnest-solid-neutral-normal);
+    overflow: hidden;
+}
+
+.mod-huiswerk.mod-huiswerk-done:hover {
+    border-top: var(--thinnest-solid-positive-normal);
+    border-right: var(--thinnest-solid-positive-normal);
+    border-bottom: var(--thinnest-solid-positive-normal);
+}
+
+.mod-huiswerk-animation {
+    animation: homeworkchecked 0.3s ease;
+}
+
+.mod-huiswerk.mod-huiswerk-done {
+    border-left: 4px solid var(--fg-on-positive-weak);
+    background: var(--bg-positive-weak);
+}
+
+.mod-huiswerk.mod-huiswerk-done svg {
+    fill: var(--fg-on-positive-weak);
+    opacity: 0.6;
+}
+
+.mod-huiswerk.mod-huiswerk-done strong,
+.mod-huiswerk.mod-huiswerk-done p {
+    text-decoration: line-through;
+    color: var(--fg-on-positive-weak);
+    opacity: .6;
+}
+
+.mod-huiswerk div {
+    position: absolute;
+    height: 17px;
+    width: 17px;
+    border: var(--thin-solid-neutral-strong);
+    right: -25px;
+    border-radius: var(--border-radius-normal);
+    background: var(--bg-elevated-none);
+    top: 17px;
+    transition: right 0.2s ease;
+}
+
+.mod-huiswerk:hover div {
+    right: 15px;
+}
+
+.mod-huiswerk:hover div:hover {
+    border-color: var(--action-positive-normal);
+}
+
+.mod-huiswerk strong,
+.mod-huiswerk p {
+    overflow: hidden;
+    width: calc(100% - 20px);
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.mod-huiswerk strong {
+    font-size: 14px;
+    margin-top: -5px;
+    display: block;
+    margin-left: 10px;
+    color: var(--text-strong);
+}
+
+.mod-huiswerk p {
+    margin: 0 0 0 10px;
+    font-size: 12px;
+    color: var(--text-weak);
+}
+
+.mod-huiswerk:hover strong,
+.mod-huiswerk:hover p {
+    width: calc(100% - 55px);
+}
+
+.mod-huiswerk,
+.mod-add-homework {
+    width: 100%;
+    border-radius: var(--border-radius-normal);
+    box-sizing: border-box;
+    padding: 16px 0 16px 38px;
+    cursor: pointer;
+}
+
+.mod-huiswerk.mod-before {
+    margin-top: 0;
+    margin-bottom: -4px;
+}
+
+.mod-huiswerk:hover {
+    border-top: var(--thinnest-solid-primary-normal);
+    border-right: var(--thinnest-solid-primary-normal);
+    border-bottom: var(--thinnest-solid-primary-normal);
+}
+
+.mod-add-homework {
+    padding: 8px 0 8px 38px;
+    background: var(--mod-semi-transparant, var(--bg-elevated-none));
+    border: 2px dashed var(--bg-elevated-weak);
+    color: var(--text-weak);
+}
+
+.mod-add-homework:hover {
+    opacity: 1;
+}
+
+.mod-huiswerk div svg {
+    display: none;
+}
+
+.mod-huiswerk.mod-huiswerk-done div {
+    background: var(--action-positive-normal);
+    border-color: var(--action-positive-normal);
+}
+
+.mod-huiswerk.mod-huiswerk-done div svg {
+    display: block;
+    fill: var(--border-neutral-inverted);
+    padding: 2px 3px;
+}
+
+.mod-huiswerk>svg,
+.mod-add-homework svg {
+    height: 16px;
+    position: absolute;
+    margin-top: 3px;
+    margin-left: -22px;
+}
+
+.mod-huiswerk svg {
+    fill: var(--fg-warning-normal);
+    overflow: visible;
+}
+
+.mod-add-homework svg {
+    fill: var(--text-weak);
+    height: 16px;
+    position: absolute;
+    margin-top: 3px;
+    margin-left: -22px;
+}
+
+.mod-homework-icon {
+    height: 1.1em;
+    padding: 10px;
+    border-radius: 50%;
+    overflow: visible;
+    cursor: pointer;
+    transition: background .3s ease;
+}
+
+.mod-homework-icon.mod-active, .mod-homework-icon:hover {
+    background: var(--bg-elevated-strong);
+}

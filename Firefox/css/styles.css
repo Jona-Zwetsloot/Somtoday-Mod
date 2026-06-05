@@ -7,9 +7,9 @@
 }
 
 /* General Style */
-body {
+html body {
     overflow-y: scroll !important;
-    background: transparent !important;
+    background: transparent;
 }
 
 /* Background on body is placed *above* the background image,
@@ -164,12 +164,13 @@ sl-studiewijzer-filter-button:not(:hover) {
     width: fit-content;
     margin-bottom: -15px;
     padding: 10px 20px;
-    border: 2px solid var(--blue-0);
-    color: var(--fg-on-primary-weak);
     line-height: 1.4em;
     border-radius: 16px;
     padding-left: 50px;
     position: relative;
+    color: var(--text-moderate);
+    border: 1px solid var(--mod-border-neutral-normal);
+    background: #06f2;
 }
 
 .mod-info-notice>svg {
@@ -594,14 +595,6 @@ sl-rooster-week-header .mod-add-homework {
     pointer-events: none;
 }
 
-#mod-bg-live {
-    padding: 20px;
-    background: var(--bg-elevated-weakest);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-}
-
 #mod-new-year {
     padding: 20px;
     background: linear-gradient(to bottom, #39497b, #182859);
@@ -695,39 +688,6 @@ sl-rooster-week-header .mod-add-homework {
     height: 100dvh;
     z-index: 1000;
     pointer-events: none;
-}
-
-#mod-contributors {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    row-gap: 5px;
-    margin-bottom: 25px;
-}
-
-#mod-contributors a {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    background: var(--bg-elevated-weak);
-    border-radius: 100dvh;
-    padding-right: 15px;
-    transition: background .2s ease;
-}
-
-#mod-contributors a img {
-    height: 2em;
-    border-radius: 50%;
-}
-
-#mod-contributors a p {
-    margin: 0;
-}
-
-#mod-contributors a:hover {
-    background: var(--bg-elevated-strong);
-    cursor: pointer;
 }
 
 .blok>.container>svg {
