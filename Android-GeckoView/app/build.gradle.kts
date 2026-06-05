@@ -17,6 +17,9 @@ android {
         targetSdk = 36
         versionCode = 55
         versionName = "5.5"
+        ndk {
+            abiFilters.add("arm64-v8a")
+        }
     }
 
     compileOptions {
@@ -34,6 +37,17 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

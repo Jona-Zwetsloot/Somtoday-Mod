@@ -2,8 +2,6 @@ builds/
 vendor/
 */app/release/
 */.idea/
-chromium.zip
-firefox.zip
-android-geckoview.apk
-android-webview.apk
+*.zip
+*.apk
 .vscode
