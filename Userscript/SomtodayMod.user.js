@@ -968,6 +968,9 @@ function onload() {
 
     function initTheme() {
         const theme = get('theme');
+
+        // [GENERATION] GECKOVIEW_SAVE_THEME
+
         if ((theme == 'light' || theme == 'dark' || theme == 'night') && get('autotheme') !== 'true') {
             const html = document.documentElement;
             html.classList.remove('light', 'dark', 'night');

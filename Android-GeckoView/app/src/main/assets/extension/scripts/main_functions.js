@@ -85,10 +85,7 @@ function onload() {
     function initTheme() {
         const theme = get('theme');
 
-        browser.runtime.sendNativeMessage("somtodaymod", {
-            type: "SAVE_THEME",
-            theme: theme
-        });
+        browser.runtime.sendNativeMessage('somtodaymod', { type: 'SAVE_THEME', theme: theme });
 
         if ((theme == 'light' || theme == 'dark' || theme == 'night') && get('autotheme') !== 'true') {
             const html = document.documentElement;

@@ -643,6 +643,16 @@ class MainActivity : ComponentActivity() {
         return $zip->close();
     }
 
+    public static function modifyLocale(string $target, string $locale) {
+        $content = file_get_contents($target . "/_locales/$locale/messages.json", true);
+        $content = json_decode($content, true);
+        $platform = str_contains($target, 'Chromium') ? 'Chromium' : 'Firefox';
+        $version = Generate::getVersionInfo()['version'];
+        $content['extVersion']['message'] = "Somtoday Mod $platform v$version";
+        $content = json_encode($content, JSON_PRETTY_PRINT);
+        file_put_contents($target . "/_locales/$locale/messages.json", $content);
+    }
+
     public static function createExtensionBuilds()
     {
         $source = __DIR__ . "/{$_GET['source']}";
@@ -653,6 +663,11 @@ class MainActivity : ComponentActivity() {
         $versionInfo = Generate::getVersionInfo();
         $versionInfo['platform'] = ($_GET['source'] == 'Firefox' ? 'Chromium' : 'Firefox');
         file_put_contents($target . "/version_info.json", json_encode($versionInfo, JSON_PRETTY_PRINT));
+
+        Generate::modifyLocale($target, 'nl');
+        Generate::modifyLocale($target, 'en');
+        Generate::modifyLocale($source, 'nl');
+        Generate::modifyLocale($source, 'en');
 
         $manifest = Generate::getManifest();
         $manifest['version'] = (string)$versionInfo['version'];

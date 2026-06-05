@@ -15,8 +15,8 @@ android {
         applicationId = "com.jonazwetsloot.somtodaymod"
         minSdk = 26
         targetSdk = 36
-        versionCode = 53
-        versionName = "5.3"
+        versionCode = 55
+        versionName = "5.5"
     }
 
     compileOptions {
