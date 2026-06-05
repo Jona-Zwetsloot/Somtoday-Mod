@@ -555,7 +555,7 @@ class MainActivity : ComponentActivity() {
             platform: 'Android',
             minified: true,
         ));
-        file_put_contents('Android/app/src/main/java/com/jonazwetsloot/somtodaymod/MainActivity.kt', $android);
+        file_put_contents('Android-WebView/app/src/main/java/com/jonazwetsloot/somtodaymod/MainActivity.kt', $android);
     }
 
     public static function deleteDirectoryContents(string $dir): void
@@ -731,10 +731,10 @@ class MainActivity : ComponentActivity() {
     // Increment app version number on Android
     public static function incrementAndroidVersion()
     {
-        $build_gradle_kts = file_get_contents("Android/app/build.gradle.kts", true);
+        $build_gradle_kts = file_get_contents("Android-WebView/app/build.gradle.kts", true);
         $build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = " . (str_replace('.', '', Generate::getVersionInfo()['version'])), $build_gradle_kts);
         $build_gradle_kts = preg_replace("/versionName = \"[^\"]+\"/", 'versionName = "' . Generate::getVersionInfo()['version'] . '"', $build_gradle_kts);
-        file_put_contents("Android/app/build.gradle.kts", $build_gradle_kts);
+        file_put_contents("Android-WebView/app/build.gradle.kts", $build_gradle_kts);
 
         $build_gradle_kts = file_get_contents("Android-GeckoView/app/build.gradle.kts", true);
         $build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = " . (str_replace('.', '', Generate::getVersionInfo()['version'])), $build_gradle_kts);
