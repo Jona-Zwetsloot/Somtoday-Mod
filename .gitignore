@@ -4,5 +4,6 @@ vendor/
 */.idea/
 chromium.zip
 firefox.zip
-android.apk
+android-geckoview.apk
+android-webview.apk
 .vscode
