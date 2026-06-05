@@ -254,14 +254,21 @@ input:checked+.slider:before {
     border-radius: 50%;
 }
 
+textarea.mod-custom-setting {
+    width: 100%;
+    height: 128px;
+    font-family: monospace !important;
+    font-size: 12px;
+    padding: 10px;
+    resize: vertical;
+    outline-offset: 0 !important;
+}
+
 .mod-custom-select {
     position: relative;
     font-family: Arial, sans-serif;
-    margin-top: 10px;
-    width: 240px;
+    min-width: 240px;
     display: inline-block;
-    margin-right: 15px;
-    margin-bottom: 8px;
 }
 
 .mod-custom-select select {
@@ -273,6 +280,7 @@ input:checked+.slider:before {
     border-radius: 6px;
     border: var(--thinnest-solid-neutral-normal) !important;
     background-color: var(--bg-elevated-weakest);
+    padding-right: 30px !important;
 }
 
 .select-selected:after {
@@ -338,10 +346,15 @@ input:checked+.slider:before {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
+#export-settings svg,
+#import-settings svg {
+    height: 1.4em !important;
+}
+
 #mod-message textarea {
     height: 200px;
     padding: 12px 20px;
-    outline-offset: unset;
+    outline-offset: 0;
 }
 
 #mod-message .mod-message-button {
@@ -487,30 +500,36 @@ input:checked+.slider:before {
 
 #mod-actions {
     background: var(--bg-elevated-none);
+    border-bottom: 1px solid var(--bg-elevated-strong);
     margin-left: -30px;
     padding: 10px 30px;
     z-index: 100;
     width: 100%;
     margin-top: -10px;
-    top: -5px;
+    top: -8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .mod-setting-button {
     padding: 10px 12px;
-    background: var(--bg-elevated-weak);
+    background: var(--bg-elevated-weakest);
     border-radius: 8px;
-    margin-right: 8px;
     display: inline-block;
-    margin-bottom: 10px;
     transition: background 0.3s ease !important;
     cursor: pointer;
     user-select: none;
     color: var(--text-moderate) !important;
+    border: 1px solid var(--bg-elevated-strong);
+    border-radius: 100vh;
+    text-decoration: none;
+    font-size: 0.95em;
 }
 
 .mod-setting-button:hover {
     background: var(--bg-elevated-strong);
-    color: var(--text-moderate);
+    color: var(--text-strong) !important;
 }
 
 .mod-setting-button svg {
@@ -519,33 +538,62 @@ input:checked+.slider:before {
     margin-bottom: -3px;
 }
 
+#mod-setting-panel .mod-credits-gh-pills {
+    margin-bottom: 30px;
+}
+
+#mod-setting-panel .mod-credits-gh-pill {
+    background: var(--bg-elevated-none);
+    border-color: var(--bg-elevated-strong);
+}
+
+#mod-setting-panel .mod-credits-gh-pill:hover,
+#mod-setting-panel .mod-credits-gh-pill:focus {
+    background: var(--bg-elevated-strong);
+    border-color: var(--bg-elevated-strong);
+    color: var(--text-strong);
+    box-shadow: none;
+}
+
 #mod-background-wrapper {
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 #mod-background-wrapper label svg {
     width: 100%;
     height: 100%;
-    padding: 50px 15px;
+    padding: 58px 15px;
     box-sizing: border-box;
+    transition: padding .3s ease;
 }
 
-#mod-background-wrapper img:hover {
-    filter: opacity(0.5);
+#mod-background-wrapper:not(.loading) label:hover svg {
+    padding: 54px 15px;
 }
 
 #mod-background-wrapper label,
-#mod-background-wrapper img {
-    cursor: pointer;
+#mod-background-wrapper img,
+#mod-background-wrapper div {
     height: 150px;
     width: 150px;
     background: var(--bg-elevated-none);
+    border: 1px solid var(--mod-border-neutral-normal);
     border-radius: 8px;
     object-fit: cover;
-    display: inline-block;
-    margin-right: 15px;
-    margin-bottom: 15px;
-    vertical-align: top;
+    transition: background .3s ease;
+}
+
+#mod-background-wrapper:not(.loading) img:hover {
+    cursor: pointer;
+    filter: opacity(0.5);
+}
+
+#mod-background-wrapper:not(.loading) label:hover {
+    cursor: pointer;
+    background: var(--bg-elevated-strong);
 }
 
 .dodgerblue {
@@ -585,10 +633,14 @@ input:checked+.slider:before {
     min-width: 115px;
 }
 
+.menu {
+    border-right: 1px solid var(--bg-elevated-strong) !important;
+}
+
 .mod-background-type-content {
     padding: 20px;
     background: var(--bg-elevated-weakest);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--mod-border-neutral-normal);
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
 }
@@ -596,7 +648,7 @@ input:checked+.slider:before {
 #mod-background-type {
     display: flex;
     flex-wrap: wrap;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--mod-border-neutral-normal);
     border-bottom: none;
     padding-top: 3px;
     border-top-left-radius: 16px;
@@ -612,7 +664,7 @@ input:checked+.slider:before {
 
 #mod-background-type a.active {
     border-bottom: 3px solid var(--fg-on-primary-weak);
-    font-weight: 700;
+    text-shadow: 1px 0 0 currentColor;
 }
 
 .br {
@@ -620,9 +672,17 @@ input:checked+.slider:before {
     clear: both;
 }
 
-.layout-container.layout-selected,
 .layout-container:hover {
-    border: 3px solid var(--fg-on-primary-weak);
+    outline: 2px solid var(--fg-on-primary-weak);
+}
+
+.layout-container.layout-selected {
+    background: var(--fg-on-primary-weak);
+    outline: none;
+
+    & div {
+        background: var(--mod-transparent);
+    }
 }
 
 .layout-container {
@@ -633,16 +693,16 @@ input:checked+.slider:before {
     width: 180px;
     aspect-ratio: 18/13;
     background: var(--bg-elevated-none);
-    border: 3px solid var(--bg-elevated-none);
+    outline: 1px solid var(--bg-elevated-strong);
     border-radius: 16px;
     position: relative;
     cursor: pointer;
-    transition: border 0.2s ease !important;
-    box-shadow: 2px 2px 20px var(--bg-elevated-strong);
+    transition: background 0.3s ease, outline-color 0.3s ease !important;
 }
 
 .layout-container h3 {
-    bottom: -40px;
+    padding-top: 1em;
+    bottom: -2em;
     width: 100%;
     position: absolute;
     text-align: center;
@@ -655,8 +715,9 @@ input:checked+.slider:before {
     -webkit-user-select: none;
     user-select: none;
     background: var(--bg-primary-weak);
-    border-radius: 6px;
+    border-radius: 10px;
     position: absolute;
+    transition: background .3s ease;
 }
 
 .example-box-wrapper {
@@ -673,41 +734,41 @@ input:checked+.slider:before {
     transform-origin: top left;
 }
 
-#theme-wrapper>div {
+#theme-wrapper {
     display: flex;
     flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
 .theme {
     flex-basis: 180px;
+    max-width: 500px;
     flex-grow: 1;
     flex-shrink: 1;
     user-select: none;
     display: inline-block;
     cursor: pointer;
-    margin-bottom: 10px;
-    margin-right: 5px;
     overflow: hidden;
     background: var(--bg-elevated-none);
-    border: 3px solid transparent;
+    border: 1px solid var(--mod-border-neutral-normal);
     border-radius: 16px;
-    transition: .2s border ease, .2s background ease !important;
-    box-shadow: 2px 2px 10px var(--bg-elevated-strong);
+    transition: .2s background ease !important;
 }
 
-.theme:hover,
-.theme.theme-selected,
-.theme.theme-selected-set {
-    border: 3px solid var(--blue-0);
+.theme:hover {
+    background: var(--bg-elevated-strong);
 }
 
 .theme.theme-selected,
 .theme.theme-selected-set {
-    background: var(--blue-0);
-    color: var(--grey-80);
+    background: var(--fg-on-primary-weak);
+    color: var(--text-inverted);
 }
 
-.theme img {
+.theme>img,
+.theme>span {
+    display: block;
     width: 100%;
     height: 175px;
     object-fit: cover;
@@ -716,11 +777,12 @@ input:checked+.slider:before {
 }
 
 .theme h3 {
-    padding: 10px;
-    padding-left: 30px;
+    padding: 14px 10px 10px 32px;
     overflow: hidden;
     text-overflow: ellipsis;
     text-wrap: nowrap;
+    font-weight: normal;
+    font-size: 1em;
 }
 
 .theme h3 div {
@@ -729,7 +791,8 @@ input:checked+.slider:before {
     width: 12px;
     border-radius: 50%;
     position: absolute;
-    margin: 5px -20px;
+    margin: 4px -20px;
+    border: 1px solid var(--mod-border-neutral-normal);
 }
 
 #mod-setting-panel .category:first-of-type {
@@ -780,14 +843,17 @@ input:checked+.slider:before {
 .mod-button {
     -webkit-user-select: none;
     user-select: none;
-    transition: 0.2s border ease !important;
-    margin-bottom: 8px;
-    display: block;
+    display: flex;
+    gap: 10px;
+    align-items: center;
     width: fit-content;
     padding: 10px 18px;
-    border: 2px solid var(--fg-on-primary-weak);
-    border-radius: 12px;
+    border: 1px solid var(--mod-border-neutral-normal);
+    border-radius: 100vh;
     color: var(--fg-on-primary-weak) !important;
+    background: var(--bg-elevated-none);
+    font-weight: normal;
+    transition: background .2s ease !important;
 }
 
 .mod-file-label.mod-drag-and-drop {
@@ -795,30 +861,21 @@ input:checked+.slider:before {
     font-weight: 700;
 }
 
-.mod-button {
-    display: inline-block;
-    margin-right: 10px;
-}
-
 .mod-file-label:hover,
 .mod-button:hover {
-    border: 2px solid var(--bg-primary-weak);
+    background: var(--bg-elevated-strong);
     cursor: pointer;
 }
 
+.mod-button.mod-active svg path,
 label.mod-file-label.mod-active svg path {
-    fill: white !important;
+    fill: var(--text-inverted) !important;
 }
 
 div.mod-button.mod-active,
 label.mod-file-label.mod-active {
     background: var(--fg-on-primary-weak);
     color: var(--text-inverted) !important;
-}
-
-.mod-file-label p {
-    margin-left: 10px;
-    display: inline;
 }
 
 input[type="file"].mod-file-input {
@@ -839,7 +896,7 @@ input[type="color"] {
     height: 38px;
     border-radius: 50%;
     display: inline-block;
-    box-shadow: 0 0 10px var(--bg-elevated-weak);
+    border: 1px solid var(--mod-border-neutral-normal);
 }
 
 .mod-color p {
@@ -868,8 +925,7 @@ input[type="color"] {
 #username-wrapper>div {
     display: flex;
     margin-bottom: 10px;
-    gap: 15px;
-    row-gap: 2px;
+    gap: 2px 8px;
 }
 
 #nickname-wrapper>div input,
@@ -973,5 +1029,9 @@ input[type="color"] {
     #mod-background-wrapper img {
         width: calc(50% - 10px);
         margin-right: 10px;
+    }
+
+    .mod-setting-button {
+        flex-grow: 1;
     }
 }

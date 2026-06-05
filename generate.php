@@ -3,9 +3,6 @@
 // Generate builds
 // This a small script to generate the builds efficiently, while also updating the source code
 
-// Composer autoloading, used for JS minification later
-require __DIR__ . '/vendor/autoload.php';
-
 // Apply some very basic styling
 echo '<style>
     * {
@@ -47,6 +44,7 @@ class Generate
         Generate::insertCSS();
         Generate::saveSingleScriptPlatforms();
         Generate::createExtensionBuilds();
+        Generate::createAndroidGeckoViewBuild();
         Generate::incrementAndroidVersion();
     }
 
@@ -173,8 +171,7 @@ class Generate
 // @namespace    https://jonazwetsloot.nl/projecten/somtoday-mod
 // @version      $version
 // @description  Give Somtoday a new look with this script.
-// @author       Jona Zwetsloot
-$matches
+// @author       Jona Zwetsloot$matches
 // @icon         https://jonazwetsloot.nl/images/SomtodayModIcon.png
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -197,7 +194,6 @@ $matches
 
     public static function getAndroidWebviewKotlin(string $minified): string
     {
-        $minified = str_replace('$', '${"$"}', $minified);
         return "package com.jonazwetsloot.somtodaymod
 
 import android.content.Context
@@ -463,8 +459,8 @@ class MainActivity : ComponentActivity() {
                 errorLayout.visibility = View.GONE
                 webView.visibility = View.VISIBLE
             }
-            view.loadUrl(\"\"\"javascript:(function loadEverything() {
-$minified
+            view.loadUrl($$\"\"\"javascript:(function loadEverything() {
+" . rawurlencode($minified) . "
 })()\"\"\")
         }
 
@@ -520,7 +516,19 @@ $minified
         $result = str_replace("// [GENERATION] DEFINE_FILEMAP", 'fileMap = ' . json_encode($files, $minified ? 0 : JSON_PRETTY_PRINT) . ';', Generate::$result);
 
         if ($minified) {
-            return \JShrink\Minifier::minify($result);
+            $process = proc_open(
+                'npx esbuild --minify',
+                [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes
+            );
+
+            fwrite($pipes[0], $result);
+            fclose($pipes[0]);
+
+            $output = stream_get_contents($pipes[1]);
+            $errors = stream_get_contents($pipes[2]);
+            proc_close($process);
+            return str_replace("\n", ' ', $output);
         } else {
             return $result;
         }
@@ -623,7 +631,7 @@ $minified
 
         foreach ($files as $file) {
             $filePath = realpath($file);
-            $relativePath = substr($filePath, strlen($source) + 1);
+            $relativePath = str_replace('\\', '/', substr($filePath, strlen($source) + 1));
 
             if (is_dir($filePath)) {
                 $zip->addEmptyDir($relativePath);
@@ -642,11 +650,12 @@ $minified
         Generate::deleteDirectoryContents($target);
         Generate::copyDirectory($source, $target);
 
-        Generate::getVersionInfo()['platform'] = ($_GET['source'] == 'Firefox' ? 'Chromium' : 'Firefox');
-        file_put_contents($target . "/version_info.json", json_encode(Generate::getVersionInfo(), JSON_PRETTY_PRINT));
+        $versionInfo = Generate::getVersionInfo();
+        $versionInfo['platform'] = ($_GET['source'] == 'Firefox' ? 'Chromium' : 'Firefox');
+        file_put_contents($target . "/version_info.json", json_encode($versionInfo, JSON_PRETTY_PRINT));
 
         $manifest = Generate::getManifest();
-        $manifest['version'] = (string)Generate::getVersionInfo()['version'];
+        $manifest['version'] = (string)$versionInfo['version'];
         unset($manifest['background']);
         unset($manifest['minimum_chrome_version']);
         unset($manifest['browser_specific_settings']);
@@ -677,13 +686,45 @@ $minified
         Generate::zipFolder(__DIR__ . '/firefox', __DIR__ . '/firefox.zip');
     }
 
+    public static function createAndroidGeckoViewBuild()
+    {
+        $source = __DIR__ . '/Firefox';
+        $target = __DIR__ . '/Android-GeckoView/app/src/main/assets/extension';
+        Generate::deleteDirectoryContents($target);
+        Generate::copyDirectory($source, $target);
+
+        // Add manifest permissions for GeckoView
+        $manifest = file_get_contents($target . '/manifest.json');
+        $manifest = json_decode($manifest, true);
+        $manifest['permissions'][] = 'geckoViewAddons';
+        $manifest['permissions'][] = 'nativeMessaging';
+        $manifest['permissions'][] = 'nativeMessagingFromContent';
+        $manifest = json_encode($manifest, JSON_PRETTY_PRINT);
+        file_put_contents($target . '/manifest.json', $manifest);
+
+
+        // Add theme communication with Kotlin in order to show the correct skeleton while loading 
+        $main_js = file_get_contents($target . '/scripts/main_functions.js');
+        $main_js = str_replace("// [GENERATION] GECKOVIEW_SAVE_THEME", "browser.runtime.sendNativeMessage('somtodaymod', { type: 'SAVE_THEME', theme: theme });", $main_js);
+        file_put_contents($target . '/scripts/main_functions.js', $main_js);
+
+        $versionInfo = Generate::getVersionInfo();
+        $versionInfo['platform'] = 'Android';
+        file_put_contents($target . "/version_info.json", json_encode($versionInfo, JSON_PRETTY_PRINT));
+    }
+
     // Increment app version number on Android
     public static function incrementAndroidVersion()
     {
         $build_gradle_kts = file_get_contents("Android/app/build.gradle.kts", true);
         $build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = " . (str_replace('.', '', Generate::getVersionInfo()['version'])), $build_gradle_kts);
-        $build_gradle_kts = preg_replace("/versionName = \"[^\"]+\"/", "versionName = \"{Generate::getVersionInfo()['version']}\"", $build_gradle_kts);
+        $build_gradle_kts = preg_replace("/versionName = \"[^\"]+\"/", 'versionName = "' . Generate::getVersionInfo()['version'] . '"', $build_gradle_kts);
         file_put_contents("Android/app/build.gradle.kts", $build_gradle_kts);
+
+        $build_gradle_kts = file_get_contents("Android-GeckoView/app/build.gradle.kts", true);
+        $build_gradle_kts = preg_replace("/versionCode = \d+/", "versionCode = " . (str_replace('.', '', Generate::getVersionInfo()['version'])), $build_gradle_kts);
+        $build_gradle_kts = preg_replace("/versionName = \"[^\"]+\"/", 'versionName = "' . Generate::getVersionInfo()['version'] . '"', $build_gradle_kts);
+        file_put_contents("Android-GeckoView/app/build.gradle.kts", $build_gradle_kts);
     }
 }
 

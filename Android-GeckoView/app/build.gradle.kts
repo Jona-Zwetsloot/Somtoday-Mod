@@ -28,7 +28,7 @@ android {
     }
 
     buildFeatures {
-        compose = false
+        buildConfig = true
     }
 
     packaging {

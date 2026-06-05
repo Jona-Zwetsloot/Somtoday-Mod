@@ -409,19 +409,43 @@ function onload() {
     }
 
     function customHomeworkIcons(activeIcon, activeColor) {
-        let icons = {
-            'edit': '--fg-warning-normal',
-            'homework': '--fg-primary-normal',
-            'assignment': '--fg-alternative-normal',
-            'test': '--fg-warning-normal',
-            'test': '--fg-negative-normal',
-            'book': '--fg-warning-normal',
-            'clock': '--fg-warning-normal',
-            'palm': '--fg-on-positive-weak',
-        };
+        let icons = [
+            {
+                name: 'edit',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'homework',
+                color: '--fg-primary-normal',
+            },
+            {
+                name: 'assignment',
+                color: '--fg-alternative-normal',
+            },
+            {
+                name: 'test',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'test',
+                color: '--fg-negative-normal',
+            },
+            {
+                name: 'book',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'clock',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'palm',
+                color: '--fg-on-positive-weak',
+            }
+        ];
         let iconHTML = '';
-        for (const icon of Object.keys(icons)) {
-            iconHTML += window.getIcon(icon, 'mod-homework-icon' + (activeIcon == icon ? ' mod-active' : ''), 'var(' + icons[icon] + ')', 'data-icon="' + icon + '" ');
+        for (const icon of icons) {
+            iconHTML += window.getIcon(icon.name, 'mod-homework-icon' + (activeIcon == icon.name ? ' mod-active' : ''), 'var(' + icon.color + ')', 'data-icon="' + icon.name + '" ');
         }
         const col = window.getComputedStyle(document.documentElement).getPropertyValue('--fg-warning-normal');
         return '<div style="display:flex;margin-top:20px;align-items:center;gap:10px;flex-wrap:wrap;">' + iconHTML + '<label tabindex="0" for="homeworkcolor" style="margin-left:auto;cursor:pointer;">Kleur kiezen</label><input style="display:none;" value="' + ((activeColor && activeColor.startsWith('#')) ? activeColor : col) + '" id="homeworkcolor" type="color"></div>';
@@ -2029,14 +2053,13 @@ function onload() {
     }
 
     function startLiveWallpaper(preview = false, col1, col2, col3) {
-        let liveWallpaperFrame;
         let gl;
         if (!preview) {
             stopLiveWallpaper();
             tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
         }
         const canvas = id(preview ? 'mod-live-preview' : 'mod-background-live');
-        gl = canvas.getContext("webgl");
+        gl = canvas.getContext('webgl');
         if (!gl) return;
 
         // Simple vertex shader
@@ -2058,7 +2081,8 @@ function onload() {
             col3 = hexToRgb(get('livecolor3'));
         }
 
-        // Fragment shader with random color noise
+        // Fragment shader with random color noise, colors are represented as RGB 0-1 vec3
+        // We create a plasma/noise effect (see math stuff), and mix the colors with eachother at the end
         const fsSource = `
             precision mediump float;
             uniform float u_time;
@@ -2068,12 +2092,10 @@ function onload() {
                 vec2 uv = gl_FragCoord.xy / u_resolution.xy;
                 float t = u_time * 0.5;
 
-                // Colors as RGB 0-1
                 vec3 col1 = vec3(${col1[0] / 255},${col1[1] / 255},${col1[2] / 255});
                 vec3 col2 = vec3(${col2[0] / 255},${col2[1] / 255},${col2[2] / 255});
                 vec3 col3 = vec3(${col3[0] / 255},${col3[1] / 255},${col3[2] / 255});
 
-                // Create plasma/noise effect
                 float v = 0.0;
                 vec2 c = uv * 2.0 - 1.0;
                 v += sin((c.x+t));
@@ -2083,7 +2105,6 @@ function onload() {
                 v += sin(sqrt(c.x*c.x+c.y*c.y+1.0)+t);
                 v = v/2.0;
 
-                // Mix colors
                 vec3 color = mix(col1, col2, smoothstep(0.0, 1.0, sin(v * 3.0 + t)));
                 color = mix(color, col3, smoothstep(0.0, 1.0, cos(v * 2.0 - t)));
 
@@ -2928,7 +2949,6 @@ function onload() {
                 labels: recapDates,
                 datasets: [{
                     label: 'Mysterieus vak',
-                    fill: false,
                     lineTension: 0,
                     backgroundColor: recapGradient,
                     fill: true,
@@ -3125,7 +3145,6 @@ function onload() {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
-                fill: false,
                 lineTension: 0,
                 backgroundColor: gradient,
                 fill: true,
@@ -3174,7 +3193,6 @@ function onload() {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
-                fill: false,
                 lineTension: 0,
                 backgroundColor: gradient,
                 fill: true,

@@ -21,7 +21,7 @@ const adjust = (col, amt) => {
 const hexToRgb = hex => hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => '#' + r + r + g + g + b + b).substring(1).match(/.{2}/g).map(x => parseInt(x, 16));
 
 // Convert rgb to hex
-const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => {
+const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map(x => {
     const hex = x.toString(16);
     return hex.length === 1 ? '0' + hex : hex;
 }).join('');
@@ -33,7 +33,7 @@ const getRelativeLuminance = (rgb) => Math.round(0.2126 * rgb[0] + 0.7152 * rgb[
 function adjustColorChannel(channel, hex, value) {
     let rgb = hexToRgb(hex);
     rgb[channel] = Math.min(Math.max(rgb[channel] + value, 0), 255);
-    return rgbToHex(rgb[0], rgb[1], rgb[2]);
+    return rgbToHex(rgb);
 }
 
 // Change color brightness level
@@ -61,6 +61,7 @@ function toBrightnessValue(color, target) {
     }
     return color;
 }
+
 function addNightTheme() {
     if (id('mod-night-theme')) {
         return;
@@ -113,12 +114,7 @@ function addNightTheme() {
     // The dark-mode image uses #111111 as bg color, which is already pretty dark, and does not match the real bg color used
     // This means that instead of giving night-mode a new image, we modify the image used for dark-mode to use #20262D as bg color
     if (darkImage) {
-        if (isExtension) {
-            darkImage.src = chrome.runtime.getURL('images/dark-mode.svg');
-        }
-        else {
-            // [GENERATION] SET_DARK_IMAGE
-        }
+        darkImage.src = window.getResource('images/dark-mode.svg');
     }
     darkDiv.insertAdjacentElement('afterend', nightDiv);
 

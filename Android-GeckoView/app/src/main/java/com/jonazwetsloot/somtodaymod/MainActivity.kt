@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.webkit.WebView
@@ -15,6 +14,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import org.mozilla.geckoview.*
+import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -23,15 +26,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var overlayWebView: WebView
     private var canGoBackState: Boolean = false
 
-    private val CACHE_FILE_NAME = "last_session_cache.html"
-
     companion object {
         lateinit var appContext: Context
         private var sRuntime: GeckoRuntime? = null
     }
 
+    private val themeFile = "theme.txt"
+
     private var pendingFilePrompt: GeckoSession.PromptDelegate.FilePrompt? = null
-    private val FILE_CHOOSER_REQUEST_CODE = 1001
+    private var pendingFileResult: GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? = null
+    private val fileChooserRequestCode = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,22 +58,20 @@ class MainActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            settings.apply {
-                javaScriptEnabled = true
-                allowFileAccess = true
-                allowContentAccess = true
-                allowFileAccessFromFileURLs = true
-                allowUniversalAccessFromFileURLs = true
-            }
         }
         root.addView(overlayWebView)
 
-        val cacheFile = File(filesDir, CACHE_FILE_NAME)
+        val isDarkMode = (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+        var skeletonFile = if (isDarkMode) "dark" else "light"
+
+        val cacheFile = File(filesDir, themeFile)
         if (cacheFile.exists()) {
-            overlayWebView.loadUrl("file://" + cacheFile.absolutePath)
-        } else {
-            overlayWebView.loadUrl("file:///android_asset/somtoday-skeleton/skeleton-light.html")
+            skeletonFile = cacheFile.readText()
         }
+        overlayWebView.loadUrl("file:///android_asset/somtoday-skeleton/skeleton-$skeletonFile.html")
+
 
         if (sRuntime == null) {
             sRuntime = GeckoRuntime.create(this)
@@ -92,14 +94,14 @@ class MainActivity : AppCompatActivity() {
                 currentUrl = url
             }
 
-            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny>? {
+            override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest): GeckoResult<AllowOrDeny> {
                 val url = request.uri
 
                 if (currentUrl?.startsWith("https://leerling.somtoday.nl") ?: false) {
                     if (!url.startsWith("https://leerling.somtoday.nl") &&
                         !url.startsWith("https://inloggen.somtoday.nl")) {
 
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
                         browserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         appContext.startActivity(browserIntent)
 
@@ -110,20 +112,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        fun removeWebview() {
+            lifecycleScope.launch {
+                delay(500L) // 2 seconds
+                root.removeView(overlayWebView)
+                overlayWebView.destroy()
+            }
+        }
+
         geckoSession.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStop(session: GeckoSession, success: Boolean) {
                 val url = currentUrl ?: ""
 
-                if (url.contains("somtoday", ignoreCase = true) ||
-                    url.contains("som.today", ignoreCase = true)) {
+                if (url.contains("somtoday", true) ||
+                    url.contains("som.today", true)) {
 
-                    overlayWebView.animate()
-                        .alpha(0f)
-                        .setDuration(500)
-                        .withEndAction {
-                            root.removeView(overlayWebView)
-                            overlayWebView.destroy()
-                        }
+                    removeWebview()
                 }
             }
         }
@@ -139,9 +143,9 @@ class MainActivity : AppCompatActivity() {
             override fun onMessage(nativeApp: String, message: Any, sender: WebExtension.MessageSender): GeckoResult<Any>? {
                 if (message is org.json.JSONObject) {
                     val type = message.optString("type")
-                    if (type == "SAVE_CACHE") {
-                        val html = message.optString("html")
-                        saveHtmlToCache(html)
+                    if (type == "SAVE_THEME") {
+                        val theme = message.optString("theme")
+                        saveTheme(theme)
                     }
                 }
                 return null
@@ -177,14 +181,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveHtmlToCache(html: String) {
+    private fun saveTheme(theme: String) {
         try {
-            val baseTag = "<base href=\"https://leerling.somtoday.nl/\">"
-
-            val contentToSave = html.replace("<head>", "<head>$baseTag")
-
-            File(filesDir, CACHE_FILE_NAME).writeText(contentToSave)
-
+            File(filesDir, themeFile).writeText(theme)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -195,33 +194,49 @@ class MainActivity : AppCompatActivity() {
             session: GeckoSession,
             prompt: GeckoSession.PromptDelegate.FilePrompt
         ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "*/*"
                 if (prompt.mimeTypes?.isNotEmpty() == true) {
-                    type = prompt.mimeTypes?.joinToString(",")
+                    putExtra(Intent.EXTRA_MIME_TYPES, prompt.mimeTypes)
                 }
                 putExtra(Intent.EXTRA_ALLOW_MULTIPLE, prompt.type == GeckoSession.PromptDelegate.FilePrompt.Type.MULTIPLE)
             }
-            startActivityForResult(Intent.createChooser(intent, "Select file"), FILE_CHOOSER_REQUEST_CODE)
+
+            startActivityForResult(Intent.createChooser(intent, "Select file"), fileChooserRequestCode)
+
             pendingFilePrompt = prompt
-            return GeckoResult()
+            val result = GeckoResult<GeckoSession.PromptDelegate.PromptResponse>()
+            pendingFileResult = result
+
+            return result
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == FILE_CHOOSER_REQUEST_CODE) {
+
+        if (requestCode == fileChooserRequestCode) {
             val prompt = pendingFilePrompt ?: return
+            val resultFuture = pendingFileResult ?: return
+
             pendingFilePrompt = null
+            pendingFileResult = null
+
             if (resultCode == Activity.RESULT_OK && data != null) {
                 val uris = mutableListOf<Uri>()
                 data.data?.let { uris.add(it) }
                 data.clipData?.let { clip ->
-                    for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri)
+                    for (i in 0 until clip.itemCount) {
+                        uris.add(clip.getItemAt(i).uri)
+                    }
                 }
-                prompt.confirm(this, uris.toTypedArray())
+
+                val response = prompt.confirm(this, uris.toTypedArray())
+                resultFuture.complete(response)
             } else {
-                prompt.dismiss()
+                val response = prompt.dismiss()
+                resultFuture.complete(response)
             }
         }
     }

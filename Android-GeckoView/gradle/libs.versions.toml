@@ -1,7 +1,7 @@
 [versions]
-agp = "8.12.3"
+agp = "9.0.1"
 geckoview = "146.0.20251217121356"
-kotlin = "2.1.0"
+kotlin = "2.2.10"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"

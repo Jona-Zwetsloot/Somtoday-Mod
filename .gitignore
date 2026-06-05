@@ -1,10 +1,8 @@
 builds/
 vendor/
-Android/app/release/
-Android/.idea/
+*/app/release/
+*/.idea/
 chromium.zip
 firefox.zip
 android.apk
-
-.cursor
 .vscode

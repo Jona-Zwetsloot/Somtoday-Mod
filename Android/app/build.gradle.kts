@@ -15,7 +15,7 @@ configure<ApplicationExtension> {
         minSdk = 23
         targetSdk = 36
         versionCode = 55
-        versionName = "{Generate::getVersionInfo()['version']}"
+        versionName = "5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true

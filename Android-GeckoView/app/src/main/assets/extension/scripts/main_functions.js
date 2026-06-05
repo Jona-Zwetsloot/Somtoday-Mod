@@ -3,10 +3,12 @@
 function onload() {
 
     // Make sure to have only one instance of the mod active at a time
-    if (!n(id('somtoday-mod-active'))) {
+    if (id('somtoday-mod-active')) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD:\nMultiple instances of Somtoday Mod are running.\nSomtoday Mod ' + platform + ' v' + version + ' will not be working until the other instance is deleted or deactivated.'));
         return;
     }
+
+    // [GENERATION] APPLY_STYLES
 
     const mathQuestions = ['compose the formula of f\'x() where f(x) = 2 * sin(9x + 3)', 'rewrite 2 * log3(243) + 28 to the form of log(a)', 'find the value(s) of x in the equation x^2 + 9 = -6x', 'give the point(s) where  12 = 2y + 6x and y = x^2 - 5x intersect (round on 2 decimals)', 'rewrite -sin(8x) to the form of cos(ax + b)'];
     const mathAnswers = ['Answer: f\'(x) = 18 * cos(9x + 3)', 'Answer: log(10^38)', 'Answer: x = -3', 'Answer: (-1,65; 10,94), (3,65; -4,94)', 'Answer: cos(8x + 0.5pi)'];
@@ -14,20 +16,20 @@ function onload() {
     tn('body', 0).insertAdjacentHTML('beforeend', '<div id="somtoday-mod"><div id="somtoday-mod-active" data-platform="' + platform + '" data-version="' + version + '"><!-- Well hello there! Great work, detective. --><!-- Nothing better to do? Solve this math question: ' + mathQuestions[selectedQuestion] + ' --><div data-info="expand-to-view-answer"><!-- ' + mathAnswers[selectedQuestion] + ' --></div></div></div>');
 
     // Stop script if 502 error occurs
-    if (!n(cn('cf-error-details cf-error-502', 0))) {
+    if (cn('cf-error-details cf-error-502', 0)) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Bad gateway (502)'));
         return;
     }
 
     // Stop script if any other error occurs
-    if (!n(tn('sl-error', 0))) {
+    if (tn('sl-error', 0)) {
         setTimeout(console.warn.bind(console, 'SOMTODAY MOD: Unknown error'));
         execute([errorPage]);
         return;
     }
 
     // Stop script if Somtoday has outage
-    if (!n(cn('titlewrap', 0))) {
+    if (cn('titlewrap', 0)) {
         // Since https://som.today and the error page are very similar, check if the word 'storing' is present on the page
         if (cn('titlewrap', 0).parentElement.parentElement.innerHTML.indexOf('storing') != -1) {
             setTimeout(console.warn.bind(console, 'Somtoday Mod ERROR\nSomtoday is down.'));
@@ -45,7 +47,7 @@ function onload() {
     let isRecapping = false;
     let ignoreRecapConditions = false;
     let ignoreCountdownConditions = false;
-    if (!n(tn('sl-root', 0))) {
+    if (tn('sl-root', 0)) {
         somtodayversion = tn('sl-root', 0).getAttribute('ng-version');
     }
     let menuColor;
@@ -68,7 +70,7 @@ function onload() {
     document.addEventListener('click', function () {
         if (n(id('mod-message')) && tn('sl-root', 0).inert) {
             tn('sl-root', 0).inert = false;
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).inert = false;
             }
         }
@@ -82,6 +84,12 @@ function onload() {
 
     function initTheme() {
         const theme = get('theme');
+
+        browser.runtime.sendNativeMessage("somtodaymod", {
+            type: "SAVE_THEME",
+            theme: theme
+        });
+
         if ((theme == 'light' || theme == 'dark' || theme == 'night') && get('autotheme') !== 'true') {
             const html = document.documentElement;
             html.classList.remove('light', 'dark', 'night');
@@ -102,7 +110,18 @@ function onload() {
 
     function easterEggs() {
         if (n(id('mod-easter-eggs'))) {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-easter-eggs">#blue-screen-of-death{position:fixed;top:0;left:0;z-index:10000;width:100%;height:100%;background:#1173aa;}#blue-screen-of-death svg{user-select:none;pointer-events:none;position:absolute;top:50%;box-sizing:border-box;transform:translateY(-50%);width:100%;}#mod-logo-decoration{position:absolute;width:50px;right:5px;top:65px;transition:transform 0.3s,opacity 0.3s;}#mod-logo-decoration.mod-logo-decoration-clicked{opacity:0;}#mod-logo-decoration:hover{transform:scale(1.1);}#mod-logo-hat{z-index:1;width:80px;height:80px;position:absolute;left:-6px;top:-9px;transform:rotate(-20deg);transition:transform 0.3s,left 0.3s,opacity 0.3s;}#mod-logo-hat:hover{transform:rotate(-30deg);left:-12px;}#mod-logo-hat.mod-logo-hat-clicked{animation:1s hatfalloff forwards;}@keyframes hatfalloff{0%{transform:rotate(-30deg);left:-12px;top:-9px;opacity:1;}90%{opacity:1;}100%{transform:rotate(-140deg);left:-90px;top:75px;opacity:0;}}body.easter-egg-shaking .background.ng-trigger{pointer-events:none !important;}@media(max-width:1279px){#mod-logo-hat{left:-15px;}#mod-logo-hat:hover{left:-20px;}}#somtoday-mod-version-easter-egg:active{border:2px solid var(--bg-primary-normal);border-radius:6px}.mod-easter-egg-logo{position:fixed;z-index:100000000;animation:8s logowalk linear infinite;width:200px;height:200px;}@keyframes logowalk{0%{bottom:10%;left:-210px;}20%{bottom:20%;left:80%;transform:rotate(40deg);}40%{bottom:40%;left:10px;transform:rotate(60deg);}60%{bottom:90%;left:50%;transform:rotate(-60deg);}80%{bottom:50%;left:90%;transform:rotate(10deg);}100%{bottom:10%;left:-210px;}}body.rainbow{animation:rainbow 4s infinite;}body.rainbow #mod-background,body.rainbow #mod-backgroundslide,body.rainbow #mod-background-live{opacity:0.25;z-index:0;}@keyframes rainbow{100%,0%{background-color: rgb(255,0,0);}8%{background-color: rgb(255,127,0);}16%{background-color: rgb(255,255,0);}25%{background-color: rgb(127,255,0);}33%{background-color: rgb(0,255,0);}41%{background-color: rgb(0,255,127);}50%{background-color: rgb(0,255,255);}58%{background-color: rgb(0,127,255);}66%{background-color: rgb(0,0,255);}75%{background-color: rgb(127,0,255);}83%{background-color: rgb(255,0,255);}91%{background-color: rgb(255,0,127);}}body.barrelroll{animation:barrelroll 2s 0.1s infinite;}@keyframes barrelroll{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' + ((get('layout') == 1 || get('layout') == 4) ? '@media (max-width:767px){#mod-logo-inserted,#mod-logo-hat{display:none;}}' : '') + '</style>');
+            if (get('layout') == 1 || get('layout') == 4) {
+                tn('head', 0).insertAdjacentHTML('beforeend', `
+                <style id="mod-easter-eggs">
+                    @media (max-width:767px) {
+                        #mod-logo-inserted,
+                        #mod-logo-hat {
+                            display: none;
+                        }
+                    }
+                </style>
+                `);
+            }
             let i = 0;
             let j = 0;
             let k = 0;
@@ -205,7 +224,7 @@ function onload() {
                 if (p == partykeys.length) {
                     toggleConfetti();
                     try {
-                        let tada = new Audio(getAudioUrl('tada'));
+                        let tada = new Audio(window.getAudioUrl('tada'));
                         tada.volume = 0.5;
                         tada.play();
                     } catch (e) {
@@ -215,7 +234,7 @@ function onload() {
                 }
             });
         }
-        if (!n(id('somtoday-mod-version-easter-egg')) && !id('somtoday-mod-version-easter-egg').classList.contains('mod-easter-egg')) {
+        if (id('somtoday-mod-version-easter-egg') && !id('somtoday-mod-version-easter-egg').classList.contains('mod-easter-egg')) {
             id('somtoday-mod-version-easter-egg').addEventListener('click', function () {
                 tn('body', 0).insertAdjacentHTML('beforeend', window.logo(null, 'mod-easter-egg-logo mod-add-eventlistener" data-add-event-listener="true', '#0099ff'));
                 for (const element of cn('mod-easter-egg-logo mod-add-eventlistener')) {
@@ -241,7 +260,7 @@ function onload() {
             for (const element of cn('afspraak-header')) {
                 element.children[element.children.length - 1].addEventListener('mouseover', function () { shakeOnHover(this, -30, 30, -30, 30); });
             }
-            if (!n(tn('sl-bericht-acties', 0))) {
+            if (tn('sl-bericht-acties', 0)) {
                 for (const element of tn('sl-bericht-acties', 0).children) {
                     element.addEventListener('mouseover', function () { shakeOnHover(this, -30, 30, -30, 30); });
                 }
@@ -319,10 +338,8 @@ function onload() {
             // ROOSTER
             if (tn('sl-rooster-week-header', 0)) {
                 // Remove old custom homework first (might belong to different week)
-                const elements = tn('sl-rooster-week-header', 0).getElementsByClassName('mod-huiswerk');
-                for (const element of elements) {
-                    element.remove();
-                }
+                let elements = document.querySelectorAll('sl-rooster-week-header .mod-huiswerk');
+                elements.forEach(el => el.remove());
                 // Then add new custom homework
                 index = 0;
                 for (const element of tn('sl-rooster-week-header', 0).getElementsByClassName('dag')) {
@@ -398,19 +415,43 @@ function onload() {
     }
 
     function customHomeworkIcons(activeIcon, activeColor) {
-        let icons = {
-            'edit': '--fg-warning-normal',
-            'homework': '--fg-primary-normal',
-            'assignment': '--fg-alternative-normal',
-            'test': '--fg-warning-normal',
-            'test': '--fg-negative-normal',
-            'book': '--fg-warning-normal',
-            'clock': '--fg-warning-normal',
-            'palm': '--fg-on-positive-weak',
-        };
+        let icons = [
+            {
+                name: 'edit',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'homework',
+                color: '--fg-primary-normal',
+            },
+            {
+                name: 'assignment',
+                color: '--fg-alternative-normal',
+            },
+            {
+                name: 'test',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'test',
+                color: '--fg-negative-normal',
+            },
+            {
+                name: 'book',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'clock',
+                color: '--fg-warning-normal',
+            },
+            {
+                name: 'palm',
+                color: '--fg-on-positive-weak',
+            }
+        ];
         let iconHTML = '';
-        for (const icon of Object.keys(icons)) {
-            iconHTML += getIcon(icon, 'mod-homework-icon' + (activeIcon == icon ? ' mod-active' : ''), 'var(' + icons[icon] + ')', 'data-icon="' + icon + '" ');
+        for (const icon of icons) {
+            iconHTML += window.getIcon(icon.name, 'mod-homework-icon' + (activeIcon == icon.name ? ' mod-active' : ''), 'var(' + icon.color + ')', 'data-icon="' + icon.name + '" ');
         }
         const col = window.getComputedStyle(document.documentElement).getPropertyValue('--fg-warning-normal');
         return '<div style="display:flex;margin-top:20px;align-items:center;gap:10px;flex-wrap:wrap;">' + iconHTML + '<label tabindex="0" for="homeworkcolor" style="margin-left:auto;cursor:pointer;">Kleur kiezen</label><input style="display:none;" value="' + ((activeColor && activeColor.startsWith('#')) ? activeColor : col) + '" id="homeworkcolor" type="color"></div>';
@@ -424,7 +465,7 @@ function onload() {
         const currentStudiewijzerDate = ariaLabelToDate(element.classList.contains('week') ? element.nextElementSibling : element);
         const isWeek = !n(element.getElementsByClassName('header')[0]);
         if (n(element.getElementsByClassName('mod-add-homework')[0])) {
-            element.insertAdjacentHTML('beforeend', '<div class="mod-add-homework">' + getIcon('plus') + 'Taak toevoegen</div>');
+            element.insertAdjacentHTML('beforeend', '<div class="mod-add-homework">' + window.getIcon('plus') + 'Taak toevoegen</div>');
             element.getElementsByClassName('mod-add-homework')[0].addEventListener('click', function () {
                 modMessage('Taak toevoegen', 'Voeg je eigen taak toe aan de kalender. De taak wordt alleen in deze ' + (platform == 'Android' ? 'app' : 'browser') + ' opgeslagen.</p>' +
                     '<input id="mod-homework-subject" type="text" placeholder="Vul een vak in"><div class="br"></div><textarea id="mod-homework-description" placeholder="Vul een taak in"></textarea>' +
@@ -539,7 +580,7 @@ function onload() {
                     }
                     if (!n(insertElement)) {
                         const noMoving = element.getElementsByTagName('sl-studiewijzer-items')[0] && element.getElementsByTagName('sl-studiewijzer-items')[0].classList.contains('mod-rooster');
-                        insertElement.insertAdjacentHTML('afterend', '<div class="mod-huiswerk ' + (done ? 'mod-huiswerk-done' : (noMoving ? '' : 'mod-before')) + ' mod-homework-' + homework[i].id + '"' + (homework[i].color ? ' style="border-left-color:' + homework[i].color + '"' : '') + '>' + getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color) + '<strong>' + sanitizeString(homework[i].subject) + '</strong><p>' + sanitizeString(homework[i].description) + '</p><div><svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 24 24" display="block"><path fill-rule="evenodd" d="m9.706 21.576 13.876-14.05c.538-.55.56-1.43.044-1.998l-2.769-3.06a1.41 1.41 0 0 0-2.076-.025L9.83 11.858a1.41 1.41 0 0 1-2.06-.01L5.424 9.342a1.414 1.414 0 0 0-2.041-.032l-2.96 2.982a1.45 1.45 0 0 0 .003 2.052l7.27 7.242c.56.555 1.455.552 2.01-.01"></path></svg></div></div>');
+                        insertElement.insertAdjacentHTML('afterend', '<div class="mod-huiswerk ' + (done ? 'mod-huiswerk-done' : (noMoving ? '' : 'mod-before')) + ' mod-homework-' + homework[i].id + '"' + (homework[i].color ? ' style="border-left-color:' + homework[i].color + '"' : '') + '>' + window.getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color) + '<strong>' + sanitizeString(homework[i].subject) + '</strong><p>' + sanitizeString(homework[i].description) + '</p><div><svg xmlns="http://www.w3.org/2000/svg" width="12px" height="12px" viewBox="0 0 24 24" display="block"><path fill-rule="evenodd" d="m9.706 21.576 13.876-14.05c.538-.55.56-1.43.044-1.998l-2.769-3.06a1.41 1.41 0 0 0-2.076-.025L9.83 11.858a1.41 1.41 0 0 1-2.06-.01L5.424 9.342a1.414 1.414 0 0 0-2.041-.032l-2.96 2.982a1.45 1.45 0 0 0 .003 2.052l7.27 7.242c.56.555 1.455.552 2.01-.01"></path></svg></div></div>');
                         const homeworkItem = insertElement.nextElementSibling;
                         const homeworkClassName = 'mod-homework-' + homework[i].id;
                         function saveAdjustedHomework(e) {
@@ -555,7 +596,7 @@ function onload() {
                             for (const element of cn(homeworkClassName)) {
                                 element.getElementsByTagName('strong')[0].innerHTML = sanitizeString(homework[i].subject);
                                 element.getElementsByTagName('p')[0].innerHTML = sanitizeString(homework[i].description);;
-                                element.getElementsByTagName('svg')[0].outerHTML = getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color);
+                                element.getElementsByTagName('svg')[0].outerHTML = window.getIcon(homework[i].icon ? homework[i].icon : 'edit', null, homework[i].color);
                                 element.style.borderLeftColor = homework[i].color;
                             }
                             set('homework', JSON.stringify(homework));
@@ -599,7 +640,7 @@ function onload() {
                             id('mod-message').addEventListener('click', function () {
                                 closeModMessage();
                                 tn('sl-root', 0).inert = false;
-                                if (!n(tn('sl-modal', 0))) {
+                                if (tn('sl-modal', 0)) {
                                     tn('sl-modal', 0).inert = false;
                                 }
                             });
@@ -717,7 +758,7 @@ function onload() {
     // Add a menu bar on top of the page
     function topMenu() {
         if (get('layout') == 5 && n(id('mod-top-menu'))) {
-            tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-top-menu"><h2 id="mod-top-menu-title">Titel</h2><div id="mod-logout">' + getIcon("right-from-bracket") + '</div><div id="mod-messages">' + getIcon("envelope") + '</div><div id="mod-profile-link"></div></div>');
+            tn('body', 0).insertAdjacentHTML('beforeend', '<div id="mod-top-menu"><h2 id="mod-top-menu-title">Titel</h2><div id="mod-logout">' + window.getIcon("right-from-bracket") + '</div><div id="mod-messages">' + window.getIcon("envelope") + '</div><div id="mod-profile-link"></div></div>');
             id('mod-profile-link').addEventListener('click', function () {
                 cn('menu-avatar', 0).click();
             });
@@ -725,7 +766,7 @@ function onload() {
                 cn('menu-avatar', 0).click();
                 tryRemove(id('mod-top-menu'));
                 let checkLogoutButtonPresent = setInterval(function () {
-                    if (!n(cn('selector-option uitloggen', 0))) {
+                    if (cn('selector-option uitloggen', 0)) {
                         cn('selector-option uitloggen', 0).click();
                         clearInterval(checkLogoutButtonPresent);
                     }
@@ -738,10 +779,10 @@ function onload() {
         else if (get('layout') != 5) {
             tryRemove(id('mod-top-menu'));
         }
-        else if (!n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && !n(id('mod-profile-link'))) {
-            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + ((!n(cn('avatar', 0).getElementsByClassName('initials')[0]) && !n(cn('avatar', 0).getElementsByClassName('initials')[0].children[0])) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + (n(get('profilepic')) ? cn('avatar', 0).getElementsByClassName('foto')[0].src : get('profilepic')) + '" />') + '</div>';
+        else if (cn('avatar', 0) && cn('avatar', 0).getElementsByClassName('foto')[0] && id('mod-profile-link')) {
+            id('mod-profile-link').innerHTML = '<div>' + (cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden') ? '<span>' + ((cn('avatar', 0).getElementsByClassName('initials')[0] && cn('avatar', 0).getElementsByClassName('initials')[0].children[0]) ? cn('avatar', 0).getElementsByClassName('initials')[0].children[0].innerHTML : '?') + '</span>' : '<img src="' + (n(get('profilepic')) ? cn('avatar', 0).getElementsByClassName('foto')[0].src : get('profilepic')) + '" />') + '</div>';
         }
-        if (!n(id('mod-top-menu-title'))) {
+        if (id('mod-top-menu-title')) {
             let headerText = '';
             for (const element of tn('sl-tab-item')) {
                 if (element.classList.contains('active')) {
@@ -749,10 +790,10 @@ function onload() {
                 }
             }
             if (n(headerText)) {
-                if (!n(cn('desktop-title', 0))) {
+                if (cn('desktop-title', 0)) {
                     headerText = cn('desktop-title', 0).innerHTML;
                 }
-                else if (!n(tn('sl-scrollable-title', 0))) {
+                else if (tn('sl-scrollable-title', 0)) {
                     headerText = tn('sl-scrollable-title', 0).innerHTML;
                 }
             }
@@ -763,7 +804,7 @@ function onload() {
     // Reveal new grades with an animation
     function gradeReveal() {
         if (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) != '0') {
-            if (!n(tn('sl-laatsteresultaten', 0)) && !n(tn('sl-resultaat-item', 0))) {
+            if (tn('sl-laatsteresultaten', 0) && tn('sl-resultaat-item', 0)) {
                 let i = 0;
                 const lastGrade = get('lastgrade');
                 const lastGradeTitle = get('lastgradetitle');
@@ -810,7 +851,7 @@ function onload() {
         }
     }
 
-    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'transparency', 'ui', 'uiblur', 'fontname', 'theme', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen', 'customcss'];
+    const settingKeys = ['primarycolor', 'secondarycolor', 'nicknames', 'bools', 'title', 'icon', 'background', 'backgroundtype', 'backgroundcolor', 'livetype', 'livecolor1', 'livecolor2', 'livecolor3', 'ui', 'uiblur', 'fontname', 'theme', 'preset', 'layout', 'profilepic', 'username', 'brightness', 'contrast', 'saturate', 'opacity', 'huerotate', 'grayscale', 'sepia', 'invert', 'blur', 'homework', 'menuwidth', 'isbackgroundvideo', 'customfont', 'customfontname', 'letterbeoordelingen', 'customcss'];
     function exportSettings() {
         let settings = {};
         for (const key of settingKeys) {
@@ -909,7 +950,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -918,7 +959,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -937,7 +978,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -946,7 +987,7 @@ function onload() {
                     closeModMessage();
                     saveReload(true);
                     tn('sl-root', 0).inert = false;
-                    if (!n(tn('sl-modal', 0))) {
+                    if (tn('sl-modal', 0)) {
                         tn('sl-modal', 0).inert = false;
                     }
                 });
@@ -991,7 +1032,7 @@ function onload() {
             });
             saveReload(true);
             tn('sl-root', 0).inert = false;
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).inert = false;
             }
             if (closeModMessages) {
@@ -1006,8 +1047,6 @@ function onload() {
             id('mod-message-action1').addEventListener('click', closeModMessage);
         });
     }
-
-    // [GENERATION] INSERT_FIREWORKSJS
 
     // Add new year countdown
     let newYearCountdownClosed = false;
@@ -1188,8 +1227,8 @@ function onload() {
         // Every time the roster is modified, the week may have changed, so update custom homework as well
         execute([customHomework]);
         // Only execute roster simplify when enabled and on roster page
-        if (get('bools').charAt(BOOL_INDEX.ROSTER_SIMPLIFY) == "1" && !n(tn('sl-rooster-weken', 0))) {
-            if (!n(cn('tertiary normal action-primary-normal center', 0)) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
+        if (get('bools').charAt(BOOL_INDEX.ROSTER_SIMPLIFY) == "1" && tn('sl-rooster-weken', 0)) {
+            if (cn('tertiary normal action-primary-normal center', 0) && !cn('tertiary normal action-primary-normal center', 0).classList.contains('mod-vandaag-button-event-listener-added')) {
                 // If "Vandaag" button is clicked Somtoday will load all weeks from scratch with js, within the pageUpdate timeout
                 // This means rosterSimplify has to be called again with a delay
                 cn('tertiary normal action-primary-normal center', 0).addEventListener('click', function () {
@@ -1213,7 +1252,7 @@ function onload() {
                             tn('sl-rooster-weken', 0).style.height = normalRosterHeight + 'px';
                             tn('sl-rooster-weken', 0).style.overflowY = 'visible';
                             // Update the time text at the left to display 'hh:mm' instead of 'nth hour'
-                            if (!n(tn('sl-rooster-tijden', 0))) {
+                            if (tn('sl-rooster-tijden', 0)) {
                                 let i = 0;
                                 for (const element of tn('sl-rooster-tijden', 0).children) {
                                     const span = element.getElementsByTagName('span')[0];
@@ -1230,7 +1269,7 @@ function onload() {
                 if (shouldUpdate) {
                     let timeIndicatorPositioned = false;
                     // Position time indicator at end if it is past the last lesson
-                    if (isWeekShown && !n(cn('tijdlijn', 0))) {
+                    if (isWeekShown && cn('tijdlijn', 0)) {
                         let elements = cn('tijdlijn', 0).parentElement.getElementsByTagName('sl-rooster-item');
                         if (!n(elements[0]) && !n(elements[elements.length - 1].getElementsByClassName('opacity-80')[0])) {
                             // Get hour number from last hour
@@ -1276,8 +1315,8 @@ function onload() {
                                 }
                             }
                             element.style.top = top + 'px';
-                            if (isWeekShown && !isNaN(lessonTime) && !n(cn('tijdlijn', 0)) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
-                                if (!n(cn('tijdlijn', 0))) {
+                            if (isWeekShown && !isNaN(lessonTime) && cn('tijdlijn', 0) && (currentTime < lessonTime) && !timeIndicatorPositioned && !n(element.parentElement.getElementsByClassName('tijdlijn')[0])) {
+                                if (cn('tijdlijn', 0)) {
                                     cn('tijdlijn', 0).style.top = top + 'px';
                                 }
                                 timeIndicatorTop = top;
@@ -1290,16 +1329,16 @@ function onload() {
                         tn('sl-rooster-weken', 0).style.height = (Math.max(lastHour + 2, 5) * 84 - 54) + 'px';
                         tn('sl-rooster-weken', 0).style.overflowY = 'hidden';
                     }
-                    if (!n(tn('sl-vakantie-header', 0))) {
+                    if (tn('sl-vakantie-header', 0)) {
                         tn('sl-vakantie-header', 0).style.borderTop = 'none';
                     }
                     // Update the time text at the left to display 'nth hour' instead of 'hh:mm'
-                    if (isWeekShown && !n(tn('sl-rooster-tijden', 0))) {
+                    if (isWeekShown && tn('sl-rooster-tijden', 0)) {
                         let i = 1;
                         for (const element of tn('sl-rooster-tijden', 0).children) {
                             let span = element.getElementsByTagName('span')[0];
                             if (n(span)) {
-                                if (!n(tn('sl-rooster-tijden', 0).children[1])) {
+                                if (tn('sl-rooster-tijden', 0).children[1]) {
                                     setHTML(element, tn('sl-rooster-tijden', 0).children[1].innerHTML);
                                     span = element.getElementsByTagName('span')[0];
                                     setHTML(span, ' ');
@@ -1333,7 +1372,7 @@ function onload() {
         } else {
             highLightColor = adjust(get('primarycolor'), 35);
         }
-        while (!n(cn('mod-style', 0))) {
+        while (cn('mod-style', 0)) {
             cn('mod-style', 0).remove();
         }
         if (get('bools').charAt(BOOL_INDEX.SCROLLBAR) == '0') {
@@ -1342,7 +1381,6 @@ function onload() {
         if (get('bools').charAt(BOOL_INDEX.TEXT_SELECTION) == '1') {
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">*{user-select:auto !important;}</style>');
         }
-        // [GENERATION] APPLY_STYLES
         // General style
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">' + (get('bools').charAt(BOOL_INDEX.ROSTER_GRID) == '0' ? 'sl-rooster-week .uur{border-left:none !important;border-bottom:none !important;}' : '') + '</style>');
         tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style">@media (min-width:767px){:root{--min-content-vh:calc(100vh - ' + (get('layout') == '4' ? '66px' : '74px') + ') !important;}}</style>');
@@ -1395,10 +1433,26 @@ function onload() {
         // Custom CSS - inject at the end so it overrides mod and Somtoday CSS
         if (!n(get('customcss')) && get('customcss').trim() !== '') {
             // Sanitize CSS to prevent breaking out of style tag and potential code injection
-            let sanitizedCSS = sanitizeString(get('customcss'))
+            let sanitizedCSS = get('customcss')
                 .replace(/javascript:[^'"]+/gi, '')  // Remove javascript: URLs
                 .replace(/@import[^;\n]+/gi, '');  // Remove @import to prevent loading external CSS
             tn('head', 0).insertAdjacentHTML('beforeend', '<style class="mod-style mod-custom-css">' + sanitizedCSS + '</style>');
+
+            const customCSS = document.createElement('style');
+            customCSS.setAttribute('class', 'mod-style mod-custom-css');
+            customCSS.innerText = sanitizedCSS;
+            tn('head', 0).appendChild(customCSS);
+
+            // Force !important on every rule via CSSOM
+            for (const sheet of document.styleSheets) {
+                if (sheet.ownerNode !== customCSS) continue;
+                for (const rule of sheet.cssRules) {
+                    if (!(rule instanceof CSSStyleRule)) continue;
+                    for (const prop of rule.style) {
+                        rule.style.setProperty(prop, rule.style.getPropertyValue(prop), 'important');
+                    }
+                }
+            }
         }
     }
 
@@ -1498,184 +1552,53 @@ function onload() {
         tryRemove(id('mod-css-variables'));
         tryRemove(id('mod-css-variables-2'));
         if (get('ui') != 0 || get('backgroundtype') == 'live') {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--mod-semi-transparant:' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + ';--text-weakest:var(--text-weak);--border-neutral-normal:rgba(' + (darkmode ? '55,64,72,0' : '208,214,220,0') + ');' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables-2">sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{background:var(--bg-neutral-none);margin-top:-5px;margin-bottom:-5px;}' + (get('uiblur') == 0 ? '' : '.nieuw-bericht-form hmy-popup{top:70px !important;left:70px !important;}sl-plaatsingen,.nieuw-bericht-form,sl-header,sl-laatste-resultaat-item,sl-vakresultaat-item,.berichten-lijst,.vakken,' + (get('layout') == '4' ? '' : 'sl-vakresultaten,hmy-geen-data,hmy-switch-group:has(hmy-switch),sl-bericht-detail .header,sl-bericht-nieuw > .titel,') + '.headers-container,.tabs,sl-studiewijzer-week:has(.datum.vandaag),#mod-top-menu,sl-home > * > sl-tab-bar.show,sl-dagen-header,sl-scrollable-title,sl-studiewijzer-weken-header,sl-cijfer-overzicht-voortgang>div,sl-rooster-tijden{backdrop-filter:blur(' + get('uiblur') + 'px);}') + '@media(max-width:767px){sl-laatste-resultaat-item{backdrop-filter:none;}sl-laatsteresultaten{backdrop-filter:blur(' + get('uiblur') + 'px);}}:root, :root.dark.dark {--thinnest-solid-neutral-strong:1px solid transparent !important;--text-weakest:var(--text-weak);--border-neutral-normal:transparent;' + ((darkmode && get('ui') > 0.9) ? '--text-weak:#fff;' : '') + '--bg-neutral-none:' + (darkmode ? 'rgba(0,0,0,' + (1 - (get('ui') / 100)) + ')' : 'rgba(255,255,255,' + (1 - (get('ui') / 100)) + ')') + ';--bg-neutral-weakest:' + (darkmode ? 'rgba(0, 0, 0, ' + (1 - (get('ui') / 100)) + ')' : 'rgba(255, 255, 255, ' + (1 - (get('ui') / 100)) + ')') + ';}.mod-multi-choice,input:not(:hover):not(:focus):not(.mod-color-textinput):not(.ng-pristine):not(.ng-dirty),textarea:not(:hover):not(:focus):not(.ng-pristine):not(.ng-dirty),.select-selected{border:1px solid rgba(0,0,0,0.1) !important;}hmy-toggle .toggle:not(:has(input:checked)) .slider{border:2px solid rgba(0,0,0,0.1) !important;}sl-rooster sl-dag-header-tab,.periode-icon{background:none !important;}@media (max-width:767px){' + (platform == 'Android' ? 'sl-rooster-item{margin-left:8px;}' : '') + 'sl-vakgemiddelden sl-dropdown,sl-cijfer-overzicht sl-dropdown{margin-top:10px;}}</style>');
         }
         // If at least one of the colors is not set to the default value, modify Somtoday color variables
-        const purple100 = toBrightnessValue(get('secondarycolor'), 41);
-        const purple80 = toBrightnessValue(get('secondarycolor'), 53);
-        const purple50 = toBrightnessValue(get('secondarycolor'), 88);
-        const purple30 = toBrightnessValue(get('secondarycolor'), 126);
-        const purple10 = toBrightnessValue(get('secondarycolor'), 201);
-        const purple0 = toBrightnessValue(get('secondarycolor'), 231);
-        const green100 = toBrightnessValue(get('secondarycolor'), 46);
-        const green90 = toBrightnessValue(get('secondarycolor'), 68);
-        const green80 = toBrightnessValue(get('secondarycolor'), 113);
-        const green50 = toBrightnessValue(get('secondarycolor'), 183);
-        const green20 = toBrightnessValue(get('secondarycolor'), 209);
-        const green10 = toBrightnessValue(get('secondarycolor'), 228);
-        const green0 = toBrightnessValue(get('secondarycolor'), 245);
-        const blue100 = toBrightnessValue(get('primarycolor'), 48);
-        const blue80 = toBrightnessValue(get('primarycolor'), 56);
-        const blue70 = toBrightnessValue(get('primarycolor'), 81);
-        const blue60 = toBrightnessValue(get('primarycolor'), 89);
-        const blue40 = toBrightnessValue(get('primarycolor'), 140);
-        const blue30 = toBrightnessValue(get('primarycolor'), 169);
-        const blue20 = toBrightnessValue(get('primarycolor'), 198);
-        const blue0 = toBrightnessValue(get('primarycolor'), 241);
-        const yellow60 = toBrightnessValue(get('secondarycolor'), 162);
-        const yellow50 = toBrightnessValue(get('secondarycolor'), 173);
-        const yellow20 = toBrightnessValue(get('secondarycolor'), 198);
-        const orange60 = toBrightnessValue(get('secondarycolor'), 141);
-        const orange30 = toBrightnessValue(get('secondarycolor'), 180);
+        let css = (darkmode ? '#mod-setting-panel ::placeholder{ color: var(--action-neutral-normal) !important; }' : '') + ' :root, :root.dark.dark { --mod-transparent: rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + '); --mod-ui-transparent: rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + '); --mod-semi-transparant: ' + (tn('html', 0).classList.contains('night') ? '#000' : (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)')) + '; --mod-border-neutral-normal: rgb(' + (darkmode ? '55,64,72' : '208,214,220') + ');';
         if (get('primarycolor') != '#0067c2' || get('secondarycolor') != '#e69b22') {
             const rgbcolor = hexToRgb(get('primarycolor'));
+            let cssVariables = '';
+            const blueBrightness = ['241', '220', '198', '169', '140', '115', '89', '81', '56', '52', '48'];
+            const greenBrightness = ['245', '228', '209', '200', '192', '183', '160', '137', '114', '68', '46'];
+            const yellowBrightness = ['241', '220', '198', '190', '180', '173', '162', '137', '114', '68', '46'];
+            const purpleBrightness = ['231', '201', '170', '126', '100', '88', '77', '65', '53', '50', '41'];
+            const orangeBrightness = ['241', '220', '198', '180', '168', '155', '141', '90', '56', '52', '48'];
+            for (let i = 0; i < blueBrightness.length; i++) {
+                cssVariables += `--blue-${i * 10}: ${toBrightnessValue(get('primarycolor'), blueBrightness[i])};`;
+                cssVariables += `--green-${i * 10}: ${toBrightnessValue(get('secondarycolor'), greenBrightness[i])};`;
+                cssVariables += `--yellow-${i * 10}: ${toBrightnessValue(get('secondarycolor'), yellowBrightness[i])};`;
+                cssVariables += `--purple-${i * 10}: ${toBrightnessValue(get('secondarycolor'), purpleBrightness[i])};`;
+                cssVariables += `--orange-${i * 10}: ${toBrightnessValue(get('secondarycolor'), orangeBrightness[i])};`;
+            }
             // Generate and adjust colors based on highest color channel value
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">' + (darkmode ? '#mod-setting-panel ::placeholder{color:var(--action-neutral-normal) !important;}' : '') + ':root, :root.dark.dark {--mod-transparent:rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + ');--mod-ui-transparent:rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');--purple-100:' + purple100 + ';--purple-80:' + purple80 + ';--purple-50:' + purple50 + ';--purple-30:' + purple30 + ';--purple-10:' + purple10 + ';--purple-0:' + purple0 + ';--mod-semi-transparant:' + (darkmode ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)') + ';--green-100:' + green100 + ';--green-90:' + green90 + ';--green-80:' + green80 + ';--green-50:' + green50 + ';--green-20:' + green20 + ';--green-10:' + green10 + ';--green-0:' + green0 + ';--thinnest-solid-neutral-strong:var(--b-thinnest) solid var(--border-neutral-normal);--blue-60:' + blue60 + ';--blue-70:' + blue70 + ';--yellow-60:' + yellow60 + ';--blue-0:' + blue0 + ';--blue-80:' + blue80 + ';--blue-30:' + blue30 + ';--blue-20:' + blue20 + ';--blue-100:' + blue100 + ';--yellow-20:' + yellow20 + ';--blue-40:' + blue40 + ';--yellow-50:' + yellow50 + ';--orange-30:' + orange30 + ';--orange-60:' + orange60 + ';}sl-account-modal i{--bg-neutral-moderate:' + (darkmode ? '#282e34' : '#dadfe3') + ';--fg-on-neutral-moderate:' + (darkmode ? '#eaedf0' : '#374048') + ';--bg-primary-weak:' + (darkmode ? '#1a344d' : '#e5f3ff') + ';--fg-on-primary-weak:' + (darkmode ? '#e5f3ff' : '#004180') + ';--bg-alternative-weak:' + (darkmode ? '#342060' : '#ece3ff') + ';--fg-on-alternative-weak:' + (darkmode ? '#d4c0fd' : '#29017d') + ';--bg-accent-weak:' + (darkmode ? '#4d3919' : '#fff4e3') + ';--fg-on-accent-weak:' + (darkmode ? '#fff4e3' : '#4d3919') + ';--bg-positive-weak:' + (darkmode ? '#133914' : '#ebf9ec') + ';--fg-on-positive-weak:' + (darkmode ? '#baf5bc' : '#145716') + ';}</style>');
+            css += cssVariables + `}
+            sl-account-modal i {
+                --bg-neutral-moderate: ${darkmode ? '#282e34' : '#dadfe3'};
+                --fg-on-neutral-moderate: ${darkmode ? '#eaedf0' : '#374048'};
+                --bg-primary-weakest: ${darkmode ? '#1a344d' : '#e5f3ff'};
+                --fg-on-primary-weakest: ${darkmode ? '#e5f3ff' : '#004180'};
+                --bg-alternative-weak: ${darkmode ? '#342060' : '#ece3ff'};
+                --fg-on-alternative-weak: ${darkmode ? '#d4c0fd' : '#29017d'};
+                --bg-accent-weak: ${darkmode ? '#4d3919' : '#fff4e3'};
+                --fg-on-accent-weak: ${darkmode ? '#fff4e3' : '#4d3919'};
+                --bg-positive-weakest: ${darkmode ? '#133914' : '#ebf9ec'};
+                --fg-on-positive-weakest: ${darkmode ? '#baf5bc' : '#145716'};
+            }`;
         }
         else {
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-css-variables">' + (darkmode ? '#mod-setting-panel ::placeholder{color:var(--action-neutral-normal) !important;}' : '') + ':root, :root.dark.dark {--mod-transparent:rgba(' + (darkmode ? '0,0,0,0.3' : '255,255,255,0.3') + ');--mod-ui-transparent:rgba(' + (darkmode ? '0,0,0' : '255,255,255') + ',' + (1 - (get('ui') / 100)) + ');}</style>');
+            css += '}';
         }
-    }
-
-    // Get modlogo SVG
-    window.logo = function (id, classname, color, style) {
-        return '<svg xmlns="http://www.w3.org/2000/svg"' + (n(id) ? '' : ' id="' + id + '"') + (n(classname) ? '' : ' class="' + classname + '"') + (n(style) ? '' : ' style="' + style + '"') + ' viewBox="0 0 190.5 207" width="190.5" height="207"><g transform="translate(-144.8 -76.5)"><g><path d="M261 107.8v.3c0 3.7 3 6.7 6.6 6.7H299a6.8 6.8 0 0 1 6.7 7V143.2c0 3.7 3 6.7 6.7 6.7h16.1a6.8 6.8 0 0 1 6.7 7V201.6c0 3.7-3 6.6-6.7 6.7h-16.1a6.8 6.8 0 0 0-6.7 7v23.1c0 3.7-3 6.7-6.7 6.7h-10.5a6.8 6.8 0 0 0-6.7 7l-.1 24.4v.3c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.7-7v-24.6c0-3.8-2.8-6.9-6.3-6.9s-6.4 3.1-6.4 7v24.8c0 3.6-3 6.6-6.7 6.7h-22.3a6.8 6.8 0 0 1-6.6-7l.1-24.4v-.3c0-3.7-3-6.7-6.6-6.7h-10.5a6.8 6.8 0 0 1-6.7-7V215c0-3.6-3-6.6-6.7-6.7h-15.8a6.8 6.8 0 0 1-6.7-7V156.6c0-3.7 3-6.7 6.7-6.7h15.8a6.8 6.8 0 0 0 6.7-7v-21.4c0-3.6 3-6.6 6.7-6.7h31a6.8 6.8 0 0 0 6.7-7l.1-24.3v-.3c0-3.6 3-6.6 6.7-6.7h29a6.8 6.8 0 0 1 6.8 7z" fill="' + color + '" /><path d="M289.8 179.2c1.3 0 2.9.3 4.6.9 2.2.7 4 1.7 5 2.7v.2c.8.6 1.3 1.5 1.4 2.6 0 .9-.2 1.7-.6 2.3l-6.8 10.8a60.2 60.2 0 0 1-27.5 19.8c-8.5 3.2-17 4.7-24.7 4.5l-13.2-.1a1.6 1.6 0 0 1-1.7-1.5v-3.3a1.6 1.6 0 0 1 1.7-1.5h.1c7.9.3 16.3-1 24.7-4.2a56 56 0 0 0 34.3-31.4v-.3c.5-1 1.4-1.5 2.3-1.5z" fill="#000000" stroke="none" /><g class="glasses"><path d="M171.4 150.8v-9h137.2v9z" fill="#000000" stroke="none" /><path d="M175.7 155.5v-6h57.5v6z" fill="#000000" stroke="none" /><path d="M179.8 160v-9h48.9v9z" fill="#000000" stroke="none" /><path d="M184 164.5v-9h44.7v9z" fill="#000000" stroke="none" /><path d="M188.6 168.6v-7h31.7v7z" fill="#000000" stroke="none" /><path d="M245.9 155.5v-6h57.4v6z" fill="#000000" stroke="none" /><path d="M250 160v-9h48.8v9z" fill="#000000" stroke="none" /><path d="M254 164.5v-9h41v9z" fill="#000000" stroke="none" /><path d="M258.8 168.6v-7h31.6v7z" fill="#000000" stroke="none" /><path d="M184.5 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M188.8 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M193.3 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M197.6 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M202.1 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M254.8 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M259.1 159.2V155h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M263.6 155.1v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /><path d="M268 159.2V155h4.4v4.3z" fill="#ffffff" stroke="none" /><path d="M272.4 163.5v-4.3h4.5v4.3z" fill="#ffffff" stroke="none" /></g></g></g></svg>';
-    };
-
-    // Construct an icon in SVG format. Only contains icons used by this mod. Icons thanks to Font Awesome: https://fontawesome.com/
-    function getIcon(name, classname, color, start) {
-        let svg;
-        let viewbox = '0 0 512 512';
-        n(name) ? name = '' : null;
-        classname = n(classname) ? '' : 'class="' + classname + '" ';
-        start = n(start) ? '' : start + ' ';
-        switch (name) {
-            // FONT AWESOME
-            case 'envelope':
-                svg = 'M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z';
-                break;
-            case 'right-from-bracket':
-                svg = 'M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z';
-                break;
-            case 'gear':
-                svg = 'M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z';
-                break;
-            case 'floppy-disk':
-                viewbox = '0 0 448 512';
-                svg = 'M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V173.3c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32H64zm0 96c0-17.7 14.3-32 32-32H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V128zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z';
-                break;
-            case 'rotate-left':
-                svg = 'M48.5 224H40c-13.3 0-24-10.7-24-24V72c0-9.7 5.8-18.5 14.8-22.2s19.3-1.7 26.2 5.2L98.6 96.6c87.6-86.5 228.7-86.2 315.8 1c87.5 87.5 87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3c-62.2-62.2-162.7-62.5-225.3-1L185 183c6.9 6.9 8.9 17.2 5.2 26.2s-12.5 14.8-22.2 14.8H48.5z';
-                break;
-            case 'globe':
-                svg = 'M352 256c0 22.2-1.2 43.6-3.3 64H163.3c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64H348.7c2.2 20.4 3.3 41.8 3.3 64zm28.8-64H503.9c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64zm112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6c78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7c10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5c11.6 26 20.9 58.2 27 94.7zm-209 0H18.6C48.6 85.9 112.2 29.1 190.6 8.4C165.1 42.6 145.3 96.1 135.3 160zM8.1 192H131.2c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64zM194.7 446.6c-11.6-26-20.9-58.2-27-94.6H344.3c-6.1 36.4-15.5 68.6-27 94.6c-10.5 23.6-22.2 40.7-33.5 51.5C272.6 508.8 263.3 512 256 512s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6C112.2 482.9 48.6 426.1 18.6 352H135.3zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6c25.5-34.2 45.2-87.7 55.3-151.6H493.4z';
-                break;
-            case 'circle-info':
-                svg = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z';
-                break;
-            case 'circle-exclamation':
-                svg = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24V264c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z';
-                break;
-            case 'upload':
-                svg = 'M288 109.3V352c0 17.7-14.3 32-32 32s-32-14.3-32-32V109.3l-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352H192c0 35.3 28.7 64 64 64s64-28.7 64-64H448c35.3 0 64 28.7 64 64v32c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V416c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z';
-                break;
-            case 'download':
-                svg = 'M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z';
-                break;
-            case 'chevron-right':
-                svg = 'M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z';
-                break;
-            case 'brain':
-                svg = 'M184 0c30.9 0 56 25.1 56 56V456c0 30.9-25.1 56-56 56c-28.9 0-52.7-21.9-55.7-50.1c-5.2 1.4-10.7 2.1-16.3 2.1c-35.3 0-64-28.7-64-64c0-7.4 1.3-14.6 3.6-21.2C21.4 367.4 0 338.2 0 304c0-31.9 18.7-59.5 45.8-72.3C37.1 220.8 32 207 32 192c0-30.7 21.6-56.3 50.4-62.6C80.8 123.9 80 118 80 112c0-29.9 20.6-55.1 48.3-62.1C131.3 21.9 155.1 0 184 0zM328 0c28.9 0 52.6 21.9 55.7 49.9c27.8 7 48.3 32.1 48.3 62.1c0 6-.8 11.9-2.4 17.4c28.8 6.2 50.4 31.9 50.4 62.6c0 15-5.1 28.8-13.8 39.7C493.3 244.5 512 272.1 512 304c0 34.2-21.4 63.4-51.6 74.8c2.3 6.6 3.6 13.8 3.6 21.2c0 35.3-28.7 64-64 64c-5.6 0-11.1-.7-16.3-2.1c-3 28.2-26.8 50.1-55.7 50.1c-30.9 0-56-25.1-56-56V56c0-30.9 25.1-56 56-56z';
-                break;
-            case 'bullseye':
-                svg = 'M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z';
-                break;
-            case 'calculator':
-                svg = 'M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM96 64H288c17.7 0 32 14.3 32 32v32c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z';
-                break;
-            case 'arrows-left-right':
-                svg = 'M406.6 374.6l96-96c12.5-12.5 12.5-32.8 0-45.3l-96-96c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224l-293.5 0 41.4-41.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-96 96c-12.5 12.5-12.5 32.8 0 45.3l96 96c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288l293.5 0-41.4 41.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z';
-                break;
-            case 'earth-europe':
-                svg = 'M266.3 48.3L232.5 73.6c-5.4 4-8.5 10.4-8.5 17.1v9.1c0 6.8 5.5 12.3 12.3 12.3c2.4 0 4.8-.7 6.8-2.1l41.8-27.9c2-1.3 4.4-2.1 6.8-2.1h1c6.2 0 11.3 5.1 11.3 11.3c0 3-1.2 5.9-3.3 8l-19.9 19.9c-5.8 5.8-12.9 10.2-20.7 12.8l-26.5 8.8c-5.8 1.9-9.6 7.3-9.6 13.4c0 3.7-1.5 7.3-4.1 10l-17.9 17.9c-6.4 6.4-9.9 15-9.9 24v4.3c0 16.4 13.6 29.7 29.9 29.7c11 0 21.2-6.2 26.1-16l4-8.1c2.4-4.8 7.4-7.9 12.8-7.9c4.5 0 8.7 2.1 11.4 5.7l16.3 21.7c2.1 2.9 5.5 4.5 9.1 4.5c8.4 0 13.9-8.9 10.1-16.4l-1.1-2.3c-3.5-7 0-15.5 7.5-18l21.2-7.1c7.6-2.5 12.7-9.6 12.7-17.6c0-10.3 8.3-18.6 18.6-18.6H400c8.8 0 16 7.2 16 16s-7.2 16-16 16H379.3c-7.2 0-14.2 2.9-19.3 8l-4.7 4.7c-2.1 2.1-3.3 5-3.3 8c0 6.2 5.1 11.3 11.3 11.3h11.3c6 0 11.8 2.4 16 6.6l6.5 6.5c1.8 1.8 2.8 4.3 2.8 6.8s-1 5-2.8 6.8l-7.5 7.5C386 262 384 266.9 384 272s2 10 5.7 13.7L408 304c10.2 10.2 24.1 16 38.6 16H454c6.5-20.2 10-41.7 10-64c0-111.4-87.6-202.4-197.7-207.7zm172 307.9c-3.7-2.6-8.2-4.1-13-4.1c-6 0-11.8-2.4-16-6.6L396 332c-7.7-7.7-18-12-28.9-12c-9.7 0-19.2-3.5-26.6-9.8L314 287.4c-11.6-9.9-26.4-15.4-41.7-15.4H251.4c-12.6 0-25 3.7-35.5 10.7L188.5 301c-17.8 11.9-28.5 31.9-28.5 53.3v3.2c0 17 6.7 33.3 18.7 45.3l16 16c8.5 8.5 20 13.3 32 13.3H248c13.3 0 24 10.7 24 24c0 2.5 .4 5 1.1 7.3c71.3-5.8 132.5-47.6 165.2-107.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM187.3 100.7c-6.2-6.2-16.4-6.2-22.6 0l-32 32c-6.2 6.2-6.2 16.4 0 22.6s16.4 6.2 22.6 0l32-32c6.2-6.2 6.2-16.4 0-22.6z';
-                break;
-            case 'landmark':
-                svg = 'M240.1 4.2c9.8-5.6 21.9-5.6 31.8 0l171.8 98.1L448 104l0 .9 47.9 27.4c12.6 7.2 18.8 22 15.1 36s-16.4 23.8-30.9 23.8H32c-14.5 0-27.2-9.8-30.9-23.8s2.5-28.8 15.1-36L64 104.9V104l4.4-1.6L240.1 4.2zM64 224h64V416h40V224h64V416h48V224h64V416h40V224h64V420.3c.6 .3 1.2 .7 1.8 1.1l48 32c11.7 7.8 17 22.4 12.9 35.9S494.1 512 480 512H32c-14.1 0-26.5-9.2-30.6-22.7s1.1-28.1 12.9-35.9l48-32c.6-.4 1.2-.7 1.8-1.1V224z';
-                break;
-            case 'flask':
-                svg = 'M288 0H160 128C110.3 0 96 14.3 96 32s14.3 32 32 32V196.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6C0 480.9 31.1 512 69.4 512H378.6c38.3 0 69.4-31.1 69.4-69.4c0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H288zM192 196.8V64h64V196.8c0 23.7 6.6 46.9 19 67.1L309.5 320h-171L173 263.9c12.4-20.2 19-43.4 19-67.1z';
-                break;
-            case 'microscope':
-                svg = 'M160 32c0-17.7 14.3-32 32-32h32c17.7 0 32 14.3 32 32c17.7 0 32 14.3 32 32V288c0 17.7-14.3 32-32 32c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32c-17.7 0-32-14.3-32-32V64c0-17.7 14.3-32 32-32zM32 448H320c70.7 0 128-57.3 128-128s-57.3-128-128-128V128c106 0 192 86 192 192c0 49.2-18.5 94-48.9 128H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H320 32c-17.7 0-32-14.3-32-32s14.3-32 32-32zm80-64H304c8.8 0 16 7.2 16 16s-7.2 16-16 16H112c-8.8 0-16-7.2-16-16s7.2-16 16-16z';
-                break;
-            case 'book':
-                svg = 'M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z';
-                break;
-            case 'map-location-dot':
-                viewbox = '0 0 576 512';
-                svg = 'M408 120c0 54.6-73.1 151.9-105.2 192c-7.7 9.6-22 9.6-29.6 0C241.1 271.9 168 174.6 168 120C168 53.7 221.7 0 288 0s120 53.7 120 120zm8 80.4c3.5-6.9 6.7-13.8 9.6-20.6c.5-1.2 1-2.5 1.5-3.7l116-46.4C558.9 123.4 576 135 576 152V422.8c0 9.8-6 18.6-15.1 22.3L416 503V200.4zM137.6 138.3c2.4 14.1 7.2 28.3 12.8 41.5c2.9 6.8 6.1 13.7 9.6 20.6V451.8L32.9 502.7C17.1 509 0 497.4 0 480.4V209.6c0-9.8 6-18.6 15.1-22.3l122.6-49zM327.8 332c13.9-17.4 35.7-45.7 56.2-77V504.3L192 449.4V255c20.5 31.3 42.3 59.6 56.2 77c20.5 25.6 59.1 25.6 79.6 0zM288 152a40 40 0 1 0 0-80 40 40 0 1 0 0 80z';
-                break;
-            case 'sun':
-                svg = 'M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM160 256a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zm224 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z';
-                break;
-            case 'palette':
-                svg = 'M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3H344c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z';
-                break;
-            case 'image':
-                svg = 'M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6l96 0 32 0 208 0c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z';
-                break;
-            case 'grip-vertical':
-                viewbox = '0 0 320 512';
-                svg = 'M40 352l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zm192 0l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zM40 320c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0zM232 192l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40zM40 160c-22.1 0-40-17.9-40-40L0 72C0 49.9 17.9 32 40 32l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0zM232 32l48 0c22.1 0 40 17.9 40 40l0 48c0 22.1-17.9 40-40 40l-48 0c-22.1 0-40-17.9-40-40l0-48c0-22.1 17.9-40 40-40z';
-                break;
-            case 'plus':
-                viewbox = '0 0 448 512';
-                svg = 'M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z';
-                break;
-            case 'edit':
-                svg = 'M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z';
-                break;
-            case 'clock':
-                viewbox = '0 0 640 640';
-                svg = 'M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z';
-                break;
-            // Homework, assignment etc icons by Topicus
-            case 'homework':
-                viewbox = '0 0 24 24';
-                svg = 'm7 2.804 3.623-2.39a2.5 2.5 0 0 1 2.754 0l9.5 6.269A2.5 2.5 0 0 1 24 8.769v12.735a2.5 2.5 0 0 1-2.5 2.5h-19a2.5 2.5 0 0 1-2.5-2.5V8.77a2.5 2.5 0 0 1 1.123-2.086L3 5.444V1.047a.8.8 0 0 1 .8-.8h2.4a.8.8 0 0 1 .8.8zm0 16.362h3v-4.364h4v4.364h3v-12h-3v4.364h-4V7.166H7z';
-                break;
-            case 'assignment':
-                viewbox = '0 0 24 24';
-                svg = 'M16 0H8v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V0H3.429C1.538 0 0 1.677 0 3.74v16.52C0 22.323 1.538 24 3.429 24H20.57c1.892 0 3.43-1.677 3.43-3.74V3.74C24 1.677 22.462 0 20.571 0H19v2a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zm-5.667 6.5a.5.5 0 0 1 .5-.5h2.334a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-2.334a.5.5 0 0 1-.5-.5zm1.95 12.396 4.59-4.425a.47.47 0 0 0 0-.642l-1.115-1.173a.417.417 0 0 0-.61 0l-1.481 1.4v-3.61c0-.25-.179-.446-.417-.446h-2.5c-.238 0-.417.195-.417.446v3.61l-1.48-1.4a.417.417 0 0 0-.61 0l-1.117 1.173a.47.47 0 0 0 0 .642l4.547 4.425a.417.417 0 0 0 .61 0';
-                break;
-            case 'test':
-                viewbox = '0 0 24 24';
-                svg = 'M3.429 0A3.43 3.43 0 0 0 0 3.429V20.57A3.43 3.43 0 0 0 3.429 24H20.57A3.43 3.43 0 0 0 24 20.571V3.43A3.43 3.43 0 0 0 20.571 0zM17 8.966h-3.465v9.038h-2.912V8.966H7V6h10z';
-                break;
-            case 'palm':
-                viewbox = '0 0 24 24';
-                svg = 'M11.479 3.403c-1.089-.546-2.587-1.083-4.04-1.08-1.103.001-2.161.31-3.038 1.044-.604.506-1.172 1.255-1.606 2.35l1.588-.28A1.16 1.16 0 0 1 5.71 6.864l-.083.324c-.155.597-.323 1.248-.389 1.958a5.6 5.6 0 0 0-.018.814A63 63 0 0 1 7.6 8.25q.57-.396 1.115-.767c1.021-.7 1.94-1.33 2.575-1.82a1.16 1.16 0 0 1 1.42 0c.636.49 1.554 1.12 2.575 1.82q.545.372 1.116.767c.807.558 1.64 1.146 2.38 1.711a5.6 5.6 0 0 0-.02-.814c-.064-.71-.233-1.36-.388-1.957l-.083-.325a1.162 1.162 0 0 1 1.327-1.427l1.587.279c-.435-1.093-1.005-1.843-1.61-2.35-.88-.735-1.937-1.043-3.03-1.043-1.458 0-2.956.535-4.043 1.08a1.16 1.16 0 0 1-1.042 0ZM12 1.08C10.781.53 9.143-.003 7.434 0Zm0 0C13.22.53 14.856 0 16.564 0c1.537 0 3.152.44 4.52 1.584s2.387 2.907 2.892 5.365a1.16 1.16 0 0 1-1.338 1.377l-1.69-.297c.053.29.098.594.127.905.1 1.087.02 2.375-.632 3.608a1.16 1.16 0 0 1-1.825.301c-.775-.733-2.106-1.693-3.539-2.684-.347-.24-.701-.483-1.05-.722-.396-.272-.787-.54-1.157-.796-.295 2.517-.48 6.26.085 9.459 1.13.087 2.102.347 3.071.88 1.177.648 2.28 1.664 3.643 3.042A1.161 1.161 0 0 1 18.846 24H5.155a1.161 1.161 0 0 1-.959-1.817c.66-.964 1.803-1.977 3.134-2.748.968-.56 2.096-1.028 3.287-1.244-.503-3.114-.384-6.563-.129-9.109l-.517.355c-.349.239-.703.481-1.05.722-1.432.99-2.764 1.951-3.539 2.684a1.16 1.16 0 0 1-1.825-.3c-.651-1.234-.731-2.522-.631-3.609.028-.311.073-.615.125-.905l-1.688.297A1.16 1.16 0 0 1 .023 6.95C.53 4.492 1.544 2.73 2.91 1.586S5.892.003 7.434 0m.68 21.677h7.774a7 7 0 0 0-.98-.661c-.795-.438-1.616-.627-2.91-.629-1.161-.001-2.401.42-3.504 1.058q-.195.113-.38.232';
-                break;
-            // Somtoday logo by Topicus
-            case 'logo':
-                viewbox = '0 0 49 49';
-                svg = 'M44.6819 17.3781H43.3148C41.7353 17.3781 40.4606 16.1316 40.4606 14.5871V11.9045C40.4606 10.36 39.1859 9.11355 37.6064 9.11355H32.6184C31.0389 9.11355 29.7642 7.8671 29.7642 6.32258V2.79097C29.7642 1.24645 28.4895 0 26.91 0H22.153C20.5734 0 19.2987 1.24645 19.2987 2.79097V6.32258C19.2987 7.8671 18.024 9.11355 16.4445 9.11355H11.4566C9.87706 9.11355 8.60236 10.36 8.60236 11.9045V14.5871C8.60236 16.1316 7.32766 17.3781 5.74814 17.3781H4.38107C2.80155 17.3781 1.52686 18.6245 1.52686 20.169V28.5058C1.52686 30.0503 2.80155 31.2968 4.38107 31.2968H5.72967C7.30918 31.2968 8.58388 32.5432 8.58388 34.0877V37.1768C8.58388 38.7213 9.85858 39.9677 11.4381 39.9677C13.0176 39.9677 14.2923 41.2142 14.2923 42.7587V46.209C14.2923 47.7535 15.567 49 17.1465 49H20.2132C21.7927 49 23.0674 47.7535 23.0674 46.209V41.4039C23.0674 40.609 23.7232 39.9768 24.5269 39.9768C25.3305 39.9768 25.9863 40.6181 25.9863 41.4039V46.209C25.9863 47.7535 27.261 49 28.8405 49H31.9072C33.4867 49 34.7614 47.7535 34.7614 46.209V42.7587C34.7614 41.2142 36.0361 39.9677 37.6156 39.9677C39.1951 39.9677 40.4698 38.7213 40.4698 37.1768V34.0877C40.4698 32.5432 41.7445 31.2968 43.324 31.2968H44.6726C46.2522 31.2968 47.5269 30.0503 47.5269 28.5058V20.169C47.5269 18.6245 46.2522 17.3781 44.6726 17.3781H44.6819ZM37.902 26.4465C37.006 29.3368 35.0108 31.7123 32.2859 33.1394C30.5863 34.0245 28.7297 34.4761 26.8453 34.4761C25.7184 34.4761 24.5823 34.3135 23.4738 33.9794C22.7995 33.7806 22.4208 33.0852 22.624 32.4348C22.8273 31.7755 23.5385 31.4052 24.2128 31.6039C26.522 32.2903 28.9606 32.0555 31.0943 30.9445C33.2188 29.8335 34.7799 27.9819 35.4819 25.7239C35.6851 25.0645 36.3963 24.7032 37.0706 24.8929C37.7449 25.0916 38.1236 25.7871 37.9204 26.4465H37.902Z';
-                break;
-            default:
-                viewbox = '0 0 384 512';
-                svg = 'M64 390.3L153.5 256 64 121.7V390.3zM102.5 448H281.5L192 313.7 102.5 448zm128-192L320 390.3V121.7L230.5 256zM281.5 64H102.5L192 198.3 281.5 64zM0 48C0 21.5 21.5 0 48 0H336c26.5 0 48 21.5 48 48V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V48z';
-        }
-        return '<svg ' + start + classname + 'height="1em" viewBox="' + viewbox + '"><path fill-rule="evenodd" ' + (n(color) ? '' : 'fill="' + color + '" ') + 'd="' + svg + '"/></svg>';
+        tn('head', 0).insertAdjacentHTML('beforeend', `<style id="mod-css-variables">${css}</style>`);
     }
 
     // Show a message on top of the page. Similair to browser confirm().
     function modMessage(title, description, link1, link2, red1, red2, noBackgroundClick) {
         tn('sl-root', 0).inert = true;
-        if (!n(tn('sl-modal', 0))) {
+        if (tn('sl-modal', 0)) {
             tn('sl-modal', 0).inert = true;
         }
-        while (!n(id('mod-message'))) {
+        while (id('mod-message')) {
             tryRemove(id('mod-message'));
         }
         const element = n(id('somtoday-mod')) ? tn('body', 0) : id('somtoday-mod');
@@ -1683,22 +1606,22 @@ function onload() {
         if (!n(link1)) {
             id('mod-message-action1').focus();
             setTimeout(function () {
-                if (!n(id('mod-message-action1'))) {
+                if (id('mod-message-action1')) {
                     id('mod-message-action1').addEventListener('keyup', (event) => {
                         if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) {
                             event.preventDefault();
-                            if (!n(id('mod-message-action2'))) {
+                            if (id('mod-message-action2')) {
                                 id('mod-message-action2').focus();
                             }
                         }
                     }, { once: true });
                 }
             }, 50);
-            id('mod-message-action1').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
+            id('mod-message-action1').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (tn('sl-modal', 0)) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
         }
         if (!n(link2)) {
             setTimeout(function () {
-                if (!n(id('mod-message-action2'))) {
+                if (id('mod-message-action2')) {
                     id('mod-message-action2').addEventListener('keyup', (event) => {
                         if (event.keyCode === 39 || event.keyCode === 37 || event.keyCode === 9) {
                             event.preventDefault();
@@ -1707,7 +1630,7 @@ function onload() {
                     }, { once: true });
                 }
             }, 50);
-            id('mod-message-action2').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (!n(tn('sl-modal', 0))) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
+            id('mod-message-action2').addEventListener('click', function () { tn('sl-root', 0).removeAttribute('inert'); if (tn('sl-modal', 0)) { tn('sl-modal', 0).removeAttribute('inert'); } }, { once: true });
             if (noBackgroundClick == null) {
                 id('mod-message').addEventListener('click', function () { if (!n('mod-message-action2')) { id('mod-message-action2').click(); } }, { once: true });
             }
@@ -1736,7 +1659,7 @@ function onload() {
         if (!n(get('profilepic'))) {
             profilePictureChanged = true;
             tryRemove(id('mod-profile-picture'));
-            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-profile-picture">hmy-avatar{border-radius:var(--border-radius);overflow:hidden;}hmy-avatar>.container:not(:has(.initials)){background:url(\'' + get('profilepic') + '\') center / cover;}.foto{opacity:0 !important;}</style>');
+            tn('head', 0).insertAdjacentHTML('beforeend', '<style id="mod-profile-picture">hmy-avatar{border-radius:var(--border-radius);overflow:hidden;}hmy-avatar>.container{background:url(\'' + get('profilepic') + '\') center / cover !important;}.foto, .initials{opacity:0 !important;}</style>');
         }
         // Reset all profile pictures when profile picture is reset
         else if (profilePictureChanged) {
@@ -1911,7 +1834,7 @@ function onload() {
     let logoClicks = 0;
     function modLogo() {
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
-            if (n(id('mod-menu-resizer')) && !n(tn('sl-tab-bar', 0))) {
+            if (n(id('mod-menu-resizer')) && tn('sl-tab-bar', 0)) {
                 tn('sl-tab-bar', 0).insertAdjacentHTML('beforeend', '<div id="mod-menu-resizer"></div>');
                 let moving = false;
                 if (get('layout') == 3) {
@@ -1974,7 +1897,7 @@ function onload() {
         }
 
         // Make sure we do not replace the logo while animations are playing
-        if (!n(cn('mod-logo-hat-clicked', 0)) || !n(cn('mod-logo-decoration-clicked', 0))) {
+        if (cn('mod-logo-hat-clicked', 0) || cn('mod-logo-decoration-clicked', 0)) {
             return;
         }
 
@@ -1982,7 +1905,7 @@ function onload() {
         tryRemove(id('mod-logo-hat'));
         tryRemove(id('mod-logo-inserted'));
         if (get('layout') == 2 || get('layout') == 3 || get('layout') == 5) {
-            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? getIcon('logo', null, menuColor, ' id="mod-logo"') : window.logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
+            const logoHTML = '<div id="mod-logo-wrapper">' + (get('bools').charAt(BOOL_INDEX.MOD_LOGO) == '0' ? window.getIcon('logo', null, menuColor, ' id="mod-logo"') : window.logo('mod-logo', '" data-clicks="' + (n(id('mod-logo')) ? '0' : id('mod-logo').dataset.clicks), 'var(--action-neutral-normal)')) + '</div>';
             if (n(id('mod-logo')) && tn('sl-header', 0) && tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0]) {
                 tn('sl-header', 0).getElementsByTagName('sl-tab-bar')[0].insertAdjacentHTML('afterbegin', logoHTML);
             }
@@ -1999,11 +1922,11 @@ function onload() {
                     if (!document.fullscreenElement) {
                         document.documentElement.requestFullscreen();
                     }
-                    tn('html', 0).style.overflowY = 'hidden';
+                    tn('body', 0).style.overflowY = 'hidden';
                     id('somtoday-mod').insertAdjacentHTML('beforeend', '<div id="blue-screen-of-death"><svg xmlns="http://www.w3.org/2000/svg" width="806.81042" height="588.71942" viewBox="0 0 806.81042 588.71944"><rect style="fill:#1173aa;" width="806.81042" height="588.71942" x="0" y="0"/><g transform="matrix(4.2021373,0,0,4.2021373,0,1.0984253e-5)"><g><path style="fill:#fff;" d="m 28.976126,48.524788 q -1.09375,0 -1.835938,-0.703125 -0.742187,-0.722656 -0.742187,-1.777344 0,-1.074219 0.742187,-1.777344 0.742188,-0.722656 1.835938,-0.722656 1.113281,0 1.855468,0.722656 0.742188,0.703125 0.742188,1.777344 0,1.054688 -0.742188,1.777344 -0.742187,0.703125 -1.855468,0.703125 z m 0,14.902344 q -1.09375,0 -1.835938,-0.703125 -0.742187,-0.722657 -0.742187,-1.777344 0,-1.074219 0.742187,-1.777344 0.742188,-0.722656 1.835938,-0.722656 1.113281,0 1.855468,0.722656 0.742188,0.703125 0.742188,1.777344 0,1.054687 -0.742188,1.777344 -0.742187,0.703125 -1.855468,0.703125 z"/><path style="fill:#fff;" d="m 42.101126,68.974007 q -3.125,-3.417969 -4.53125,-7.363282 -1.386719,-3.964843 -1.386719,-9.335937 0,-5.214844 1.347656,-9.160156 1.367188,-3.964844 4.375,-7.539063 l 1.875,1.5625 q -2.382812,3.417969 -3.476562,7.011719 -1.074219,3.574219 -1.074219,8.125 0,4.433594 1.132812,8.027344 1.132813,3.574218 3.652344,7.109375 z" /></g><g><path style="line-height:142.99999475%;letter-spacing:-0.30000001px;fill:#ffffff" d="m 29.713547,80.950829 -1.688233,-3.325196 h 0.688477 l 1.186523,2.391358 q 0.02197,0.04761 0.05859,0.142822 0.03662,0.09155 0.06958,0.179443 h 0.01099 q 0.03296,-0.120849 0.135499,-0.322265 l 1.241455,-2.391358 h 0.644531 l -1.732178,3.310547 v 1.940918 h -0.615234 z" /><path style="line-height:142.99999475%;letter-spacing:-0.30000001px;fill:#ffffff" d="m 34.016818,82.968651 q -0.55664,0 -0.981445,-0.230713 -0.421143,-0.230713 -0.655518,-0.651856 -0.230712,-0.424804 -0.230712,-0.977783 0,-0.560302 0.230712,-0.988769 0.234375,-0.428467 0.655518,-0.662842 0.424805,-0.234375 0.981445,-0.234375 0.545655,0 0.959473,0.234375 0.413818,0.234375 0.637207,0.662842 0.223389,0.424804 0.219727,0.988769 0,0.556641 -0.227051,0.977783 -0.223389,0.421143 -0.637207,0.651856 -0.410157,0.230713 -0.952149,0.230713 z m 0,-0.578613 q 0.344239,0 0.60791,-0.157471 0.267334,-0.161133 0.413819,-0.45044 0.150146,-0.292968 0.157471,-0.673828 -0.0073,-0.388183 -0.157471,-0.684814 -0.150147,-0.296631 -0.413819,-0.457764 -0.263671,-0.164795 -0.60791,-0.164795 -0.366211,0 -0.648193,0.164795 -0.27832,0.164795 -0.432129,0.461426 -0.150146,0.296631 -0.150146,0.688476 0,0.38086 0.150146,0.670166 0.153809,0.289307 0.432129,0.446778 0.27832,0.157471 0.648193,0.157471 z" /><path style="fill:#fff;" d="m 39.323508,83.01992 q -0.212403,-0.380859 -0.300293,-0.717773 -0.05493,0.150146 -0.212403,0.300293 -0.153808,0.150146 -0.402832,0.252685 -0.245361,0.102539 -0.560302,0.102539 -0.516358,0 -0.834961,-0.201416 -0.318604,-0.201416 -0.454102,-0.520019 -0.135498,-0.322266 -0.135498,-0.706787 v -2.215576 h 0.600586 v 2.028808 q 0,0.479737 0.197754,0.769043 0.201416,0.289307 0.758057,0.289307 0.413818,0 0.684814,-0.194092 0.270996,-0.197754 0.270996,-0.655518 v -2.24121 h 0.600586 v 2.358398 q 0.0037,0.53833 0.318604,1.105957 z" /><path style="fill:#fff;" d="m 41.29006,79.654442 q 0.377197,-0.435791 0.966797,-0.435791 0.164795,0 0.344238,0.03296 L 42.498556,79.8229 q -0.102539,-0.01099 -0.201416,-0.01099 -0.567627,0 -0.941162,0.351562 v 2.713623 h -0.600586 v -3.566894 h 0.454102 l 0.08057,0.344238 z" /><path style="fill:#fff;" d="m 45.497824,77.625633 h 1.442871 q 0.545654,0 0.941162,0.179444 0.39917,0.179443 0.611572,0.531005 0.212403,0.351563 0.212403,0.856934 0,0.516357 -0.245362,0.900879 -0.241699,0.384521 -0.67749,0.593262 -0.432129,0.205078 -0.985107,0.205078 h -0.684815 v 1.984863 h -0.615234 z m 1.256103,2.713623 q 0.615235,0 0.963135,-0.281982 0.3479,-0.281983 0.3479,-0.834961 0,-0.53833 -0.314941,-0.787354 -0.314941,-0.252685 -0.915527,-0.252685 l -0.725098,0.0037 v 2.15332 h 0.644531 z" /><path style="fill:#fff;" d="m 51.661154,82.95034 q -0.736084,0 -1.259766,-0.314941 -0.523681,-0.314942 -0.79834,-0.915527 -0.270996,-0.604249 -0.270996,-1.453858 0,-0.864258 0.314942,-1.479492 0.314941,-0.615234 0.915527,-0.933838 0.604248,-0.322266 1.450195,-0.322266 0.563965,0 1.186524,0.161133 l -0.179444,0.585938 q -0.142822,-0.04761 -0.46875,-0.08423 -0.322265,-0.03662 -0.545654,-0.04761 -0.04395,-0.0037 -0.131836,-0.0037 -0.585937,0 -1.003418,0.256347 -0.41748,0.252686 -0.637207,0.725098 -0.219726,0.472412 -0.219726,1.113281 0,0.662842 0.201416,1.138916 0.205078,0.476074 0.593261,0.72876 0.391846,0.252686 0.9375,0.252686 0.322266,0 0.65918,-0.0769 0.336914,-0.0769 0.703125,-0.201416 l 0.205078,0.560303 q -0.344238,0.131836 -0.794678,0.223389 -0.446777,0.08789 -0.856933,0.08789 z" /><path style="line-height:142.99999475%;letter-spacing:-0.1px;fill:#ffffff" d="m 56.832052,79.654442 q 0.377197,-0.435791 0.966797,-0.435791 0.164795,0 0.344238,0.03296 L 58.040548,79.8229 q -0.102539,-0.01099 -0.201416,-0.01099 -0.567627,0 -0.941162,0.351562 v 2.713623 h -0.600586 v -3.566894 h 0.454102 l 0.08057,0.344238 z" /><path style="line-height:142.99999475%;letter-spacing:-0.1px;fill:#ffffff" d="m 61.27673,83.01992 q -0.201416,-0.351562 -0.303955,-0.725097 -0.06226,0.183105 -0.2417,0.336914 -0.179443,0.153808 -0.428467,0.241699 -0.249023,0.08789 -0.505371,0.08789 -0.362548,0 -0.651855,-0.113526 -0.285645,-0.113525 -0.454102,-0.351562 -0.164795,-0.238037 -0.164795,-0.593262 0,-0.344238 0.17212,-0.596924 0.172119,-0.256347 0.48706,-0.391846 0.318604,-0.135498 0.739746,-0.135498 0.505371,0 0.963135,0.26001 v -0.373535 q 0,-0.439453 -0.205078,-0.640869 -0.205078,-0.201416 -0.60791,-0.201416 -0.153809,0 -0.443116,0.02563 -0.285644,0.02197 -0.534667,0.06225 l -0.10254,-0.600585 q 0.446778,-0.05127 0.699463,-0.07324 0.256348,-0.02197 0.428467,-0.02197 0.666504,0 1.010742,0.351562 0.344239,0.351563 0.347901,1.047363 l 0.0073,1.054688 q 0.0037,0.53833 0.318603,1.105957 z m -1.343995,-0.618896 q 0.285645,0 0.501709,-0.09888 0.216065,-0.09888 0.333252,-0.281983 0.12085,-0.183105 0.12085,-0.421142 v -0.03296 q -0.183105,-0.102539 -0.406494,-0.157471 -0.223389,-0.05859 -0.465088,-0.05859 -0.391846,0 -0.626221,0.139161 -0.234375,0.135498 -0.234375,0.377197 0,0.157471 0.09521,0.27832 0.09888,0.12085 0.274658,0.19043 0.175782,0.06592 0.406494,0.06592 z" /><path style="fill:#fff;" d="m 64.21262,79.214989 q 0.46875,0 0.787353,0.183105 0.318604,0.183106 0.476075,0.505371 0.161132,0.322266 0.161132,0.739746 v 2.233887 h -0.600586 v -2.06543 q 0,-0.450439 -0.194091,-0.736084 -0.19043,-0.285644 -0.633545,-0.289306 -0.314942,0.0037 -0.593262,0.117187 -0.274658,0.109864 -0.487061,0.31128 l -0.0073,2.662353 h -0.600586 l 0.0073,-3.566894 h 0.443116 l 0.113525,0.355224 q 0.424805,-0.450439 1.12793,-0.450439 z" /><path style="line-height:142.99999475%;letter-spacing:-0.49000001px;fill:#ffffff" d="m 68.644493,78.19326 q -0.175781,0 -0.292969,-0.117187 -0.117187,-0.117188 -0.117187,-0.292969 0,-0.172119 0.117187,-0.289307 0.117188,-0.117187 0.292969,-0.117187 0.172119,0 0.289307,0.117187 0.117187,0.117188 0.117187,0.289307 0,0.175781 -0.117187,0.292969 -0.117188,0.117187 -0.289307,0.117187 z m -0.311279,1.116944 H 68.9338 v 3.566894 h -0.600586 z" /><path style="fill:#fff;" d="m 71.362503,79.214989 q 0.46875,0 0.787354,0.183105 0.318603,0.183106 0.476074,0.505371 0.161133,0.322266 0.161133,0.739746 v 2.233887 h -0.600586 v -2.06543 q 0,-0.450439 -0.194092,-0.736084 -0.19043,-0.285644 -0.633545,-0.289306 -0.314941,0.0037 -0.593262,0.117187 -0.274658,0.109864 -0.48706,0.31128 l -0.0073,2.662353 h -0.600585 l 0.0073,-3.566894 h 0.443115 l 0.113525,0.355224 q 0.424805,-0.450439 1.12793,-0.450439 z" /><path style="fill:#fff;" d="m 74.680374,79.844872 v 1.926269 q 0,0.161133 0.06958,0.314941 0.07324,0.150147 0.219727,0.249024 0.146484,0.09522 0.355224,0.09522 0.146485,0 0.333252,-0.02564 v 0.53833 q -0.238037,0.02197 -0.483398,0.02197 -0.340576,0 -0.578613,-0.146485 -0.238037,-0.146484 -0.358887,-0.391845 -0.12085,-0.249024 -0.12085,-0.549317 v -2.03247 h -0.644531 v -0.531006 h 0.644531 v -1.281739 h 0.563965 v 1.281739 h 0.981445 v 0.531006 h -0.981445 z" /><path style="fill:#fff;" d="m 78.078812,82.968651 q -0.556641,0 -0.981446,-0.230713 -0.421142,-0.230713 -0.655517,-0.651856 -0.230713,-0.424804 -0.230713,-0.977783 0,-0.560302 0.230713,-0.988769 0.234375,-0.428467 0.655517,-0.662842 0.424805,-0.234375 0.981446,-0.234375 0.545654,0 0.959472,0.234375 0.413819,0.234375 0.637207,0.662842 0.223389,0.424804 0.219727,0.988769 0,0.556641 -0.227051,0.977783 -0.223389,0.421143 -0.637207,0.651856 -0.410156,0.230713 -0.952148,0.230713 z m 0,-0.578613 q 0.344238,0 0.60791,-0.157471 0.267334,-0.161133 0.413818,-0.45044 0.150147,-0.292968 0.157471,-0.673828 -0.0073,-0.388183 -0.157471,-0.684814 -0.150146,-0.296631 -0.413818,-0.457764 -0.263672,-0.164795 -0.60791,-0.164795 -0.366211,0 -0.648194,0.164795 -0.27832,0.164795 -0.432129,0.461426 -0.150146,0.296631 -0.150146,0.688476 0,0.38086 0.150146,0.670166 0.153809,0.289307 0.432129,0.446778 0.278321,0.157471 0.648194,0.157471 z" /><path style="fill:#fff;" d="m 85.392044,83.01992 q -0.201416,-0.351562 -0.303955,-0.725097 -0.06226,0.183105 -0.241699,0.336914 -0.179444,0.153808 -0.428467,0.241699 -0.249023,0.08789 -0.505371,0.08789 -0.362549,0 -0.651856,-0.113526 -0.285644,-0.113525 -0.454101,-0.351562 -0.164795,-0.238037 -0.164795,-0.593262 0,-0.344238 0.172119,-0.596924 0.172119,-0.256347 0.487061,-0.391846 0.318603,-0.135498 0.739746,-0.135498 0.505371,0 0.963134,0.26001 v -0.373535 q 0,-0.439453 -0.205078,-0.640869 -0.205078,-0.201416 -0.60791,-0.201416 -0.153808,0 -0.443115,0.02563 -0.285645,0.02197 -0.534668,0.06225 L 83.11055,79.310204 q 0.446777,-0.05127 0.699463,-0.07324 0.256347,-0.02197 0.428467,-0.02197 0.666504,0 1.010742,0.351562 0.344238,0.351563 0.3479,1.047363 l 0.0073,1.054688 q 0.0037,0.53833 0.318604,1.105957 z M 84.04805,82.401024 q 0.285644,0 0.501709,-0.09888 0.216064,-0.09888 0.333252,-0.281983 0.120849,-0.183105 0.120849,-0.421142 v -0.03296 q -0.183105,-0.102539 -0.406494,-0.157471 -0.223388,-0.05859 -0.465088,-0.05859 -0.391845,0 -0.62622,0.139161 -0.234375,0.135498 -0.234375,0.377197 0,0.157471 0.09522,0.27832 0.09888,0.12085 0.274658,0.19043 0.175781,0.06592 0.406494,0.06592 z" /><path style="line-height:142.99999475%;letter-spacing:-0.27000001px;fill:#ffffff" d="m 90.639847,79.214989 q 0.505371,0 0.864258,0.212402 0.362548,0.20874 0.549316,0.615234 0.19043,0.402832 0.19043,0.970459 0,0.596924 -0.197754,1.036377 -0.197754,0.435791 -0.5896,0.673828 -0.388183,0.238038 -0.948486,0.238038 -0.86792,0 -1.109619,-0.637207 v 2.274169 h -0.604248 v -5.288085 h 0.446777 l 0.142822,0.454101 q 0.245362,-0.263672 0.567627,-0.406494 0.325928,-0.142822 0.688477,-0.142822 z m -0.08789,3.186035 q 0.300293,0 0.534668,-0.146485 0.238037,-0.146484 0.373535,-0.457763 0.13916,-0.314942 0.13916,-0.791016 0,-0.567627 -0.270996,-0.878906 -0.267334,-0.311279 -0.761718,-0.311279 -0.281983,0 -0.585938,0.09888 -0.300293,0.09521 -0.582275,0.270996 v 1.160888 q 0,0.402832 0.190429,0.64087 0.19043,0.234375 0.45044,0.325927 0.263672,0.08789 0.512695,0.08789 z" /><path style="line-height:142.99999475%;letter-spacing:-0.27000001px;fill:#ffffff" d="m 93.467987,79.654442 q 0.377197,-0.435791 0.966797,-0.435791 0.164795,0 0.344238,0.03296 L 94.676483,79.8229 q -0.102539,-0.01099 -0.201416,-0.01099 -0.567627,0 -0.941162,0.351562 v 2.713623 h -0.600586 v -3.566894 h 0.454102 l 0.08057,0.344238 z" /><path style="fill:#fff;" d="m 96.874748,82.968651 q -0.55664,0 -0.981445,-0.230713 -0.421143,-0.230713 -0.655518,-0.651856 -0.230713,-0.424804 -0.230713,-0.977783 0,-0.560302 0.230713,-0.988769 0.234375,-0.428467 0.655518,-0.662842 0.424805,-0.234375 0.981445,-0.234375 0.545655,0 0.959473,0.234375 0.413818,0.234375 0.637207,0.662842 0.223389,0.424804 0.219726,0.988769 0,0.556641 -0.22705,0.977783 -0.223389,0.421143 -0.637207,0.651856 -0.410157,0.230713 -0.952149,0.230713 z m 0,-0.578613 q 0.344239,0 0.60791,-0.157471 0.267334,-0.161133 0.413819,-0.45044 0.150146,-0.292968 0.15747,-0.673828 -0.0073,-0.388183 -0.15747,-0.684814 -0.150147,-0.296631 -0.413819,-0.457764 -0.263671,-0.164795 -0.60791,-0.164795 -0.366211,0 -0.648193,0.164795 -0.27832,0.164795 -0.432129,0.461426 -0.150147,0.296631 -0.150147,0.688476 0,0.38086 0.150147,0.670166 0.153809,0.289307 0.432129,0.446778 0.27832,0.157471 0.648193,0.157471 z" /><path style="line-height:142.99999475%;letter-spacing:-0.43000001px;fill:#ffffff" d="m 101.51098,79.214989 q 0.52368,0 0.88257,0.223388 0.36255,0.219727 0.54199,0.626221 0.17944,0.402832 0.17944,0.948486 0,0.596924 -0.19775,1.036377 -0.19776,0.435791 -0.5896,0.673828 -0.38818,0.238038 -0.94849,0.238038 -0.84961,0 -1.09863,-0.611573 l -0.17212,0.527344 H 99.6726 L 99.6653,77.32534 h 0.60424 v 2.420655 q 0.49439,-0.531006 1.24146,-0.531006 z m -0.0879,3.186035 q 0.30029,0 0.53467,-0.146485 0.23803,-0.146484 0.37353,-0.457763 0.13916,-0.314942 0.13916,-0.791016 0,-0.3479 -0.12085,-0.615234 -0.11719,-0.270996 -0.35156,-0.421143 -0.23438,-0.153808 -0.5603,-0.153808 -0.36621,0 -0.61158,0.0769 -0.24169,0.07324 -0.55664,0.289307 v 0.688476 l 0.004,0.476074 q 0,0.402832 0.18676,0.64087 0.19043,0.234375 0.45044,0.325927 0.26001,0.08789 0.5127,0.08789 z" /><path style="line-height:142.99999475%;letter-spacing:-0.18000001px;fill:#ffffff" d="m 103.64079,77.32534 h 0.60059 v 5.551758 h -0.60059 z" /><path style="line-height:142.99999475%;letter-spacing:-0.18000001px;fill:#ffffff" d="m 106.96543,82.408348 q 0.24536,0 0.52002,-0.05493 0.27466,-0.05493 0.54932,-0.161132 l 0.18676,0.512695 q -0.26001,0.109863 -0.65917,0.183105 -0.39917,0.07324 -0.7251,0.07324 -0.86426,0 -1.34033,-0.461426 -0.47608,-0.465088 -0.47608,-1.428223 0,-0.600586 0.20874,-1.018066 0.2124,-0.421143 0.61157,-0.637207 0.39917,-0.216065 0.95948,-0.216065 0.49438,0 0.82763,0.230713 0.33325,0.227051 0.49439,0.596924 0.16113,0.366211 0.16113,0.787354 0,0.289306 -0.0806,0.578613 l -2.54882,0.01831 q 0.0806,0.494385 0.41015,0.747071 0.32959,0.249023 0.90088,0.249023 z m -0.24536,-2.633057 q -0.52002,0 -0.78369,0.300293 -0.26367,0.300293 -0.30029,0.809327 l 1.9812,-0.01831 q 0.007,-0.08789 0.007,-0.131836 0,-0.249023 -0.0915,-0.465088 -0.0916,-0.219726 -0.29663,-0.355224 -0.20142,-0.139161 -0.51636,-0.139161 z" /><path style="line-height:142.99999475%;letter-spacing:-0.1px;fill:#ffffff" d="m 113.01468,79.214989 q 0.42847,0 0.72143,0.183105 0.29664,0.183106 0.44312,0.505371 0.14648,0.322266 0.15015,0.739746 v 2.233887 h -0.60059 v -2.06543 q -0.007,-0.454101 -0.19043,-0.736084 -0.1831,-0.285644 -0.60059,-0.285644 -0.29663,0 -0.5603,0.106201 -0.26001,0.102539 -0.4541,0.285645 0.0513,0.223388 0.0513,0.461425 v 2.233887 h -0.60059 v -2.06543 q -0.007,-0.454101 -0.19043,-0.736084 -0.1831,-0.285644 -0.60058,-0.285644 -0.27832,0 -0.52735,0.106201 -0.24902,0.102539 -0.44311,0.289307 l -0.007,2.69165 h -0.60059 l 0.007,-3.566894 h 0.44312 l 0.11352,0.351562 q 0.41382,-0.446777 1.09131,-0.446777 0.37354,0 0.64453,0.13916 0.27466,0.13916 0.43579,0.395508 0.53467,-0.534668 1.27442,-0.534668 z" /><path style="fill:#fff;" d="m 118.17713,79.844872 v 1.926269 q 0,0.161133 0.0696,0.314941 0.0732,0.150147 0.21973,0.249024 0.14648,0.09522 0.35522,0.09522 0.14649,0 0.33325,-0.02564 v 0.53833 q -0.23803,0.02197 -0.48339,0.02197 -0.34058,0 -0.57862,-0.146485 -0.23803,-0.146484 -0.35888,-0.391845 -0.12085,-0.249024 -0.12085,-0.549317 v -2.03247 h -0.64453 v -0.531006 h 0.64453 v -1.281739 h 0.56396 v 1.281739 h 0.98145 v 0.531006 h -0.98145 z" /><path style="line-height:142.99999475%;letter-spacing:-0.14px;fill:#ffffff" d="m 121.65614,79.214989 q 0.46875,0 0.78735,0.183105 0.3186,0.183106 0.47607,0.505371 0.16114,0.322266 0.16114,0.739746 v 2.233887 h -0.60059 v -2.06543 q 0,-0.450439 -0.19409,-0.736084 -0.19409,-0.285644 -0.63355,-0.285644 -0.31494,0 -0.59326,0.113525 -0.27832,0.109864 -0.49438,0.307617 v 2.666016 h -0.60059 v -5.55542 h 0.60059 v 2.307129 q 0.42114,-0.413818 1.09131,-0.413818 z" /><path style="line-height:142.99999475%;letter-spacing:-0.14px;fill:#ffffff" d="m 126.55154,83.01992 q -0.20142,-0.351562 -0.30396,-0.725097 -0.0623,0.183105 -0.2417,0.336914 -0.17944,0.153808 -0.42846,0.241699 -0.24903,0.08789 -0.50538,0.08789 -0.36254,0 -0.65185,-0.113526 -0.28565,-0.113525 -0.4541,-0.351562 -0.1648,-0.238037 -0.1648,-0.593262 0,-0.344238 0.17212,-0.596924 0.17212,-0.256347 0.48706,-0.391846 0.31861,-0.135498 0.73975,-0.135498 0.50537,0 0.96313,0.26001 v -0.373535 q 0,-0.439453 -0.20508,-0.640869 -0.20507,-0.201416 -0.60791,-0.201416 -0.1538,0 -0.44311,0.02563 -0.28565,0.02197 -0.53467,0.06225 l -0.10254,-0.600585 q 0.44678,-0.05127 0.69947,-0.07324 0.25634,-0.02197 0.42846,-0.02197 0.66651,0 1.01074,0.351562 0.34424,0.351563 0.3479,1.047363 l 0.007,1.054688 q 0.004,0.53833 0.3186,1.105957 l -0.531,0.245361 z m -1.344,-0.618896 q 0.28565,0 0.50171,-0.09888 0.21607,-0.09888 0.33325,-0.281983 0.12085,-0.183105 0.12085,-0.421142 v -0.03296 q -0.1831,-0.102539 -0.40649,-0.157471 -0.22339,-0.05859 -0.46509,-0.05859 -0.39184,0 -0.62622,0.139161 -0.23437,0.135498 -0.23437,0.377197 0,0.157471 0.0952,0.27832 0.0989,0.12085 0.27466,0.19043 0.17578,0.06592 0.40649,0.06592 z" /><path style="fill:#fff;" d="m 128.51725,79.844872 v 1.926269 q 0,0.161133 0.0696,0.314941 0.0732,0.150147 0.21973,0.249024 0.14648,0.09522 0.35522,0.09522 0.14649,0 0.33325,-0.02564 v 0.53833 q -0.23803,0.02197 -0.4834,0.02197 -0.34057,0 -0.57861,-0.146485 -0.23804,-0.146484 -0.35889,-0.391845 -0.12084,-0.249024 -0.12084,-0.549317 v -2.03247 h -0.64454 v -0.531006 h 0.64454 v -1.281739 h 0.56396 v 1.281739 h 0.98145 v 0.531006 h -0.98145 z" /><path style="fill:#fff;" d="m 132.67008,78.19326 q -0.17578,0 -0.29297,-0.117187 -0.11718,-0.117188 -0.11718,-0.292969 0,-0.172119 0.11718,-0.289307 0.11719,-0.117187 0.29297,-0.117187 0.17212,0 0.28931,0.117187 0.11719,0.117188 0.11719,0.289307 0,0.175781 -0.11719,0.292969 -0.11719,0.117187 -0.28931,0.117187 z m -0.31128,1.116944 h 0.60059 v 3.566894 h -0.60059 z" /><path style="fill:#fff;" d="m 134.94791,79.844872 v 1.926269 q 0,0.161133 0.0696,0.314941 0.0733,0.150147 0.21973,0.249024 0.14649,0.09522 0.35523,0.09522 0.14648,0 0.33325,-0.02564 v 0.53833 q -0.23804,0.02197 -0.4834,0.02197 -0.34058,0 -0.57861,-0.146485 -0.23804,-0.146484 -0.35889,-0.391845 -0.12085,-0.249024 -0.12085,-0.549317 v -2.03247 h -0.64453 v -0.531006 h 0.64453 v -1.281739 h 0.56396 v 1.281739 h 0.98145 v 0.531006 h -0.98145 z" /><path style="line-height:142.99999475%;letter-spacing:-0.25999999px;fill:#ffffff" d="m 140.03825,82.961327 q -0.55297,0 -0.95214,-0.223389 -0.39917,-0.223389 -0.60791,-0.640869 -0.20875,-0.421143 -0.20875,-0.996094 0,-0.571289 0.21241,-0.996094 0.2124,-0.424804 0.62256,-0.655517 0.41015,-0.230713 0.9851,-0.227051 0.3003,-0.0037 0.5896,0.05493 0.28931,0.05493 0.49073,0.150146 l -0.14649,0.60791 q -0.44678,-0.201416 -0.93017,-0.201416 -0.61158,0 -0.88624,0.314942 -0.27465,0.311279 -0.27465,0.933837 0,0.651856 0.31128,0.970459 0.31494,0.318604 0.91552,0.318604 0.24536,0 0.43579,-0.04761 0.1941,-0.05127 0.50904,-0.168457 l 0.18677,0.55664 q -0.30762,0.117188 -0.63355,0.183106 -0.32593,0.06592 -0.6189,0.06592 z" /><path style="line-height:142.99999475%;letter-spacing:-0.19px;fill:#ffffff" d="m 143.34881,82.968651 q -0.55664,0 -0.98145,-0.230713 -0.42114,-0.230713 -0.65551,-0.651856 -0.23072,-0.424804 -0.23072,-0.977783 0,-0.560302 0.23072,-0.988769 0.23437,-0.428467 0.65551,-0.662842 0.42481,-0.234375 0.98145,-0.234375 0.54565,0 0.95947,0.234375 0.41382,0.234375 0.63721,0.662842 0.22339,0.424804 0.21972,0.988769 0,0.556641 -0.22705,0.977783 -0.22338,0.421143 -0.6372,0.651856 -0.41016,0.230713 -0.95215,0.230713 z m 0,-0.578613 q 0.34424,0 0.60791,-0.157471 0.26733,-0.161133 0.41382,-0.45044 0.15014,-0.292968 0.15747,-0.673828 -0.007,-0.388183 -0.15747,-0.684814 -0.15015,-0.296631 -0.41382,-0.457764 -0.26367,-0.164795 -0.60791,-0.164795 -0.36621,0 -0.6482,0.164795 -0.27832,0.164795 -0.43212,0.461426 -0.15015,0.296631 -0.15015,0.688476 0,0.38086 0.15015,0.670166 0.1538,0.289307 0.43212,0.446778 0.27833,0.157471 0.6482,0.157471 z" /><path style="line-height:142.99999475%;letter-spacing:-0.19px;fill:#ffffff" d="m 148.7655,83.01992 q -0.2124,-0.380859 -0.30029,-0.717773 -0.0549,0.150146 -0.2124,0.300293 -0.15381,0.150146 -0.40283,0.252685 -0.24537,0.102539 -0.56031,0.102539 -0.51635,0 -0.83496,-0.201416 -0.3186,-0.201416 -0.4541,-0.520019 -0.1355,-0.322266 -0.1355,-0.706787 v -2.215576 h 0.60059 v 2.028808 q 0,0.479737 0.19775,0.769043 0.20142,0.289307 0.75806,0.289307 0.41382,0 0.68481,-0.194092 0.271,-0.197754 0.271,-0.655518 v -2.24121 h 0.60059 v 2.358398 q 0.004,0.53833 0.3186,1.105957 z" /><path style="line-height:142.99999475%;letter-spacing:-0.09px;fill:#ffffff" d="m 150.00372,77.32534 h 0.60059 v 5.551758 h -0.60059 z" /><path style="line-height:142.99999475%;letter-spacing:-0.09px;fill:#ffffff" d="m 154.71841,83.01992 q -0.20874,-0.377197 -0.30762,-0.739746 -0.15747,0.336914 -0.49072,0.509033 -0.32959,0.17212 -0.8313,0.17212 -0.47974,0 -0.84229,-0.223389 -0.36255,-0.227051 -0.56396,-0.637207 -0.19776,-0.410156 -0.19776,-0.952149 0,-0.574951 0.22339,-1.010742 0.22339,-0.439453 0.62989,-0.681152 0.41015,-0.241699 0.94848,-0.241699 0.55298,0 1.0437,0.380859 v -2.27417 h 0.60059 v 4.346924 q 0.004,0.53833 0.3186,1.105957 z m -1.48316,-0.633545 q 0.53467,0 0.81299,-0.303955 0.28198,-0.307617 0.28198,-0.864257 V 80.11953 q -0.22705,-0.197754 -0.49072,-0.278321 -0.26367,-0.08057 -0.50537,-0.08057 -0.36987,0 -0.64087,0.164795 -0.271,0.161133 -0.41748,0.465088 -0.14648,0.300293 -0.14648,0.717773 0,0.314942 0.11718,0.60791 0.11719,0.292969 0.36621,0.483399 0.24903,0.186767 0.62256,0.186767 z" /><path style="line-height:142.99999475%;letter-spacing:-0.19px;fill:#ffffff" d="m 157.75219,79.214989 q 0.46875,0 0.78735,0.183105 0.31861,0.183106 0.47608,0.505371 0.16113,0.322266 0.16113,0.739746 v 2.233887 h -0.60059 v -2.06543 q 0,-0.450439 -0.19409,-0.736084 -0.19043,-0.285644 -0.63354,-0.289306 -0.31494,0.0037 -0.59326,0.117187 -0.27466,0.109864 -0.48706,0.31128 l -0.007,2.662353 h -0.60058 l 0.007,-3.566894 h 0.44311 l 0.11353,0.355224 q 0.4248,-0.450439 1.12793,-0.450439 z" /><path style="line-height:142.99999475%;letter-spacing:-0.19px;fill:#ffffff" d="m 160.11102,77.497459 h 0.53101 v 1.71753 h -0.53101 z" /><path style="fill:#fff;" d="m 162.41858,79.844872 v 1.926269 q 0,0.161133 0.0696,0.314941 0.0732,0.150147 0.21973,0.249024 0.14648,0.09522 0.35522,0.09522 0.14648,0 0.33325,-0.02564 v 0.53833 q -0.23803,0.02197 -0.4834,0.02197 -0.34057,0 -0.57861,-0.146485 -0.23804,-0.146484 -0.35889,-0.391845 -0.12085,-0.249024 -0.12085,-0.549317 v -2.03247 h -0.64453 v -0.531006 h 0.64453 v -1.281739 h 0.56397 v 1.281739 h 0.98144 v 0.531006 h -0.98144 z" /><path style="fill:#fff;" d="m 30.251877,89.939988 q 0.46875,0 0.787353,0.183106 0.318604,0.183105 0.476075,0.505371 0.161132,0.322266 0.161132,0.739746 v 2.233887 h -0.600586 v -2.06543 q 0,-0.450439 -0.194091,-0.736084 -0.194092,-0.285645 -0.633545,-0.285645 -0.314942,0 -0.593262,0.113526 -0.27832,0.109863 -0.494385,0.307617 v 2.666016 h -0.600586 v -5.55542 h 0.600586 v 2.307129 q 0.421143,-0.413819 1.091309,-0.413819 z" /><path style="fill:#fff;" d="m 35.287277,93.74492 q -0.201416,-0.351563 -0.303955,-0.725098 -0.06226,0.183106 -0.241699,0.336914 -0.179443,0.153809 -0.428467,0.2417 -0.249023,0.08789 -0.505371,0.08789 -0.362549,0 -0.651855,-0.113525 -0.285645,-0.113526 -0.454102,-0.351563 -0.164795,-0.238037 -0.164795,-0.593261 0,-0.344239 0.172119,-0.596924 0.172119,-0.256348 0.487061,-0.391846 0.318603,-0.135498 0.739746,-0.135498 0.505371,0 0.963135,0.26001 v -0.373535 q 0,-0.439453 -0.205078,-0.64087 -0.205079,-0.201416 -0.607911,-0.201416 -0.153808,0 -0.443115,0.02563 -0.285644,0.02197 -0.534668,0.06226 l -0.102539,-0.600586 q 0.446777,-0.05127 0.699463,-0.07324 0.256348,-0.02197 0.428467,-0.02197 0.666504,0 1.010742,0.351563 0.344238,0.351562 0.3479,1.047363 l 0.0073,1.054688 q 0.0037,0.53833 0.318603,1.105957 l -0.531006,0.245361 z m -1.343994,-0.618897 q 0.285645,0 0.501709,-0.09888 0.216065,-0.09888 0.333252,-0.281983 0.12085,-0.183105 0.12085,-0.421142 v -0.03296 q -0.183106,-0.10254 -0.406495,-0.157471 -0.223388,-0.05859 -0.465087,-0.05859 -0.391846,0 -0.626221,0.13916 -0.234375,0.135498 -0.234375,0.377198 0,0.15747 0.09521,0.27832 0.09888,0.120849 0.274658,0.19043 0.175781,0.06592 0.406494,0.06592 z" /><path style="letter-spacing:-0.52999997px;fill:#ffffff" d="m 38.323166,89.939988 q 0.46875,0 0.787353,0.183106 0.318604,0.183105 0.476075,0.505371 0.161132,0.322266 0.161132,0.739746 v 2.233887 h -0.600585 v -2.06543 q 0,-0.450439 -0.194092,-0.736084 -0.19043,-0.285645 -0.633545,-0.289307 -0.314942,0.0037 -0.593262,0.117188 -0.274658,0.109863 -0.48706,0.311279 l -0.0073,2.662354 h -0.600586 l 0.0073,-3.566895 h 0.443115 l 0.113525,0.355225 q 0.424805,-0.45044 1.12793,-0.45044 z" /><path style="letter-spacing:-0.1px;fill:#ffffff" d="m 43.341262,93.74492 q -0.20874,-0.377197 -0.307617,-0.739746 -0.157471,0.336914 -0.490723,0.509033 -0.32959,0.172119 -0.831299,0.172119 -0.479736,0 -0.842285,-0.223388 -0.362549,-0.227051 -0.563965,-0.637207 -0.197754,-0.410157 -0.197754,-0.952149 0,-0.574951 0.223389,-1.010742 0.223389,-0.439453 0.629883,-0.681152 0.410156,-0.2417 0.948486,-0.2417 0.552979,0 1.043701,0.38086 v -2.27417 h 0.600586 v 4.346924 q 0.0037,0.53833 0.318604,1.105957 z m -1.483154,-0.633545 q 0.534668,0 0.812988,-0.303955 0.281982,-0.307617 0.281982,-0.864258 v -1.098633 q -0.227051,-0.197754 -0.490722,-0.27832 -0.263672,-0.08057 -0.505371,-0.08057 -0.369874,0 -0.64087,0.164795 -0.270996,0.161132 -0.41748,0.465087 -0.146484,0.300293 -0.146484,0.717774 0,0.314941 0.117187,0.60791 0.117188,0.292969 0.366211,0.483398 0.249023,0.186768 0.622559,0.186768 z" /><path style="letter-spacing:-0.1px;fill:#ffffff" d="m 44.676809,88.05034 h 0.600586 v 5.551758 h -0.600586 z" /><path style="fill:#fff;" d="m 48.081448,93.133348 q 0.245361,0 0.520019,-0.05493 0.274658,-0.05493 0.549317,-0.161133 l 0.186767,0.512696 q -0.26001,0.109863 -0.65918,0.183105 -0.399169,0.07324 -0.725097,0.07324 -0.864258,0 -1.340332,-0.461426 -0.476074,-0.465087 -0.476074,-1.428222 0,-0.600586 0.20874,-1.018067 0.212402,-0.421142 0.611572,-0.637207 0.39917,-0.216064 0.959473,-0.216064 0.494384,0 0.827636,0.230713 0.333252,0.227051 0.494385,0.596924 0.161133,0.366211 0.161133,0.787353 0,0.289307 -0.08057,0.578613 l -2.548829,0.01831 q 0.08057,0.494385 0.410157,0.74707 0.32959,0.249024 0.900879,0.249024 z m -0.245362,-2.633057 q -0.520019,0 -0.783691,0.300293 -0.263672,0.300293 -0.300293,0.809326 l 1.981201,-0.01831 q 0.0073,-0.08789 0.0073,-0.131836 0,-0.249024 -0.09155,-0.465088 -0.09155,-0.219727 -0.296631,-0.355225 -0.201416,-0.13916 -0.516358,-0.13916 z" /><path style="fill:#fff;" d="m 49.83926,94.312547 q 0.245361,-0.457764 0.336914,-0.780029 0.09155,-0.322266 0.09155,-0.765381 h 0.65918 q 0,0.454101 -0.161133,0.944824 -0.157471,0.494385 -0.424805,0.856934 z" /><path style="fill:#fff;" d="m 56.456692,93.74492 q -0.201416,-0.351563 -0.303955,-0.725098 -0.06226,0.183106 -0.2417,0.336914 -0.179443,0.153809 -0.428466,0.2417 -0.249024,0.08789 -0.505371,0.08789 -0.362549,0 -0.651856,-0.113525 -0.285644,-0.113526 -0.454101,-0.351563 -0.164795,-0.238037 -0.164795,-0.593261 0,-0.344239 0.172119,-0.596924 0.172119,-0.256348 0.48706,-0.391846 0.318604,-0.135498 0.739746,-0.135498 0.505371,0 0.963135,0.26001 v -0.373535 q 0,-0.439453 -0.205078,-0.64087 -0.205078,-0.201416 -0.60791,-0.201416 -0.153809,0 -0.443115,0.02563 -0.285645,0.02197 -0.534668,0.06226 l -0.102539,-0.600586 q 0.446777,-0.05127 0.699462,-0.07324 0.256348,-0.02197 0.428467,-0.02197 0.666504,0 1.010742,0.351563 0.344239,0.351562 0.347901,1.047363 l 0.0073,1.054688 q 0.0037,0.53833 0.318604,1.105957 l -0.531006,0.245361 z m -1.343994,-0.618897 q 0.285644,0 0.501709,-0.09888 0.216064,-0.09888 0.333252,-0.281983 0.120849,-0.183105 0.120849,-0.421142 v -0.03296 q -0.183105,-0.10254 -0.406494,-0.157471 -0.223389,-0.05859 -0.465088,-0.05859 -0.391846,0 -0.626221,0.13916 -0.234375,0.135498 -0.234375,0.377198 0,0.15747 0.09522,0.27832 0.09888,0.120849 0.274658,0.19043 0.175782,0.06592 0.406495,0.06592 z" /><path style="letter-spacing:-0.23px;fill:#ffffff" d="m 59.49258,89.939988 q 0.46875,0 0.787354,0.183106 0.318603,0.183105 0.476074,0.505371 0.161133,0.322266 0.161133,0.739746 v 2.233887 h -0.600586 v -2.06543 q 0,-0.450439 -0.194092,-0.736084 -0.190429,-0.285645 -0.633545,-0.289307 -0.314941,0.0037 -0.593261,0.117188 -0.274659,0.109863 -0.487061,0.311279 l -0.0073,2.662354 H 57.80071 l 0.0073,-3.566895 h 0.443115 l 0.113526,0.355225 q 0.424804,-0.45044 1.127929,-0.45044 z" /><path style="letter-spacing:-0.23px;fill:#ffffff" d="m 64.810677,93.74492 q -0.208741,-0.377197 -0.307618,-0.739746 -0.15747,0.336914 -0.490722,0.509033 -0.32959,0.172119 -0.831299,0.172119 -0.479736,0 -0.842285,-0.223388 -0.362549,-0.227051 -0.563965,-0.637207 -0.197754,-0.410157 -0.197754,-0.952149 0,-0.574951 0.223389,-1.010742 0.223388,-0.439453 0.629882,-0.681152 0.410157,-0.2417 0.948487,-0.2417 0.552978,0 1.043701,0.38086 v -2.27417 h 0.600586 v 4.346924 q 0.0037,0.53833 0.318603,1.105957 z m -1.483155,-0.633545 q 0.534668,0 0.812989,-0.303955 0.281982,-0.307617 0.281982,-0.864258 v -1.098633 q -0.227051,-0.197754 -0.490723,-0.27832 -0.263672,-0.08057 -0.505371,-0.08057 -0.369873,0 -0.640869,0.164795 -0.270996,0.161132 -0.41748,0.465087 -0.146485,0.300293 -0.146485,0.717774 0,0.314941 0.117188,0.60791 0.117187,0.292969 0.366211,0.483398 0.249023,0.186768 0.622558,0.186768 z" /><path style="letter-spacing:-0.25px;fill:#ffffff" d="m 69.505238,89.939988 q 0.46875,0 0.787353,0.183106 0.318604,0.183105 0.476074,0.505371 0.161133,0.322266 0.161133,0.739746 v 2.233887 h -0.600586 v -2.06543 q 0,-0.450439 -0.194092,-0.736084 -0.190429,-0.285645 -0.633545,-0.289307 -0.314941,0.0037 -0.593261,0.117188 -0.274658,0.109863 -0.487061,0.311279 l -0.0073,2.662354 h -0.600586 l 0.0073,-3.566895 h 0.443116 l 0.113525,0.355225 q 0.424805,-0.45044 1.12793,-0.45044 z" /><path style="letter-spacing:-0.25px;fill:#ffffff" d="m 73.422718,93.69365 q -0.556641,0 -0.981445,-0.230712 -0.421143,-0.230713 -0.655518,-0.651856 -0.230713,-0.424805 -0.230713,-0.977783 0,-0.560303 0.230713,-0.98877 0.234375,-0.428466 0.655518,-0.662841 0.424804,-0.234375 0.981445,-0.234375 0.545654,0 0.959473,0.234375 0.413818,0.234375 0.637207,0.662841 0.223388,0.424805 0.219726,0.98877 0,0.55664 -0.22705,0.977783 -0.223389,0.421143 -0.637208,0.651856 -0.410156,0.230712 -0.952148,0.230712 z m 0,-0.578613 q 0.344238,0 0.60791,-0.157471 0.267334,-0.161132 0.413819,-0.450439 0.150146,-0.292969 0.15747,-0.673828 -0.0073,-0.388184 -0.15747,-0.684815 -0.150147,-0.29663 -0.413819,-0.457763 -0.263672,-0.164795 -0.60791,-0.164795 -0.366211,0 -0.648193,0.164795 -0.278321,0.164795 -0.432129,0.461426 -0.150147,0.29663 -0.150147,0.688476 0,0.380859 0.150147,0.670166 0.153808,0.289307 0.432129,0.446777 0.27832,0.157471 0.648193,0.157471 z" /><path style="letter-spacing:-0.25px;fill:#ffffff" d="m 75.439564,90.035203 h 0.611572 l 0.776367,2.548828 q 0.01465,0.05859 0.0293,0.168457 0.01465,0.109864 0.01831,0.161133 h 0.0293 q 0.0037,-0.04395 0.02563,-0.172119 0.02563,-0.131836 0.04028,-0.175781 l 0.84961,-2.53418 h 0.549316 l 0.791016,2.548828 q 0.01099,0.03296 0.0293,0.161133 0.02197,0.124512 0.02563,0.175781 h 0.0293 q 0.0037,-0.03662 0.02563,-0.146484 0.02197,-0.113526 0.04028,-0.183106 l 0.761719,-2.55249 h 0.615234 l -1.124267,3.585205 H 78.940532 L 78.164165,91.21074 q -0.02197,-0.0769 -0.04761,-0.190429 -0.02197,-0.117188 -0.02564,-0.150147 h -0.01465 q -0.0037,0.03296 -0.03296,0.150147 -0.02563,0.113525 -0.04761,0.186767 l -0.820312,2.41333 h -0.600586 l -1.135254,-3.585205 z" /><path style="fill:#fff;" d="m 83.491566,88.91826 q -0.175782,0 -0.292969,-0.117188 -0.117188,-0.117187 -0.117188,-0.292968 0,-0.17212 0.117188,-0.289307 0.117187,-0.117188 0.292969,-0.117188 0.172119,0 0.289306,0.117188 0.117188,0.117187 0.117188,0.289307 0,0.175781 -0.117188,0.292968 -0.117187,0.117188 -0.289306,0.117188 z m -0.31128,1.116943 h 0.600586 v 3.566895 h -0.600586 z" /><path style="fill:#fff;" d="m 85.769398,90.569871 v 1.92627 q 0,0.161132 0.06958,0.314941 0.07324,0.150147 0.219726,0.249024 0.146485,0.09521 0.355225,0.09521 0.146484,0 0.333252,-0.02563 v 0.53833 q -0.238037,0.02197 -0.483398,0.02197 -0.340577,0 -0.578614,-0.146484 -0.238037,-0.146484 -0.358886,-0.391846 -0.12085,-0.249023 -0.12085,-0.549316 v -2.032471 h -0.644531 v -0.531006 h 0.644531 v -1.281738 h 0.563965 v 1.281738 h 0.981445 v 0.531006 h -0.981445 z" /><path style="fill:#fff;" d="m 91.299183,89.939988 q 0.46875,0 0.787353,0.183106 0.318604,0.183105 0.476075,0.505371 0.161132,0.322266 0.161132,0.739746 v 2.233887 h -0.600585 v -2.06543 q 0,-0.450439 -0.194092,-0.736084 -0.19043,-0.285645 -0.633545,-0.289307 -0.314942,0.0037 -0.593262,0.117188 -0.274658,0.109863 -0.48706,0.311279 l -0.0073,2.662354 h -0.600586 l 0.0073,-3.566895 h 0.443115 l 0.113525,0.355225 q 0.424805,-0.45044 1.12793,-0.45044 z" /><path style="fill:#fff;" d="m 95.547226,93.133348 q 0.245361,0 0.520019,-0.05493 0.274659,-0.05493 0.549317,-0.161133 l 0.186767,0.512696 q -0.260009,0.109863 -0.659179,0.183105 -0.39917,0.07324 -0.725098,0.07324 -0.864258,0 -1.340332,-0.461426 -0.476074,-0.465087 -0.476074,-1.428222 0,-0.600586 0.20874,-1.018067 0.212402,-0.421142 0.611572,-0.637207 0.39917,-0.216064 0.959473,-0.216064 0.494385,0 0.827637,0.230713 0.333252,0.227051 0.494385,0.596924 0.161132,0.366211 0.161132,0.787353 0,0.289307 -0.08057,0.578613 l -2.548828,0.01831 q 0.08057,0.494385 0.410156,0.74707 0.32959,0.249024 0.900879,0.249024 z m -0.245361,-2.633057 q -0.52002,0 -0.783692,0.300293 -0.263672,0.300293 -0.300293,0.809326 l 1.981201,-0.01831 q 0.0073,-0.08789 0.0073,-0.131836 0,-0.249024 -0.09155,-0.465088 -0.09155,-0.219727 -0.296631,-0.355225 -0.201416,-0.13916 -0.516357,-0.13916 z" /><path style="fill:#fff;" d="m 99.458359,93.133348 q 0.245361,0 0.520019,-0.05493 0.274662,-0.05493 0.549312,-0.161133 l 0.18677,0.512696 q -0.26001,0.109863 -0.65918,0.183105 -0.399167,0.07324 -0.725095,0.07324 -0.864258,0 -1.340332,-0.461426 -0.476074,-0.465087 -0.476074,-1.428222 0,-0.600586 0.20874,-1.018067 0.212402,-0.421142 0.611572,-0.637207 0.39917,-0.216064 0.959473,-0.216064 0.494385,0 0.827636,0.230713 0.33325,0.227051 0.49439,0.596924 0.16113,0.366211 0.16113,0.787353 0,0.289307 -0.0806,0.578613 l -2.548826,0.01831 q 0.08057,0.494385 0.410156,0.74707 0.32959,0.249024 0.900879,0.249024 z m -0.245362,-2.633057 q -0.520019,0 -0.783691,0.300293 -0.263672,0.300293 -0.300293,0.809326 l 1.981197,-0.01831 q 0.007,-0.08789 0.007,-0.131836 0,-0.249024 -0.0916,-0.465088 -0.09156,-0.219727 -0.296635,-0.355225 -0.201416,-0.13916 -0.516358,-0.13916 z" /><path style="letter-spacing:-0.25px;fill:#ffffff" d="m 104.66954,93.74492 q -0.20874,-0.377197 -0.30762,-0.739746 -0.15747,0.336914 -0.49072,0.509033 -0.32959,0.172119 -0.8313,0.172119 -0.47973,0 -0.84228,-0.223388 -0.36255,-0.227051 -0.56397,-0.637207 -0.19775,-0.410157 -0.19775,-0.952149 0,-0.574951 0.22339,-1.010742 0.22339,-0.439453 0.62988,-0.681152 0.41016,-0.2417 0.94849,-0.2417 0.55297,0 1.0437,0.38086 v -2.27417 h 0.60058 v 4.346924 q 0.004,0.53833 0.31861,1.105957 z m -1.48315,-0.633545 q 0.53466,0 0.81298,-0.303955 0.28199,-0.307617 0.28199,-0.864258 v -1.098633 q -0.22705,-0.197754 -0.49073,-0.27832 -0.26367,-0.08057 -0.50537,-0.08057 -0.36987,0 -0.64087,0.164795 -0.27099,0.161132 -0.41748,0.465087 -0.14648,0.300293 -0.14648,0.717774 0,0.314941 0.11719,0.60791 0.11718,0.292969 0.36621,0.483398 0.24902,0.186768 0.62256,0.186768 z" /><path style="letter-spacing:-0.25px;fill:#ffffff" d="m 106.76695,93.69365 q -0.57861,-0.0037 -1.20483,-0.285644 l 0.19775,-0.53833 q 0.5896,0.263672 1.00708,0.270996 0.76172,-0.01099 0.76538,-0.501709 0,-0.172119 -0.0989,-0.281982 -0.0952,-0.109864 -0.2417,-0.175782 -0.14283,-0.06592 -0.39551,-0.146484 -0.33325,-0.106201 -0.54199,-0.20874 -0.20874,-0.106202 -0.35889,-0.314942 -0.14648,-0.20874 -0.14648,-0.552978 0.011,-1.025391 1.24878,-1.025391 0.56762,0 0.98876,0.194092 l -0.20874,0.545654 q -0.42114,-0.186767 -0.78002,-0.186767 -0.65552,0.0073 -0.68116,0.472412 0,0.13916 0.0879,0.230713 0.0879,0.09155 0.21607,0.150146 0.13183,0.05493 0.36621,0.131836 0.3479,0.109863 0.56763,0.223389 0.22338,0.109863 0.38452,0.340576 0.16113,0.227051 0.16113,0.604248 0,1.054687 -1.33301,1.054687 z" /><path style="fill:#fff;" d="m 111.59264,90.569871 v 1.92627 q 0,0.161132 0.0696,0.314941 0.0732,0.150147 0.21972,0.249024 0.14649,0.09521 0.35523,0.09521 0.14648,0 0.33325,-0.02563 v 0.53833 q -0.23804,0.02197 -0.4834,0.02197 -0.34058,0 -0.57861,-0.146484 -0.23804,-0.146484 -0.35889,-0.391846 -0.12085,-0.249023 -0.12085,-0.549316 v -2.032471 h -0.64453 v -0.531006 h 0.64453 v -1.281738 h 0.56397 v 1.281738 h 0.98144 v 0.531006 h -0.98144 z" /><path style="fill:#fff;" d="m 114.99107,93.69365 q -0.55664,0 -0.98144,-0.230712 -0.42114,-0.230713 -0.65552,-0.651856 -0.23071,-0.424805 -0.23071,-0.977783 0,-0.560303 0.23071,-0.98877 0.23438,-0.428466 0.65552,-0.662841 0.4248,-0.234375 0.98144,-0.234375 0.54566,0 0.95948,0.234375 0.41381,0.234375 0.6372,0.662841 0.22339,0.424805 0.21973,0.98877 0,0.55664 -0.22705,0.977783 -0.22339,0.421143 -0.63721,0.651856 -0.41015,0.230712 -0.95215,0.230712 z m 0,-0.578613 q 0.34424,0 0.60791,-0.157471 0.26734,-0.161132 0.41382,-0.450439 0.15015,-0.292969 0.15747,-0.673828 -0.007,-0.388184 -0.15747,-0.684815 -0.15014,-0.29663 -0.41382,-0.457763 -0.26367,-0.164795 -0.60791,-0.164795 -0.36621,0 -0.64819,0.164795 -0.27832,0.164795 -0.43213,0.461426 -0.15015,0.29663 -0.15015,0.688476 0,0.380859 0.15015,0.670166 0.15381,0.289307 0.43213,0.446777 0.27832,0.157471 0.64819,0.157471 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 120.36705,90.379441 q 0.3772,-0.435791 0.9668,-0.435791 0.16479,0 0.34424,0.03296 l -0.10254,0.571289 q -0.10254,-0.01099 -0.20142,-0.01099 -0.56763,0 -0.94116,0.351563 v 2.713623 h -0.60059 V 90.0352 h 0.4541 l 0.0806,0.344238 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 123.92438,93.133348 q 0.24536,0 0.52002,-0.05493 0.27466,-0.05493 0.54931,-0.161133 l 0.18677,0.512696 q -0.26001,0.109863 -0.65918,0.183105 -0.39917,0.07324 -0.7251,0.07324 -0.86425,0 -1.34033,-0.461426 -0.47607,-0.465087 -0.47607,-1.428222 0,-0.600586 0.20874,-1.018067 0.2124,-0.421142 0.61157,-0.637207 0.39917,-0.216064 0.95947,-0.216064 0.49439,0 0.82764,0.230713 0.33325,0.227051 0.49438,0.596924 0.16114,0.366211 0.16114,0.787353 0,0.289307 -0.0806,0.578613 l -2.54883,0.01831 q 0.0806,0.494385 0.41016,0.74707 0.32959,0.249024 0.90088,0.249024 z m -0.24536,-2.633057 q -0.52002,0 -0.7837,0.300293 -0.26367,0.300293 -0.30029,0.809326 l 1.9812,-0.01831 q 0.007,-0.08789 0.007,-0.131836 0,-0.249024 -0.0916,-0.465088 -0.0915,-0.219727 -0.29663,-0.355225 -0.20141,-0.13916 -0.51635,-0.13916 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 126.85915,93.69365 q -0.57862,-0.0037 -1.20484,-0.285644 l 0.19776,-0.53833 q 0.5896,0.263672 1.00708,0.270996 0.76171,-0.01099 0.76538,-0.501709 0,-0.172119 -0.0989,-0.281982 -0.0952,-0.109864 -0.2417,-0.175782 -0.14282,-0.06592 -0.39551,-0.146484 -0.33325,-0.106201 -0.54199,-0.20874 -0.20874,-0.106202 -0.35889,-0.314942 -0.14648,-0.20874 -0.14648,-0.552978 0.011,-1.025391 1.24878,-1.025391 0.56763,0 0.98877,0.194092 l -0.20874,0.545654 q -0.42114,-0.186767 -0.78003,-0.186767 -0.65552,0.0073 -0.68115,0.472412 0,0.13916 0.0879,0.230713 0.0879,0.09155 0.21606,0.150146 0.13184,0.05493 0.36621,0.131836 0.3479,0.109863 0.56763,0.223389 0.22339,0.109863 0.38452,0.340576 0.16113,0.227051 0.16113,0.604248 0,1.054687 -1.333,1.054687 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 129.68404,90.569871 v 1.92627 q 0,0.161132 0.0696,0.314941 0.0733,0.150147 0.21973,0.249024 0.14648,0.09521 0.35523,0.09521 0.14648,0 0.33325,-0.02563 v 0.53833 q -0.23804,0.02197 -0.4834,0.02197 -0.34058,0 -0.57861,-0.146484 -0.23804,-0.146484 -0.35889,-0.391846 -0.12085,-0.249023 -0.12085,-0.549316 v -2.032471 h -0.64453 v -0.531006 h 0.64453 v -1.281738 h 0.56396 v 1.281738 h 0.98145 v 0.531006 h -0.98145 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 133.7504,93.74492 q -0.20141,-0.351563 -0.30395,-0.725098 -0.0623,0.183106 -0.2417,0.336914 -0.17944,0.153809 -0.42847,0.2417 -0.24902,0.08789 -0.50537,0.08789 -0.36255,0 -0.65185,-0.113525 -0.28565,-0.113526 -0.4541,-0.351563 -0.1648,-0.238037 -0.1648,-0.593261 0,-0.344239 0.17212,-0.596924 0.17212,-0.256348 0.48706,-0.391846 0.3186,-0.135498 0.73975,-0.135498 0.50537,0 0.96313,0.26001 v -0.373535 q 0,-0.439453 -0.20508,-0.64087 -0.20508,-0.201416 -0.60791,-0.201416 -0.15381,0 -0.44311,0.02563 -0.28565,0.02197 -0.53467,0.06226 l -0.10254,-0.600586 q 0.44678,-0.05127 0.69946,-0.07324 0.25635,-0.02197 0.42847,-0.02197 0.6665,0 1.01074,0.351563 0.34424,0.351562 0.3479,1.047363 l 0.007,1.054688 q 0.004,0.53833 0.3186,1.105957 l -0.53101,0.245361 z m -1.34399,-0.618897 q 0.28564,0 0.50171,-0.09888 0.21606,-0.09888 0.33325,-0.281983 0.12085,-0.183105 0.12085,-0.421142 v -0.03296 q -0.1831,-0.10254 -0.40649,-0.157471 -0.22339,-0.05859 -0.46509,-0.05859 -0.39185,0 -0.62622,0.13916 -0.23438,0.135498 -0.23438,0.377198 0,0.15747 0.0952,0.27832 0.0989,0.120849 0.27466,0.19043 0.17578,0.06592 0.40649,0.06592 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 135.43639,90.379441 q 0.37719,-0.435791 0.96679,-0.435791 0.1648,0 0.34424,0.03296 l -0.10254,0.571289 q -0.10254,-0.01099 -0.20141,-0.01099 -0.56763,0 -0.94117,0.351563 v 2.713623 h -0.60058 V 90.0352 h 0.4541 l 0.0806,0.344238 z" /><path style="letter-spacing:-0.2px;fill:#ffffff" d="m 138.06354,90.569871 v 1.92627 q 0,0.161132 0.0696,0.314941 0.0732,0.150147 0.21972,0.249024 0.14649,0.09521 0.35523,0.09521 0.14648,0 0.33325,-0.02563 v 0.53833 q -0.23804,0.02197 -0.4834,0.02197 -0.34057,0 -0.57861,-0.146484 -0.23804,-0.146484 -0.35889,-0.391846 -0.12085,-0.249023 -0.12085,-0.549316 v -2.032471 h -0.64453 v -0.531006 h 0.64453 v -1.281738 h 0.56397 v 1.281738 h 0.98144 v 0.531006 h -0.98144 z" /><path style="fill:#fff;" d="m 139.86305,93.682664 q -0.18677,0 -0.30029,-0.109863 -0.10986,-0.113526 -0.10986,-0.300293 0,-0.186768 0.10986,-0.300293 0.11352,-0.113526 0.30029,-0.113526 0.18677,0 0.3003,0.113526 0.11352,0.113525 0.11352,0.300293 0,0.186767 -0.11352,0.300293 -0.11353,0.109863 -0.3003,0.109863 z" /></g><g><path style="fill:#fff;" d="m 28.880116,106.02305 -0.844117,-1.6626 h 0.344239 l 0.593261,1.19568 q 0.01099,0.0238 0.0293,0.0714 0.01831,0.0458 0.03479,0.0897 h 0.0055 q 0.01648,-0.0604 0.06775,-0.16113 l 0.620728,-1.19568 h 0.322266 l -0.866089,1.65527 v 0.97046 h -0.307617 v -0.96313 z" /><path style="fill:#fff;" d="m 31.181751,107.03196 q -0.27832,0 -0.490722,-0.11536 -0.210572,-0.11535 -0.327759,-0.32592 -0.115357,-0.21241 -0.115357,-0.4889 0,-0.28015 0.115357,-0.49438 0.117187,-0.21423 0.327759,-0.33142 0.212402,-0.11719 0.490722,-0.11719 0.272827,0 0.479737,0.11719 0.206909,0.11719 0.318603,0.33142 0.111694,0.2124 0.109863,0.49438 0,0.27832 -0.113525,0.4889 -0.111694,0.21057 -0.318604,0.32592 -0.205078,0.11536 -0.476074,0.11536 z m 0,-0.28931 q 0.172119,0 0.303955,-0.0787 0.133667,-0.0806 0.20691,-0.22522 0.07507,-0.14649 0.07873,-0.33692 -0.0037,-0.19409 -0.07873,-0.3424 -0.07507,-0.14832 -0.20691,-0.22889 -0.131836,-0.0824 -0.303955,-0.0824 -0.183105,0 -0.324096,0.0824 -0.139161,0.0824 -0.216065,0.23072 -0.07507,0.14831 -0.07507,0.34424 0,0.19043 0.07507,0.33508 0.0769,0.14465 0.216065,0.22339 0.13916,0.0787 0.324096,0.0787 z" /><path style="fill:#fff;" d="m 33.985096,107.05759 q -0.106201,-0.19043 -0.150147,-0.35888 -0.02746,0.0751 -0.106201,0.15014 -0.0769,0.0751 -0.201416,0.12635 -0.12268,0.0513 -0.280151,0.0513 -0.258179,0 -0.417481,-0.10071 -0.159301,-0.10071 -0.22705,-0.26001 -0.06775,-0.16113 -0.06775,-0.35339 v -1.10779 h 0.300293 v 1.0144 q 0,0.23987 0.09888,0.38452 0.100708,0.14466 0.379028,0.14466 0.206909,0 0.342407,-0.097 0.135498,-0.0989 0.135498,-0.32776 v -1.1206 h 0.300293 v 1.1792 q 0.0018,0.26916 0.159302,0.55297 l -0.265503,0.12268 z" /><path style="fill:#fff;" d="m 36.478992,107.0283 q -0.276489,0 -0.476074,-0.1117 -0.199585,-0.11169 -0.303955,-0.32043 -0.10437,-0.21057 -0.10437,-0.49805 0,-0.28564 0.106201,-0.49805 0.106201,-0.2124 0.31128,-0.32775 0.205078,-0.11536 0.492553,-0.11353 0.150147,-0.002 0.2948,0.0275 0.144653,0.0275 0.245361,0.0751 l -0.07324,0.30395 q -0.223388,-0.1007 -0.465088,-0.1007 -0.305786,0 -0.443115,0.15747 -0.137329,0.15564 -0.137329,0.46692 0,0.32592 0.15564,0.48523 0.15747,0.1593 0.457763,0.1593 0.122681,0 0.217896,-0.0238 0.09705,-0.0256 0.254516,-0.0842 l 0.09338,0.27832 q -0.153808,0.0586 -0.316772,0.0915 -0.162964,0.033 -0.309449,0.033 z" /><path style="fill:#fff;" d="m 38.698231,107.05759 q -0.100708,-0.17578 -0.151978,-0.36254 -0.03113,0.0916 -0.120849,0.16845 -0.08972,0.0769 -0.214234,0.12085 -0.124512,0.0439 -0.252685,0.0439 -0.181275,0 -0.325928,-0.0568 -0.142822,-0.0568 -0.227051,-0.17578 -0.0824,-0.11902 -0.0824,-0.29663 0,-0.17212 0.08606,-0.29846 0.08606,-0.12817 0.243531,-0.19592 0.159301,-0.0678 0.369873,-0.0678 0.252685,0 0.481567,0.13 v -0.18676 q 0,-0.21973 -0.102539,-0.32044 -0.102539,-0.10071 -0.303955,-0.10071 -0.0769,0 -0.221558,0.0128 -0.142822,0.011 -0.267334,0.0311 l -0.05127,-0.30029 q 0.223388,-0.0256 0.349731,-0.0366 0.128174,-0.011 0.214234,-0.011 0.333251,0 0.505371,0.17578 0.172119,0.17578 0.17395,0.52368 l 0.0037,0.52735 q 0.0018,0.26916 0.159302,0.55297 l -0.265503,0.12268 z m -0.671997,-0.30944 q 0.142822,0 0.250854,-0.0494 0.108032,-0.0494 0.166626,-0.14099 0.06043,-0.0916 0.06043,-0.21057 v -0.0165 q -0.09155,-0.0513 -0.203247,-0.0787 -0.111694,-0.0293 -0.232544,-0.0293 -0.195923,0 -0.31311,0.0696 -0.117188,0.0678 -0.117188,0.1886 0,0.0787 0.04761,0.13916 0.04944,0.0604 0.137329,0.0952 0.08789,0.033 0.203247,0.033 z" /><path style="fill:#fff;" d="m 40.216175,105.15513 q 0.234375,0 0.393677,0.0915 0.159302,0.0915 0.238037,0.25269 0.08057,0.16113 0.08057,0.36987 v 1.11694 h -0.300293 v -1.03271 q 0,-0.22522 -0.09705,-0.36804 -0.09521,-0.14283 -0.316772,-0.14466 -0.157471,0.002 -0.296631,0.0586 -0.137329,0.0549 -0.24353,0.15564 l -0.0037,1.33117 H 39.37019 l 0.0037,-1.78344 h 0.221558 l 0.05676,0.17761 q 0.212403,-0.22522 0.563965,-0.22522 z" /><path style="fill:#fff;" d="m 42.977406,107.03196 q -0.289307,-0.002 -0.602417,-0.14282 l 0.09888,-0.26917 q 0.294799,0.13184 0.50354,0.1355 0.380859,-0.005 0.38269,-0.25085 0,-0.0861 -0.04944,-0.141 -0.04761,-0.0549 -0.12085,-0.0879 -0.07141,-0.033 -0.197754,-0.0732 -0.166626,-0.0531 -0.270996,-0.10437 -0.10437,-0.0531 -0.179443,-0.15747 -0.07324,-0.10437 -0.07324,-0.27649 0.0055,-0.51269 0.62439,-0.51269 0.283813,0 0.494385,0.097 l -0.10437,0.27283 q -0.210572,-0.0934 -0.390015,-0.0934 -0.327759,0.004 -0.340576,0.2362 0,0.0696 0.04395,0.11536 0.04395,0.0458 0.108032,0.0751 0.06592,0.0275 0.183106,0.0659 0.17395,0.0549 0.283813,0.11169 0.111695,0.0549 0.192261,0.17029 0.08057,0.11353 0.08057,0.30213 0,0.52734 -0.666503,0.52734 z" /><path style="fill:#fff;" d="m 44.954945,106.75181 q 0.12268,0 0.260009,-0.0275 0.137329,-0.0275 0.274659,-0.0806 l 0.09338,0.25634 q -0.130005,0.0549 -0.329589,0.0916 -0.199585,0.0366 -0.362549,0.0366 -0.432129,0 -0.670166,-0.23072 -0.238037,-0.23254 -0.238037,-0.71411 0,-0.30029 0.10437,-0.50903 0.106201,-0.21057 0.305786,-0.3186 0.199585,-0.10804 0.479736,-0.10804 0.247193,0 0.413819,0.11536 0.166625,0.11353 0.247192,0.29846 0.08057,0.18311 0.08057,0.39368 0,0.14465 -0.04028,0.28931 l -1.274414,0.009 q 0.04028,0.24719 0.205078,0.37354 0.164795,0.12451 0.45044,0.12451 z m -0.122681,-1.31653 q -0.26001,0 -0.391846,0.15015 -0.131836,0.15014 -0.150146,0.40466 l 0.9906,-0.009 q 0.0037,-0.0439 0.0037,-0.0659 0,-0.12452 -0.04578,-0.23255 -0.04578,-0.10986 -0.148315,-0.17761 -0.100708,-0.0696 -0.258179,-0.0696 z" /><path style="fill:#fff;" d="m 47.304188,107.05759 q -0.100708,-0.17578 -0.151978,-0.36254 -0.03113,0.0916 -0.120849,0.16845 -0.08972,0.0769 -0.214234,0.12085 -0.124511,0.0439 -0.252685,0.0439 -0.181275,0 -0.325928,-0.0568 -0.142822,-0.0568 -0.227051,-0.17578 -0.0824,-0.11902 -0.0824,-0.29663 0,-0.17212 0.08606,-0.29846 0.08606,-0.12817 0.243531,-0.19592 0.159301,-0.0678 0.369873,-0.0678 0.252685,0 0.481567,0.13 v -0.18676 q 0,-0.21973 -0.102539,-0.32044 -0.102539,-0.10071 -0.303955,-0.10071 -0.0769,0 -0.221558,0.0128 -0.142822,0.011 -0.267334,0.0311 l -0.05127,-0.30029 q 0.223388,-0.0256 0.349731,-0.0366 0.128174,-0.011 0.214234,-0.011 0.333252,0 0.505371,0.17578 0.172119,0.17578 0.17395,0.52368 l 0.0037,0.52735 q 0.0018,0.26916 0.159302,0.55297 l -0.265503,0.12268 z m -0.671997,-0.30944 q 0.142822,0 0.250854,-0.0494 0.108032,-0.0494 0.166626,-0.14099 0.06043,-0.0916 0.06043,-0.21057 v -0.0165 q -0.09155,-0.0513 -0.203247,-0.0787 -0.111694,-0.0293 -0.232544,-0.0293 -0.195923,0 -0.31311,0.0696 -0.117188,0.0678 -0.117188,0.1886 0,0.0787 0.04761,0.13916 0.04944,0.0604 0.137329,0.0952 0.08789,0.033 0.203247,0.033 z" /><path style="fill:#fff;" d="m 48.247181,105.37486 q 0.188599,-0.2179 0.483398,-0.2179 0.0824,0 0.17212,0.0165 l -0.05127,0.28564 q -0.05127,-0.005 -0.100708,-0.005 -0.283813,0 -0.470581,0.17578 v 1.35681 h -0.300293 v -1.78344 h 0.227051 l 0.04028,0.17212 z" /><path style="fill:#fff;" d="m 50.036121,107.0283 q -0.276489,0 -0.476074,-0.1117 -0.199585,-0.11169 -0.303955,-0.32043 -0.10437,-0.21057 -0.10437,-0.49805 0,-0.28564 0.106201,-0.49805 0.106201,-0.2124 0.311279,-0.32775 0.205079,-0.11536 0.492554,-0.11353 0.150147,-0.002 0.2948,0.0275 0.144653,0.0275 0.245361,0.0751 l -0.07324,0.30395 q -0.223389,-0.1007 -0.465088,-0.1007 -0.305786,0 -0.443115,0.15747 -0.137329,0.15564 -0.137329,0.46692 0,0.32592 0.15564,0.48523 0.15747,0.1593 0.457763,0.1593 0.122681,0 0.217896,-0.0238 0.09705,-0.0256 0.254516,-0.0842 l 0.09338,0.27832 q -0.153809,0.0586 -0.316772,0.0915 -0.162964,0.033 -0.309449,0.033 z" /><path style="fill:#fff;" d="m 51.861683,105.15513 q 0.234375,0 0.393677,0.0915 0.159301,0.0915 0.238037,0.25269 0.08057,0.16113 0.08057,0.36987 v 1.11694 h -0.300293 v -1.03271 q 0,-0.22522 -0.09705,-0.36804 -0.09705,-0.14283 -0.316772,-0.14283 -0.157471,0 -0.296631,0.0568 -0.13916,0.0549 -0.247192,0.15381 v 1.333 h -0.300293 v -2.77771 h 0.300293 v 1.15357 q 0.210571,-0.20691 0.545654,-0.20691 z" /><path style="fill:#fff;" d="m 54.827991,104.47581 q -0.100708,0 -0.155639,0.0476 -0.0531,0.0458 -0.07324,0.13733 -0.02014,0.0897 -0.02014,0.23621 v 0.30395 l 0.437622,-0.002 v 0.26551 h -0.437622 v 1.51794 h -0.300293 v -1.51794 h -0.320434 v -0.26184 l 0.320434,-0.002 v -0.28564 q 0,-0.34424 0.115357,-0.54016 0.115356,-0.19775 0.410156,-0.19775 0.06226,0 0.234375,0.0183 l 0.0769,0.009 -0.06592,0.29297 q -0.06775,-0.007 -0.08606,-0.009 -0.08972,-0.0128 -0.135499,-0.0128 z" /><path style="fill:#fff;" d="m 56.150013,107.03196 q -0.27832,0 -0.490723,-0.11536 -0.210571,-0.11535 -0.327758,-0.32592 -0.115357,-0.21241 -0.115357,-0.4889 0,-0.28015 0.115357,-0.49438 0.117187,-0.21423 0.327758,-0.33142 0.212403,-0.11719 0.490723,-0.11719 0.272827,0 0.479736,0.11719 0.206909,0.11719 0.318604,0.33142 0.111694,0.2124 0.109863,0.49438 0,0.27832 -0.113525,0.4889 -0.111695,0.21057 -0.318604,0.32592 -0.205078,0.11536 -0.476074,0.11536 z m 0,-0.28931 q 0.172119,0 0.303955,-0.0787 0.133667,-0.0806 0.206909,-0.22522 0.07507,-0.14649 0.07874,-0.33692 -0.0037,-0.19409 -0.07874,-0.3424 -0.07507,-0.14832 -0.206909,-0.22889 -0.131836,-0.0824 -0.303955,-0.0824 -0.183105,0 -0.324097,0.0824 -0.13916,0.0824 -0.216064,0.23072 -0.07507,0.14831 -0.07507,0.34424 0,0.19043 0.07507,0.33508 0.0769,0.14465 0.216064,0.22339 0.13916,0.0787 0.324097,0.0787 z" /><path style="fill:#fff;" d="m 57.812611,105.37486 q 0.188598,-0.2179 0.483398,-0.2179 0.0824,0 0.172119,0.0165 l -0.05127,0.28564 q -0.05127,-0.005 -0.100708,-0.005 -0.283814,0 -0.470581,0.17578 v 1.35681 h -0.300293 v -1.78344 h 0.22705 l 0.04028,0.17212 z" /><path style="letter-spacing:0.2px;fill:#ffffff" d="m 60.451576,105.47007 v 0.96313 q 0,0.0806 0.03479,0.15748 0.03662,0.0751 0.109864,0.12451 0.07324,0.0476 0.177612,0.0476 0.07324,0 0.166626,-0.0128 v 0.26916 q -0.119019,0.011 -0.241699,0.011 -0.170288,0 -0.289307,-0.0732 -0.119019,-0.0733 -0.179443,-0.19593 -0.06043,-0.12451 -0.06043,-0.27465 v -1.01624 h -0.322266 v -0.2655 h 0.322266 v -0.64087 h 0.281982 v 0.64087 h 0.490723 v 0.2655 h -0.490723 z" /><path style="letter-spacing:-0.1px;fill:#ffffff" d="m 62.391079,105.15513 q 0.234375,0 0.393677,0.0915 0.159301,0.0915 0.238037,0.25269 0.08057,0.16113 0.08057,0.36987 v 1.11694 H 62.80307 v -1.03271 q 0,-0.22522 -0.09705,-0.36804 -0.09705,-0.14283 -0.316772,-0.14283 -0.157471,0 -0.296631,0.0568 -0.13916,0.0549 -0.247192,0.15381 v 1.333 h -0.300293 v -2.77771 h 0.300293 v 1.15357 q 0.210571,-0.20691 0.545654,-0.20691 z" /><path style="letter-spacing:-0.1px;fill:#ffffff" d="m 64.4151,106.75181 q 0.122681,0 0.26001,-0.0275 0.137329,-0.0275 0.274658,-0.0806 l 0.09338,0.25634 q -0.130005,0.0549 -0.32959,0.0916 -0.199585,0.0366 -0.362549,0.0366 -0.432129,0 -0.670166,-0.23072 -0.238037,-0.23254 -0.238037,-0.71411 0,-0.30029 0.10437,-0.50903 0.106201,-0.21057 0.305786,-0.3186 0.199585,-0.10804 0.479737,-0.10804 0.247192,0 0.413818,0.11536 0.166626,0.11353 0.247192,0.29846 0.08057,0.18311 0.08057,0.39368 0,0.14465 -0.04028,0.28931 l -1.274414,0.009 q 0.04028,0.24719 0.205078,0.37354 0.164795,0.12451 0.450439,0.12451 z m -0.122681,-1.31653 q -0.260009,0 -0.391845,0.15015 -0.131836,0.15014 -0.150147,0.40466 l 0.990601,-0.009 q 0.0037,-0.0439 0.0037,-0.0659 0,-0.12452 -0.04578,-0.23255 -0.04578,-0.10986 -0.148316,-0.17761 -0.100708,-0.0696 -0.258179,-0.0696 z" /><path style="fill:#fff;" d="m 67.296059,106.75181 q 0.12268,0 0.260009,-0.0275 0.13733,-0.0275 0.274659,-0.0806 l 0.09338,0.25634 q -0.130004,0.0549 -0.329589,0.0916 -0.199585,0.0366 -0.362549,0.0366 -0.432129,0 -0.670166,-0.23072 -0.238037,-0.23254 -0.238037,-0.71411 0,-0.30029 0.10437,-0.50903 0.106201,-0.21057 0.305786,-0.3186 0.199585,-0.10804 0.479736,-0.10804 0.247193,0 0.413819,0.11536 0.166626,0.11353 0.247192,0.29846 0.08057,0.18311 0.08057,0.39368 0,0.14465 -0.04028,0.28931 l -1.274414,0.009 q 0.04028,0.24719 0.205078,0.37354 0.164795,0.12451 0.45044,0.12451 z m -0.122681,-1.31653 q -0.26001,0 -0.391846,0.15015 -0.131836,0.15014 -0.150146,0.40466 l 0.9906,-0.009 q 0.0037,-0.0439 0.0037,-0.0659 0,-0.12452 -0.04578,-0.23255 -0.04578,-0.10986 -0.148315,-0.17761 -0.100708,-0.0696 -0.258179,-0.0696 z" /><path style="letter-spacing:0.1px;fill:#ffffff" d="m 68.676674,105.37486 q 0.188599,-0.2179 0.483398,-0.2179 0.0824,0 0.172119,0.0165 l -0.05127,0.28564 q -0.05127,-0.005 -0.100708,-0.005 -0.283814,0 -0.470581,0.17578 v 1.35681 h -0.300293 v -1.78344 h 0.227051 l 0.04028,0.17212 z" /><path style="letter-spacing:0.1px;fill:#ffffff" d="m 70.080383,105.37486 q 0.188599,-0.2179 0.483399,-0.2179 0.0824,0 0.172119,0.0165 l -0.05127,0.28564 q -0.05127,-0.005 -0.100708,-0.005 -0.283813,0 -0.470581,0.17578 v 1.35681 h -0.300293 v -1.78344 H 70.0401 l 0.04028,0.17212 z" /><path style="fill:#fff;" d="m 72.018764,107.03196 q -0.27832,0 -0.490722,-0.11536 -0.210571,-0.11535 -0.327759,-0.32592 -0.115356,-0.21241 -0.115356,-0.4889 0,-0.28015 0.115356,-0.49438 0.117188,-0.21423 0.327759,-0.33142 0.212402,-0.11719 0.490722,-0.11719 0.272828,0 0.479737,0.11719 0.206909,0.11719 0.318603,0.33142 0.111695,0.2124 0.109864,0.49438 0,0.27832 -0.113526,0.4889 -0.111694,0.21057 -0.318603,0.32592 -0.205078,0.11536 -0.476075,0.11536 z m 0,-0.28931 q 0.17212,0 0.303956,-0.0787 0.133667,-0.0806 0.206909,-0.22522 0.07507,-0.14649 0.07873,-0.33692 -0.0037,-0.19409 -0.07873,-0.3424 -0.07507,-0.14832 -0.206909,-0.22889 -0.131836,-0.0824 -0.303956,-0.0824 -0.183105,0 -0.324096,0.0824 -0.13916,0.0824 -0.216065,0.23072 -0.07507,0.14831 -0.07507,0.34424 0,0.19043 0.07507,0.33508 0.0769,0.14465 0.216065,0.22339 0.13916,0.0787 0.324096,0.0787 z" /><path style="fill:#fff;" d="m 73.681362,105.37486 q 0.188599,-0.2179 0.483399,-0.2179 0.0824,0 0.172119,0.0165 l -0.05127,0.28564 q -0.05127,-0.005 -0.100708,-0.005 -0.283813,0 -0.470581,0.17578 v 1.35681 h -0.300293 v -1.78344 h 0.227051 l 0.04028,0.17212 z" /><path style="letter-spacing:0.11px;fill:#ffffff" d="m 76.655128,107.03196 q -0.27832,0 -0.490722,-0.11536 -0.210571,-0.11535 -0.327759,-0.32592 -0.115356,-0.21241 -0.115356,-0.4889 0,-0.28015 0.115356,-0.49438 0.117188,-0.21423 0.327759,-0.33142 0.212402,-0.11719 0.490722,-0.11719 0.272828,0 0.479737,0.11719 0.206909,0.11719 0.318603,0.33142 0.111695,0.2124 0.109864,0.49438 0,0.27832 -0.113526,0.4889 -0.111694,0.21057 -0.318603,0.32592 -0.205078,0.11536 -0.476075,0.11536 z m 0,-0.28931 q 0.17212,0 0.303956,-0.0787 0.133667,-0.0806 0.206909,-0.22522 0.07507,-0.14649 0.07873,-0.33692 -0.0037,-0.19409 -0.07873,-0.3424 -0.07507,-0.14832 -0.206909,-0.22889 -0.131836,-0.0824 -0.303956,-0.0824 -0.183105,0 -0.324096,0.0824 -0.13916,0.0824 -0.216065,0.23072 -0.07507,0.14831 -0.07507,0.34424 0,0.19043 0.07507,0.33508 0.07691,0.14465 0.216065,0.22339 0.13916,0.0787 0.324096,0.0787 z" /><path style="letter-spacing:0.11px;fill:#ffffff" d="m 79.002678,105.15513 q 0.234375,0 0.393677,0.0915 0.159301,0.0915 0.238037,0.25269 0.08057,0.16113 0.08057,0.36987 v 1.11694 h -0.300293 v -1.03271 q 0,-0.22522 -0.09705,-0.36804 -0.09521,-0.14283 -0.316772,-0.14466 -0.157471,0.002 -0.296631,0.0586 -0.137329,0.0549 -0.24353,0.15564 l -0.0037,1.33117 h -0.300293 l 0.0037,-1.78344 h 0.221557 l 0.05676,0.17761 q 0.212402,-0.22522 0.563965,-0.22522 z" /><path style="fill:#fff;" d="m 80.392586,104.2103 h 0.300293 v 2.77588 h -0.300293 z" /><path style="fill:#fff;" d="m 81.456429,104.64426 q -0.08789,0 -0.146485,-0.0586 -0.05859,-0.0586 -0.05859,-0.14648 0,-0.0861 0.05859,-0.14466 0.05859,-0.0586 0.146485,-0.0586 0.08606,0 0.144653,0.0586 0.05859,0.0586 0.05859,0.14466 0,0.0879 -0.05859,0.14648 -0.05859,0.0586 -0.144653,0.0586 z m -0.15564,0.55848 h 0.300293 v 1.78344 h -0.300293 z" /><path style="fill:#fff;" d="m 83.060432,105.15513 q 0.234375,0 0.393677,0.0915 0.159302,0.0915 0.238037,0.25269 0.08057,0.16113 0.08057,0.36987 v 1.11694 h -0.300293 v -1.03271 q 0,-0.22522 -0.09705,-0.36804 -0.09521,-0.14283 -0.316773,-0.14466 -0.15747,0.002 -0.29663,0.0586 -0.13733,0.0549 -0.243531,0.15564 l -0.0037,1.33117 h -0.300293 l 0.0037,-1.78344 h 0.221558 l 0.05676,0.17761 q 0.212402,-0.22522 0.563964,-0.22522 z" /><path style="fill:#fff;" d="m 85.184456,106.75181 q 0.122681,0 0.26001,-0.0275 0.137329,-0.0275 0.274658,-0.0806 l 0.09338,0.25634 q -0.130005,0.0549 -0.32959,0.0916 -0.199585,0.0366 -0.362549,0.0366 -0.432129,0 -0.670166,-0.23072 -0.238037,-0.23254 -0.238037,-0.71411 0,-0.30029 0.10437,-0.50903 0.106201,-0.21057 0.305786,-0.3186 0.199585,-0.10804 0.479736,-0.10804 0.247193,0 0.413819,0.11536 0.166626,0.11353 0.247192,0.29846 0.08057,0.18311 0.08057,0.39368 0,0.14465 -0.04028,0.28931 l -1.274414,0.009 q 0.04028,0.24719 0.205078,0.37354 0.164795,0.12451 0.45044,0.12451 z m -0.122681,-1.31653 q -0.26001,0 -0.391845,0.15015 -0.131836,0.15014 -0.150147,0.40466 l 0.990601,-0.009 q 0.0037,-0.0439 0.0037,-0.0659 0,-0.12452 -0.04578,-0.23255 -0.04578,-0.10986 -0.148315,-0.17761 -0.100708,-0.0696 -0.258179,-0.0696 z" /><path style="fill:#fff;" d="m 86.400276,105.62937 q -0.102539,0 -0.172119,-0.0659 -0.06958,-0.0678 -0.06958,-0.16662 0,-0.10071 0.06958,-0.16663 0.06958,-0.0677 0.172119,-0.0677 0.10437,0 0.17395,0.0677 0.06958,0.0659 0.06958,0.16663 0,0.0989 -0.06958,0.16662 -0.06958,0.0659 -0.17395,0.0659 z m 0,1.3971 q -0.102539,0 -0.172119,-0.0659 -0.06958,-0.0678 -0.06958,-0.16663 0,-0.10071 0.06958,-0.16662 0.06958,-0.0678 0.172119,-0.0678 0.10437,0 0.17395,0.0678 0.06958,0.0659 0.06958,0.16662 0,0.0989 -0.06958,0.16663 -0.06958,0.0659 -0.17395,0.0659 z" /><text x="88" y="107" style="fill:#e1e9ef;font: 3px sans-serif, Arial;">EASTER_EGG_CLICKED_LOGO_TOO_MUCH</text></g></g></svg></div>');
                     setTimeout(function () {
                         id('blue-screen-of-death').addEventListener('click', function () {
-                            tn('html', 0).style.overflowY = 'unset';
+                            tn('body', 0).style.overflowY = 'scroll';
                             this.remove();
                         });
                     }, 1000);
@@ -2023,7 +1946,7 @@ function onload() {
             const christmas = monthInt == 12 && dayInt > 10 && dayInt < 31;
             const sinterklaas = monthInt == 12 && dayInt <= 5;
 
-            if ((get('layout') == 1 || get('layout') == 4) && !n(tn('sl-header', 0)) && (birthday || christmas || sinterklaas)) {
+            if ((get('layout') == 1 || get('layout') == 4) && tn('sl-header', 0) && (birthday || christmas || sinterklaas)) {
                 tn('sl-header', 0).style.overflow = 'hidden';
                 tn('sl-header', 0).insertAdjacentHTML('beforeend', window.logo('mod-logo-inserted', null, 'var(--action-neutral-normal)', 'position:absolute;width:50px;height:54px;right:25px;bottom:-15px;z-index:-1;transition:bottom 0.4s ease 0.3s;'));
                 insertElement = id('mod-logo-inserted');
@@ -2105,7 +2028,7 @@ function onload() {
                     insertElement.insertAdjacentHTML(position, '<svg id="mod-logo-decoration"' + ((get('layout') == 1 || get('layout') == 4) ? ' style="right:' + (n(id('mod-logo-hat')) ? '50' : '90') + 'px;top:21px;z-index:-10;"' : '') + ' viewBox="0 0 158 151"><defs><linearGradient x1="161.4" y1="148.1" x2="225.1" y2="148.1" gradientUnits="userSpaceOnUse" id="a"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="241.6" y1="129.4" x2="292.1" y2="129.4" gradientUnits="userSpaceOnUse" id="b"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient><linearGradient x1="270.3" y1="182.9" x2="319.6" y2="182.9" gradientUnits="userSpaceOnUse" id="c"><stop offset="0" stop-color="#fad914"/><stop offset="1" stop-color="#fba314"/></linearGradient></defs><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" stroke-miterlimit="10" style="mix-blend-mode:normal"><path d="m196 129 21-10-6 22 14 18-22 1-12 18-8-19-22-6 18-15-1-20z" fill="url(#a)" transform="translate(-161 -105)"/><path d="m266 114 15-9-2 17 13 13-17 3-7 16-9-15-17-2 11-13-3-16z" fill="url(#b)" transform="translate(-161 -105)"/><path d="m302 171 18-3-10 15 7 17-16-4-14 11-1-16-16-9 17-8 3-16z" fill="url(#c)" transform="translate(-161 -105)"/><path d="M52 70c9 9 17 23 20 39 3 15 2 29-2 39M82 109c-2-6-3-13-3-21 0-18 6-34 15-43M81 147c2-26 17-48 37-55" fill="none" stroke="#e19600" stroke-width="6"/></g></svg>');
                 }
                 // Add decoration events
-                if (!n(tn('sl-header', 0)) && (easter || halloween || bevrijdingsdag || newyear)) {
+                if (tn('sl-header', 0) && (easter || halloween || bevrijdingsdag || newyear)) {
                     tn('sl-header', 0).style.overflow = 'hidden';
                     id('mod-logo-decoration').addEventListener('click', function () {
                         this.classList.add('mod-logo-decoration-clicked');
@@ -2122,21 +2045,27 @@ function onload() {
     }
 
     // Live Wallpaper
-    let liveWallpaperFrame;
-    let gl;
     function stopLiveWallpaper() {
-        if (liveWallpaperFrame) {
-            cancelAnimationFrame(liveWallpaperFrame);
-            liveWallpaperFrame = null;
-        }
         tryRemove(id('mod-background-live'));
     }
 
-    function startLiveWallpaper() {
-        stopLiveWallpaper();
-        tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
-        const canvas = id('mod-background-live');
-        gl = canvas.getContext("webgl");
+    function randomColor(offset = 0) {
+        const seed = Math.random() * 100;
+        return [
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 0)) * 255),
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 2)) * 255),
+            Math.round((0.5 + 0.5 * Math.cos(seed + offset + 4)) * 255),
+        ];
+    }
+
+    function startLiveWallpaper(preview = false, col1, col2, col3) {
+        let gl;
+        if (!preview) {
+            stopLiveWallpaper();
+            tn('body', 0).insertAdjacentHTML('beforeend', '<canvas id="mod-background-live"></canvas>');
+        }
+        const canvas = id(preview ? 'mod-live-preview' : 'mod-background-live');
+        gl = canvas.getContext('webgl');
         if (!gl) return;
 
         // Simple vertex shader
@@ -2147,23 +2076,32 @@ function onload() {
             }
         `;
 
-        // Fragment shader with random color noise
+        if (!preview) {
+            if (n(get('livecolor1')) || n(get('livecolor2')) || n(get('livecolor3'))) {
+                set('livecolor1', rgbToHex(randomColor(0)));
+                set('livecolor2', rgbToHex(randomColor(2)));
+                set('livecolor3', rgbToHex(randomColor(4)));
+            }
+            col1 = hexToRgb(get('livecolor1'));
+            col2 = hexToRgb(get('livecolor2'));
+            col3 = hexToRgb(get('livecolor3'));
+        }
+
+        // Fragment shader with random color noise, colors are represented as RGB 0-1 vec3
+        // We create a plasma/noise effect (see math stuff), and mix the colors with eachother at the end
         const fsSource = `
             precision mediump float;
             uniform float u_time;
             uniform vec2 u_resolution;
-            uniform float u_seed;
 
             void main() {
                 vec2 uv = gl_FragCoord.xy / u_resolution.xy;
                 float t = u_time * 0.5;
 
-                // Randomize base colors based on seed
-                vec3 col1 = 0.5 + 0.5 * cos(u_seed + vec3(0,2,4));
-                vec3 col2 = 0.5 + 0.5 * cos(u_seed + 2.0 + vec3(0,2,4));
-                vec3 col3 = 0.5 + 0.5 * cos(u_seed + 4.0 + vec3(0,2,4));
+                vec3 col1 = vec3(${col1[0] / 255},${col1[1] / 255},${col1[2] / 255});
+                vec3 col2 = vec3(${col2[0] / 255},${col2[1] / 255},${col2[2] / 255});
+                vec3 col3 = vec3(${col3[0] / 255},${col3[1] / 255},${col3[2] / 255});
 
-                // Create plasma/noise effect
                 float v = 0.0;
                 vec2 c = uv * 2.0 - 1.0;
                 v += sin((c.x+t));
@@ -2173,7 +2111,6 @@ function onload() {
                 v += sin(sqrt(c.x*c.x+c.y*c.y+1.0)+t);
                 v = v/2.0;
 
-                // Mix colors
                 vec3 color = mix(col1, col2, smoothstep(0.0, 1.0, sin(v * 3.0 + t)));
                 color = mix(color, col3, smoothstep(0.0, 1.0, cos(v * 2.0 - t)));
 
@@ -2190,12 +2127,10 @@ function onload() {
             uniformLocations: {
                 time: gl.getUniformLocation(shaderProgram, 'u_time'),
                 resolution: gl.getUniformLocation(shaderProgram, 'u_resolution'),
-                seed: gl.getUniformLocation(shaderProgram, 'u_seed')
             }
         };
 
         const buffers = initBuffers(gl);
-        const seed = parseFloat(get('live_seed')) || Math.random() * 100;
 
         function render(now) {
             if (!gl) return;
@@ -2219,7 +2154,6 @@ function onload() {
 
             gl.uniform1f(programInfo.uniformLocations.time, now);
             gl.uniform2f(programInfo.uniformLocations.resolution, canvas.width, canvas.height);
-            gl.uniform1f(programInfo.uniformLocations.seed, seed);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -2490,7 +2424,7 @@ function onload() {
             }
             if (congratstext[1] != null) {
                 // Confetti should be shown, so insert the confetti
-                tn('html', 0).style.overflow = 'hidden';
+                tn('body', 0).style.overflowY = 'hidden';
                 tn('body', 0).insertAdjacentHTML('afterbegin', '<style>#verjaardag{width:100%;height:100%;position:fixed;top:0;left:0;z-index:10000;background:var(--bg-elevated-none);text-align:center;transition:0.3s opacity ease;}#verjaardag div{top:50%;left:50%;transform:translate(-50%, -50%);position:absolute;}.bouncetext{animation:bounce 0.3s ease forwards;color:var(--action-primary-normal);}.bouncetext.small{font-size:0;animation:bouncesmall 0.5s ease forwards 0.3s;margin-top:35px;}@keyframes bouncesmall{0%{font-size:0px;}80%{font-size:29px;}100%{font-size:24px;}}@keyframes bounce{0%{font-size:0px;}80%{font-size:58px;}100%{font-size:48px;}}.verjaardagbtn{background:var(--action-primary-normal);padding:25px 40px;width:fit-content;color:var(--bg-elevated-none) !important;margin-top:50px;opacity:0;display:block;animation:2s fadein ease 0.6s forwards;font-size:16px;border-radius:16px;transition:0.3s background ease !important;}.verjaardagbtn:hover{cursor:pointer;background:var(--action-primary-strong);}@keyframes fadein{0%{opacity:0;}100%{opacity:1;}}</style><div id="verjaardag"><div><h2 class="bouncetext">' + congratstext[0] + '</h2><h2 class="bouncetext small">' + congratstext[1] + '</h2><center><a class="verjaardagbtn" id="congrats-continue">Doorgaan</a></center></div></div>');
                 id('congrats-continue').addEventListener('click', function () {
                     set('lastused', year + '-' + (month + 1) + '-' + dayInt);
@@ -2499,7 +2433,7 @@ function onload() {
                     setTimeout(function () {
                         tryRemove(id('confetti-canvas'));
                         tryRemove(id('verjaardag'));
-                        tn('html', 0).style.overflowY = 'scroll';
+                        tn('body', 0).style.overflowY = 'scroll';
                     }, 350);
                 });
                 setTimeout(startConfetti, 500);
@@ -2518,24 +2452,6 @@ function onload() {
 
 
     // GRADE TOOLS
-
-    // [GENERATION] ANDROID_START_IGNORE
-
-    async function getFontBase64(font) {
-        if (isExtension) {
-            const response = await fetch(chrome.runtime.getURL('fonts/' + font + '.ttf'));
-            const blob = await response.blob();
-            return await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        }
-        else {
-            // [GENERATION] HARDCODED_FONTS
-        }
-    }
 
     // Download image of average of all grades
     function downloadGrades() {
@@ -2839,7 +2755,7 @@ function onload() {
             else {
                 for (let i = 0; i < number; i++) {
                     let averagePageGradeIndex = 0;
-                    if (!n(tn('sl-vakgemiddelde-item', i))) {
+                    if (tn('sl-vakgemiddelde-item', i)) {
                         averagePageGradeIndex = tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer').length - 1;
                     }
                     const subjectIcon = n(tn('sl-resultaat-item', 0)) ?
@@ -2879,25 +2795,25 @@ function onload() {
                             font-size: 24px;
                         ">${gradeDescription}</p>` : '';
                     const red =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('onvoldoende')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('onvoldoende'));
                     const green =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('ruimvoldoende')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('ruimvoldoende'));
                     let grey =
-                        (!n(tn('sl-resultaat-item', i)) &&
-                            !n(tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0]) &&
+                        (tn('sl-resultaat-item', i) &&
+                            tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0] &&
                             tn('sl-resultaat-item', i).getElementsByClassName('cijfer')[0].classList.contains('neutraal')) ||
-                        (!n(tn('sl-vakgemiddelde-item', i)) &&
-                            !n(tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex]) &&
+                        (tn('sl-vakgemiddelde-item', i) &&
+                            tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex] &&
                             tn('sl-vakgemiddelde-item', i).getElementsByClassName('cijfer')[averagePageGradeIndex].classList.contains('neutraal'));
                     if (!grade || grade.replace(/\s/g, '') == '') {
                         grade = '-';
@@ -2983,9 +2899,9 @@ function onload() {
             // Insert canvas
             tn('body', 0).insertAdjacentHTML('beforeend', `<canvas id="mod-grade-canvas" width="${totalWidth}" height="${totalHeight}" style="display:none;"></canvas>`);
             const canvas = id('mod-grade-canvas');
-            const ctx = canvas.getContext('2d'); !n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0));
+            const ctx = canvas.getContext('2d');
             // Use data urls for font in SVG
-            const kanit = await getFontBase64('Kanit-ExtraLight');
+            const kanit = await window.getResourceAsBase64('fonts/Kanit-ExtraLight.woff2');
             // Add SVG with HTML to the canvas
             const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '"><defs><style type="text/css">@font-face{font-family:Kanit;src:url(\'' + kanit + '\')}</style></defs><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">' + html + '</div></foreignObject></svg>';
             const svgObjectUrl = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svg);
@@ -2998,25 +2914,21 @@ function onload() {
                 a.download = cijferoverzicht ? 'cijferoverzicht-' + cijferOverzichtPeriod.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png' : (n(tn('sl-resultaat-item', 0)) ? 'laatste-rapportcijfers.png' : 'cijfers.png');
                 a.dispatchEvent(new MouseEvent('click'));
                 tryRemove(id('mod-grade-canvas'));
-                if (!n(id('mod-message'))) {
+                if (id('mod-message')) {
                     closeModMessage();
                 }
             });
             tempImg.addEventListener('error', function (e) {
                 console.log(e);
                 tryRemove(id('mod-grade-canvas'));
-                if (!n(id('mod-message'))) {
+                if (id('mod-message')) {
                     closeModMessage();
                 }
             });
             tempImg.src = svgObjectUrl;
             tn('sl-root', 0).removeAttribute('inert');
-            console.log(html);
         }
     }
-    // [GENERATION] ANDROID_END_IGNORE
-
-    // [GENERATION] INSERT_CHARTJS
 
     // Add graphs to the subject grade page
     function gradeGraphs(recapData) {
@@ -3043,7 +2955,6 @@ function onload() {
                 labels: recapDates,
                 datasets: [{
                     label: 'Mysterieus vak',
-                    fill: false,
                     lineTension: 0,
                     backgroundColor: recapGradient,
                     fill: true,
@@ -3229,7 +3140,7 @@ function onload() {
             else if (trend == "dalend") trendText = " <br>📉 Pas op, je laatste cijfers zijn wat lager dan gemiddeld.";
             suggestionText = advice + trendText;
         }
-        if (!n(id('mod-grade-suggestions'))) {
+        if (id('mod-grade-suggestions')) {
             id('mod-grade-suggestions').innerHTML = suggestionText;
         }
         if (points.length < 2) {
@@ -3240,7 +3151,6 @@ function onload() {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
-                fill: false,
                 lineTension: 0,
                 backgroundColor: gradient,
                 fill: true,
@@ -3289,7 +3199,6 @@ function onload() {
             labels: dates,
             datasets: [{
                 label: (n(cn('vaknaam', 0)) || n(cn('vaknaam', 0).getElementsByTagName('span')[0])) ? '' : cn('vaknaam', 0).getElementsByTagName('span')[0].innerHTML,
-                fill: false,
                 lineTension: 0,
                 backgroundColor: gradient,
                 fill: true,
@@ -3456,7 +3365,7 @@ function onload() {
 
     // Add grade calculation tools when enabled
     function insertCalculationTool() {
-        if (n(id('mod-grade-calculate')) && !n(tn('sl-resultaat-item', 0)) && get('bools').charAt(BOOL_INDEX.CALCULATION_TOOL) == '1') {
+        if (n(id('mod-grade-calculate')) && tn('sl-resultaat-item', 0) && get('bools').charAt(BOOL_INDEX.CALCULATION_TOOL) == '1') {
             if (!subjectGradesPageContainsNumberGrades()) {
                 return;
             }
@@ -3497,500 +3406,31 @@ function onload() {
             return;
         }
         if ((tn('sl-resultaat-item', 0) || tn('sl-vakgemiddelde-item', 0) || tn('sl-cijfer-overzicht', 0)) && n(tn('sl-vakresultaten', 0)) && get('bools').charAt(BOOL_INDEX.GRADE_DOWNLOAD_BTN) == "1") {
-            if (n(id('mod-grades-download-computer')) && !n(tn('hmy-switch-group', 0))) {
-                tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+            if (n(id('mod-grades-download-computer')) && tn('hmy-switch-group', 0)) {
+                tn('hmy-switch-group', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-computer" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                 id('mod-grades-download-computer').addEventListener('click', downloadGrades);
             }
-            if (n(id('mod-grades-download-mobile')) && !n(cn('tabs ng-star-inserted', 0))) {
+            if (n(id('mod-grades-download-mobile')) && cn('tabs ng-star-inserted', 0)) {
                 if (document.documentElement.clientWidth > 767) {
-                    cn('tabs ng-star-inserted', 0).getElementsByClassName('filler')[0].insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+                    cn('tabs ng-star-inserted', 0).getElementsByClassName('filler')[0].insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
                 }
                 else {
-                    tn('sl-scrollable-title', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
+                    tn('sl-scrollable-title', 0).insertAdjacentHTML('beforeend', '<a id="mod-grades-download-mobile" class="mod-grades-download">' + window.getIcon('download', null, 'var(--fg-primary-normal)') + '</a>');
                     id('mod-grades-download-mobile').addEventListener('click', downloadGrades);
                 }
             }
         }
-    }
-
-    // Grade Defender Minigame
-    function gradeDefenderGame() {
-        if (id('grade-defender-canvas')) id('grade-defender-canvas').remove();
-        if (id('grade-defender-ui')) id('grade-defender-ui').remove();
-        if (id('grade-defender-close')) id('grade-defender-close').remove();
-        if (id('grade-defender-gameover')) id('grade-defender-gameover').remove();
-        if (id('grade-defender-shop')) id('grade-defender-shop').remove();
-        if (id('grade-defender-shop-btn')) id('grade-defender-shop-btn').remove();
-
-        const savedData = JSON.parse(get('gradeDefenderData') || '{"coins":0,"highScore":0,"unlockedWeapons":["basic"],"currentWeapon":"basic"}');
-
-        tn('body', 0).insertAdjacentHTML('beforeend', `
-            <canvas id="grade-defender-canvas" class="active"></canvas>
-            <div id="grade-defender-ui" class="active">
-                <div class="gd-stat">💰 <span id="gd-coins">${savedData.coins}</span></div>
-                <div class="gd-stat">⭐ <span id="gd-score">0</span></div>
-                <div class="gd-stat">❤️ <span id="gd-lives">5</span></div>
-                <div class="gd-stat">🔥 <span id="gd-combo">0</span>x</div>
-                <div class="gd-stat">🎯 <span id="gd-weapon">${savedData.currentWeapon}</span></div>
-            </div>
-            <div id="grade-defender-close" class="active">&times;</div>
-            <button id="grade-defender-shop-btn" class="active">🛒 Shop</button>
-            <div id="grade-defender-shop">
-                <h2>Weapon Shop</h2>
-                <div class="shop-items"></div>
-                <button id="shop-close">Close</button>
-            </div>
-            <div id="grade-defender-gameover">
-                <h1>GAME OVER</h1>
-                <h3>Score: <span id="gd-final-score"></span></h3>
-                <h3>Coins Earned: <span id="gd-coins-earned"></span></h3>
-                <h3>High Score: <span id="gd-high-score">${savedData.highScore}</span></h3>
-                <div id="grade-defender-restart">Play Again</div>
-            </div>
-        `);
-
-        const canvas = id('grade-defender-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let score = 0;
-        let lives = 5;
-        let coins = savedData.coins;
-        let coinsAtStart = coins;
-        let combo = 0;
-        let gameRunning = true;
-        let enemies = [];
-        let projectiles = [];
-        let particles = [];
-        let powerups = [];
-        let playerX = canvas.width / 2;
-        let lastTime = 0;
-        let spawnTimer = 0;
-        let lastShot = 0;
-        let currentWeapon = savedData.currentWeapon;
-        let shake = 0;
-
-        const weapons = {
-            basic: { name: 'Basic', cost: 0, damage: 1, speed: 10, cooldown: 200, color: '#0099ff' },
-            rapid: { name: 'Rapid Fire', cost: 100, damage: 1, speed: 12, cooldown: 100, color: '#ff9900' },
-            laser: { name: 'Laser', cost: 250, damage: 3, speed: 15, cooldown: 300, color: '#ff0099' },
-            nuke: { name: 'Nuke', cost: 500, damage: 10, speed: 8, cooldown: 800, color: '#9900ff', splash: 100 },
-            rainbow: { name: 'Rainbow', cost: 1000, damage: 5, speed: 20, cooldown: 50, color: 'rainbow', multishot: 3 }
-        };
-
-        const shopItems = id('grade-defender-shop').querySelector('.shop-items');
-        Object.keys(weapons).forEach(key => {
-            const w = weapons[key];
-            const unlocked = savedData.unlockedWeapons.includes(key);
-            shopItems.insertAdjacentHTML('beforeend', `
-                <div class="shop-item ${unlocked ? 'unlocked' : ''}">
-                    <h4>${w.name}</h4>
-                    <p>💰 ${w.cost} | ⚡ DMG: ${w.damage} | 🚀 Speed: ${w.speed}</p>
-                    <button data-weapon="${key}">${unlocked ? (key == currentWeapon ? 'Equipped' : 'Owned') : 'Buy'}</button>
-                </div>
-            `);
-        });
-
-        // Create player logo image
-        const logoImg = new Image();
-        // Use the logo function to get SVG and encode it for data URL
-        const logoSvg = window.logo(null, null, '#fff');
-        // Need to parse the SVG string to extraction proper dimensions if needed, but for now wrap in base64
-        logoImg.src = 'data:image/svg+xml;base64,' + btoa(logoSvg);
-
-        function saveData() {
-            const data = {
-                coins,
-                highScore: Math.max(score, savedData.highScore),
-                unlockedWeapons: savedData.unlockedWeapons,
-                currentWeapon
-            };
-            set('gradeDefenderData', JSON.stringify(data));
-        }
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-
-        canvas.addEventListener('mousemove', (e) => { playerX = e.clientX; });
-        canvas.addEventListener('touchmove', (e) => { playerX = e.touches[0].clientX; e.preventDefault(); });
-
-        function shoot() {
-            if (!gameRunning) return;
-            const now = Date.now();
-            if (now - lastShot < weapons[currentWeapon].cooldown) return;
-            lastShot = now;
-
-            const w = weapons[currentWeapon];
-            if (w.multishot) {
-                for (let i = 0; i < w.multishot; i++) {
-                    const angle = (i - 1) * 0.3;
-                    projectiles.push({
-                        x: playerX,
-                        y: canvas.height - 60,
-                        vx: Math.sin(angle) * 5,
-                        vy: -w.speed,
-                        damage: w.damage,
-                        color: w.color,
-                        splash: w.splash
-                    });
-                }
-            } else {
-                projectiles.push({
-                    x: playerX,
-                    y: canvas.height - 60,
-                    vx: 0,
-                    vy: -w.speed,
-                    damage: w.damage,
-                    color: w.color,
-                    splash: w.splash
-                });
-            }
-        }
-
-        let pressedKeys = {};
-        document.addEventListener('keyup', function (e) { pressedKeys[e.key] = false; });
-        document.addEventListener('keydown', function (e) { if (e.key == 40) { e.preventDefault(); } pressedKeys[e.key] = true; });
-
-        canvas.addEventListener('click', shoot);
-        canvas.addEventListener('touchstart', shoot);
-
-        id('grade-defender-close').addEventListener('click', () => {
-            gameRunning = false;
-            saveData();
-            canvas.remove();
-            id('grade-defender-ui').remove();
-            id('grade-defender-close').remove();
-            id('grade-defender-shop-btn').remove();
-            id('grade-defender-shop').remove();
-            id('grade-defender-gameover').remove();
-            tn('html', 0).style.overflowY = 'scroll';
-        });
-
-        id('grade-defender-restart').addEventListener('click', () => {
-            score = 0;
-            lives = 5;
-            combo = 0;
-            coinsAtStart = coins;
-            id('gd-score').innerText = score;
-            id('gd-lives').innerText = lives;
-            id('gd-combo').innerText = combo;
-            enemies = [];
-            projectiles = [];
-            particles = [];
-            powerups = [];
-            gameRunning = true;
-            id('grade-defender-shop-btn').classList.add('active');
-            id('grade-defender-gameover').classList.remove('active');
-            lastTime = window.performance.now();
-            requestAnimationFrame(gameLoop);
-        });
-
-        id('grade-defender-shop-btn').addEventListener('click', () => {
-            gameRunning = id('grade-defender-shop').classList.contains('active');
-            id('grade-defender-shop').classList.toggle('active');
-            lastTime = window.performance.now();
-            requestAnimationFrame(gameLoop);
-        });
-
-        id('shop-close').addEventListener('click', () => {
-            gameRunning = true;
-            id('grade-defender-shop').classList.remove('active');
-            lastTime = window.performance.now();
-            requestAnimationFrame(gameLoop);
-        });
-
-        shopItems.addEventListener('click', (e) => {
-            const weaponKey = e.target.dataset.weapon;
-            const weapon = weapons[weaponKey];
-            if (e.target.tagName === 'BUTTON') {
-                let owned = e.target.parentElement.classList.contains('unlocked') && savedData.unlockedWeapons.includes(weaponKey);
-
-                if (!owned) {
-                    // Purchase item if user has enough coins
-                    if (coins >= weapon.cost) {
-                        owned = true;
-                        coins -= weapon.cost;
-                        savedData.unlockedWeapons.push(weaponKey);
-                        e.target.parentElement.classList.add('unlocked');
-                        id('gd-coins').textContent = coins;
-                        id('gd-weapon').textContent = weapon.name;
-                    }
-                }
-
-                // If the user has now purchased the item, or already owned it, equip it too
-                if (owned) {
-                    for (const item of id('grade-defender-shop').getElementsByClassName('shop-item')) {
-                        if (item.classList.contains('unlocked')) {
-                            item.getElementsByTagName('button')[0].textContent = 'Owned';
-                        }
-                    }
-                    currentWeapon = weaponKey;
-                    e.target.textContent = 'Equipped';
-
-                    saveData();
-                }
-            }
-        });
-
-        tn('html', 0).style.overflowY = 'hidden';
-
-        function createParticles(x, y, color, count) {
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
-                    color
-                });
-            }
-        }
-
-        lastTime = window.performance.now();
-        function gameLoop(timestamp) {
-            if (!gameRunning) return;
-
-            if (pressedKeys[' ']) {
-                shoot();
-            }
-
-            const dt = timestamp - lastTime;
-            lastTime = timestamp;
-
-            ctx.save();
-            if (shake > 0) {
-                ctx.translate(Math.random() * shake - shake / 2, Math.random() * shake - shake / 2);
-                shake *= 0.9;
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
-
-            spawnTimer += dt;
-            const spawnRate = Math.max(300, 1000 - score * 2);
-            if (spawnTimer > spawnRate) {
-                const type = Math.random();
-                let text, isBad, worth;
-                if (type > 0.9) {
-                    text = '⭐';
-                    isBad = false;
-                    worth = 50;
-                } else if (type > 0.7) {
-                    text = (Math.floor(Math.random() * 45) + 55) / 10;
-                    text = text.toFixed(1);
-                    isBad = false;
-                    worth = 5;
-                } else {
-                    text = (Math.floor(Math.random() * 40) + 10) / 10;
-                    text = text.toFixed(1);
-                    isBad = true;
-                    worth = 10;
-                }
-                enemies.push({
-                    x: Math.random() * (canvas.width - 50) + 25,
-                    y: -50,
-                    text: text,
-                    isBad,
-                    worth,
-                    health: isBad ? 1 : 1,
-                    maxHealth: isBad ? 1 : 1,
-                    speed: Math.random() * 2 + 1 + (score / 100)
-                });
-                spawnTimer = 0;
-            }
-
-            if (Math.random() < 0.002 && powerups.length < 2) {
-                const types = ['❤️', '💰', '⚡'];
-                powerups.push({
-                    x: Math.random() * (canvas.width - 50) + 25,
-                    y: -30,
-                    type: types[Math.floor(Math.random() * types.length)],
-                    speed: 2
-                });
-            }
-
-            for (let i = 0; i < particles.length; i++) {
-                let p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2;
-                p.life -= 0.02;
-                ctx.globalAlpha = Math.max(0, p.life);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 4, 4);
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                    i--;
-                }
-            }
-            ctx.globalAlpha = 1;
-
-            for (let i = 0; i < projectiles.length; i++) {
-                let p = projectiles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.color === 'rainbow') {
-                    const hue = (Date.now() / 10) % 360;
-                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-                } else {
-                    ctx.fillStyle = p.color;
-                }
-
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = ctx.fillStyle;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                if (p.y < -10) {
-                    projectiles.splice(i, 1);
-                    i--;
-                }
-            }
-
-            ctx.font = 'bold 32px Arial';
-            ctx.textAlign = 'center';
-            for (let i = 0; i < enemies.length; i++) {
-                let e = enemies[i];
-                e.y += e.speed;
-
-                ctx.fillStyle = e.isBad ? '#ff4444' : '#44ff44';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = ctx.fillStyle;
-                ctx.fillText(e.text, e.x, e.y);
-                ctx.shadowBlur = 0;
-
-                if (e.health < e.maxHealth) {
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(e.x - 20, e.y - 40, 40, 5);
-                    ctx.fillStyle = '#ff0000';
-                    ctx.fillRect(e.x - 20, e.y - 40, 40 * (e.health / e.maxHealth), 5);
-                }
-
-                if (e.y > canvas.height) {
-                    enemies.splice(i, 1);
-                    i--;
-                    if (e.isBad) {
-                        lives--;
-                        combo = 0;
-                        shake = 10;
-                        id('gd-lives').innerText = lives;
-                        id('gd-combo').innerText = combo;
-                        if (lives <= 0) {
-                            gameRunning = false;
-                            const coinsEarned = Math.floor(score / 10);
-                            coins += coinsEarned;
-                            savedData.coins = coins;
-                            id('grade-defender-shop-btn').classList.remove('active');
-                            id('grade-defender-gameover').classList.add('active');
-                            id('gd-final-score').innerText = Math.floor(score);
-                            id('gd-coins-earned').innerText = coins - coinsAtStart;
-                            id('gd-coins').innerText = coins;
-                            id('gd-high-score').innerText = Math.max(score, savedData.highScore);
-                            saveData();
-                        }
-                    }
-                }
-
-                for (let j = 0; j < projectiles.length; j++) {
-                    let p = projectiles[j];
-                    let dist = Math.hypot(p.x - e.x, p.y - e.y);
-                    if (dist < 35) {
-                        e.health -= p.damage;
-                        createParticles(e.x, e.y, e.isBad ? '#ff4444' : '#44ff44', 10);
-
-                        if (p.splash) {
-                            for (let k = 0; k < enemies.length; k++) {
-                                if (k !== i) {
-                                    let splashDist = Math.hypot(enemies[k].x - e.x, enemies[k].y - e.y);
-                                    if (splashDist < p.splash) {
-                                        enemies[k].health -= p.damage / 2;
-                                        createParticles(enemies[k].x, enemies[k].y, '#ff9900', 5);
-                                    }
-                                }
-                            }
-                        }
-
-                        projectiles.splice(j, 1);
-
-                        if (e.health <= 0) {
-                            enemies.splice(i, 1);
-                            i--;
-                            if (e.isBad) {
-                                score += e.worth * (1 + combo * 0.1);
-                                combo++;
-                                shake = 3;
-                            } else {
-                                score = Math.max(0, score - 20);
-                                combo = 0;
-                            }
-                            id('gd-score').innerText = Math.floor(score);
-                            id('gd-combo').innerText = combo;
-                            createParticles(e.x, e.y, e.isBad ? '#ffd700' : '#ff4444', 20);
-                        }
-                        break;
-                    }
-                }
-            }
-
-            for (let i = 0; i < powerups.length; i++) {
-                let p = powerups[i];
-                p.y += p.speed;
-                ctx.font = 'bold 30px Arial';
-                ctx.fillStyle = '#fff';
-                ctx.fillText(p.type, p.x, p.y);
-
-                if (p.y > canvas.height) {
-                    powerups.splice(i, 1);
-                    i--;
-                    continue;
-                }
-
-                if (Math.hypot(p.x - playerX, p.y - (canvas.height - 50)) < 40) {
-                    if (p.type === '❤️') lives = Math.min(10, lives + 1);
-                    if (p.type === '💰') coins += 10;
-                    if (p.type === '⚡') combo += 5;
-                    createParticles(p.x, p.y, '#ffd700', 30);
-                    id('gd-lives').innerText = lives;
-                    id('gd-coins').innerText = coins;
-                    id('gd-combo').innerText = combo;
-                    powerups.splice(i, 1);
-                    i--;
-                }
-            }
-
-            ctx.save();
-            ctx.translate(playerX, canvas.height - 50);
-            if (logoImg.complete && logoImg.width > 0) {
-                // Draw logo with proper centering
-                ctx.drawImage(logoImg, -30, -30, 60, 60);
-            } else {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(-25, 0, 50, 20);
-                ctx.fillRect(-5, -20, 10, 20);
-            }
-            ctx.restore();
-
-            requestAnimationFrame(gameLoop);
-        }
-        requestAnimationFrame(gameLoop);
     }
 
     // Manage calculation tool and graph on subject grades page
     function subjectGradesPage() {
-        if (!n(tn('sl-vakresultaten', 0))) {
+        if (tn('sl-vakresultaten', 0)) {
             execute([insertCalculationTool]);
             const examPage = !n(tn('sl-examenresultaten', 0));
             // Insert graphs + analyse at subject grades page when enabled (2 or more grades need to be present)
             const firstCondition = n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1';
-            const secondCondition = !n(id('mod-grades-graphs')) && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'));
+            const secondCondition = id('mod-grades-graphs') && ((examPage && id('mod-grades-graphs').dataset.exams == 'false') || (!examPage && id('mod-grades-graphs').dataset.exams == 'true'));
             if (firstCondition || secondCondition) {
                 if (secondCondition) {
                     tryRemove(id('mod-grades-graphs'));
@@ -4023,16 +3463,6 @@ function onload() {
     let totalWeight = 0;
     let availablePages = [];
     let music;
-    function getAudioUrl(file) {
-        // Bandwith issues almost took my site down for a month in summer 2025 when I still hosted these files myself
-        // I have a bandwith limit of 100GB/month, so now I use the Chrome extension storage or Netlify for this
-        if (isExtension) {
-            return chrome.runtime.getURL('sounds/' + file + '.mp3');
-        }
-        else {
-            return 'https://geweldige-geluidseffecten.netlify.app/' + file + '.mp3';
-        }
-    }
     function somtodayRecap() {
         if (!ignoreRecapConditions) {
             if (get('bools').charAt(BOOL_INDEX.RECAP) == "0") {
@@ -4046,22 +3476,22 @@ function onload() {
         let pages = 0;
         // Needed to collect all subject grades
         let closing = false;
-        if (!n(id('somtoday-recap')) && n(id('somtoday-recap-wrapper')) && (!n(tn('sl-vakresultaten', 0)) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
+        if (id('somtoday-recap') && n(id('somtoday-recap-wrapper')) && (tn('sl-vakresultaten', 0) || id('somtoday-recap').nextElementSibling.tagName == 'HMY-SWITCH-GROUP')) {
             tryRemove(id('somtoday-recap'));
         }
         if (id('mod-recap-year')) {
             id('mod-recap-year').innerText = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '$1') : year;
         }
-        if ((!n(tn('sl-resultaat-item', 0)) || !n(tn('sl-vakgemiddelde-item', 0)) || !n(tn('sl-cijfer-overzicht', 0))) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
+        if ((tn('sl-resultaat-item', 0) || tn('sl-vakgemiddelde-item', 0) || tn('sl-cijfer-overzicht', 0)) && n(tn('sl-vakresultaten', 0)) && n(id('somtoday-recap'))) {
             try {
-                music = new Audio(getAudioUrl('background'));
+                music = new Audio(window.getAudioUrl('background'));
             }
             catch (e) {
                 console.warn(e);
             }
             music.loop = true;
             const recapYear = (tn('sl-dropdown', 0) && tn('sl-dropdown', 0).ariaLabel) ? tn('sl-dropdown', 0).ariaLabel.replace(/^[^/]+\/(\d+)/, '$1') : year;
-            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap' + window.logo(null, null, '#fff', 'height:1em;width:fit-content;margin-left:10px;transform:translateY(2px);') + '</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
+            tn('hmy-switch-group', 0).insertAdjacentHTML('afterend', '<div id="somtoday-recap"><h3>Somtoday Recap' + window.logo(null, null, '#fff', 'height:1em;width:fit-content;margin-left:10px;transform:translateY(2px);') + '</h3><p>Bekijk hier jouw jaaroverzicht van <span id="mod-recap-year">' + recapYear + '</span>.</p><div id="somtoday-recap-arrows">' + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-1"') + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-2"') + window.getIcon('chevron-right', null, '#fff', 'id="recap-arrow-3"') + '</div></div>');
             // Open recap on click
             id('somtoday-recap').addEventListener('click', async function () {
                 music.currentTime = 0;
@@ -4073,7 +3503,7 @@ function onload() {
                     document.documentElement.requestFullscreen();
                 }
                 // Insert recap HTML
-                tn('html', 0).style.overflowY = 'hidden';
+                tn('body', 0).style.overflowY = 'hidden';
                 const currentYear = year || new Date().getFullYear();
                 const prevYear = currentYear - 1;
 
@@ -4111,8 +3541,8 @@ function onload() {
                         const wrapper = id('somtoday-recap-wrapper');
                         if (wrapper) wrapper.remove();
                         stopConfetti();
-                        tn('html', 0).style.overflowX = 'hidden';
-                        tn('html', 0).style.overflowY = 'scroll';
+                        tn('body', 0).style.overflowX = 'hidden';
+                        tn('body', 0).style.overflowY = 'scroll';
                         isRecapping = false;
                         if (document.fullscreenElement) {
                             document.exitFullscreen();
@@ -4124,14 +3554,14 @@ function onload() {
 
 
                 // Vertically center align page (to prevent absolute positioning from breaking drag list)
-                if (!n(cn('recap-page', 0))) {
+                if (cn('recap-page', 0)) {
                     cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
                 }
 
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Vertically center align page (to prevent absolute positioning from breaking drag list)
-                if (!n(cn('recap-page', 0))) {
+                if (cn('recap-page', 0)) {
                     cn('recap-page', 0).style.marginTop = ((document.documentElement.clientHeight - cn('recap-page', 0).clientHeight) / 2) + 'px';
                 }
 
@@ -4383,7 +3813,7 @@ function onload() {
                 }
                 usedSubjects.push(randomSubject.name);
                 subjects.push(randomSubject);
-                html += '<div class="mod-item"><div>' + randomSubject.icon + '</div><p>' + randomSubject.name + '</p>' + getIcon('grip-vertical', null, 'var(--text-weak)') + '</div>';
+                html += '<div class="mod-item"><div>' + randomSubject.icon + '</div><p>' + randomSubject.name + '</p>' + window.getIcon('grip-vertical', null, 'var(--text-weak)') + '</div>';
             }
             cn('recap-page', 0).innerHTML = '<h1>Wat zijn je beste vakken?</h1><h2>Sorteer je vakken op basis van je gemiddelde</h2><div id="mod-grade-average-sort-list">' + html + '</div><a id="recap-nextpage">Volgende</a>';
 
@@ -4532,7 +3962,7 @@ function onload() {
                             audioHasFired = true;
                             if (correct) {
                                 try {
-                                    new Audio(getAudioUrl('correct')).play();
+                                    new Audio(window.getAudioUrl('correct')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -4542,7 +3972,7 @@ function onload() {
                             }
                             else {
                                 try {
-                                    new Audio(getAudioUrl('error')).play();
+                                    new Audio(window.getAudioUrl('error')).play();
                                 }
                                 catch (e) {
                                     console.warn(e);
@@ -4609,8 +4039,8 @@ function onload() {
                 setTimeout(function () {
                     tryRemove(id('somtoday-recap-wrapper'));
                     stopConfetti();
-                    tn('html', 0).style.overflowX = 'hidden';
-                    tn('html', 0).style.overflowY = 'scroll';
+                    tn('body', 0).style.overflowX = 'hidden';
+                    tn('body', 0).style.overflowY = 'scroll';
                     endMusic();
                 }, 550);
                 isRecapping = false;
@@ -4823,11 +4253,11 @@ function onload() {
                 description = "het nu alweer bijna zomervakantie is";
                 icon = 'sun';
             }
-            cn('recap-page', 0).innerHTML = '<div id="award-wrapper">' + getIcon(icon, null, '#1f86f6') + '</div><h1>AWARD!</h1><h2>Je hebt het dit jaar weer geweldig gedaan.</h2><h3>Omdat ' + description + ' krijg je de ' + award + '-award.</h3><a id="recap-nextpage">Volgende</a>';
+            cn('recap-page', 0).innerHTML = '<div id="award-wrapper">' + window.getIcon(icon, null, '#1f86f6') + '</div><h1>AWARD!</h1><h2>Je hebt het dit jaar weer geweldig gedaan.</h2><h3>Omdat ' + description + ' krijg je de ' + award + '-award.</h3><a id="recap-nextpage">Volgende</a>';
             id('recap-nextpage').addEventListener('click', closeRecapPage);
             setTimeout(function () {
                 try {
-                    new Audio(getAudioUrl('tada')).play();
+                    new Audio(window.getAudioUrl('tada')).play();
                 }
                 catch (e) {
                     console.warn(e);
@@ -5034,7 +4464,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.getElementsByClassName('correction')[0].innerHTML = ' ' + real;
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio(getAudioUrl('correct')).play();
+                        new Audio(window.getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -5044,7 +4474,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio(getAudioUrl('error')).play();
+                        new Audio(window.getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -5356,7 +4786,7 @@ function onload() {
                     id('recap-option-' + random).parentElement.classList.add('right');
                     this.innerHTML = 'Volgende';
                     try {
-                        new Audio(getAudioUrl('correct')).play();
+                        new Audio(window.getAudioUrl('correct')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -5366,7 +4796,7 @@ function onload() {
                 }
                 else {
                     try {
-                        new Audio(getAudioUrl('error')).play();
+                        new Audio(window.getAudioUrl('error')).play();
                     }
                     catch (e) {
                         console.warn(e);
@@ -5398,15 +4828,15 @@ function onload() {
     function openSettings() {
         tryRemove(id('mod-setting-panel'));
         // Check if account modal is opened
-        if (!n(tn('sl-account-modal', 0))) {
+        if (tn('sl-account-modal', 0)) {
             setTimeout(function () {
                 // Set modsettings text
-                if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+                if (tn('sl-account-modal-header', 1) && tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0]) {
                     tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText = tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML;
                     setHTML(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0], 'Mod-instellingen');
                 }
                 // Make opening modsettings multiple times work
-                if (document.documentElement.clientWidth <= 767 && !n(tn('sl-account-modal', 0).getElementsByClassName('container')[0])) {
+                if (document.documentElement.clientWidth <= 767 && tn('sl-account-modal', 0).getElementsByClassName('container')[0]) {
                     if (!tn('sl-account-modal', 0).getElementsByClassName('container')[0].classList.contains('show-details')) {
                         if (tn('sl-account-modal-tab', 0).classList.contains('active')) {
                             tn('sl-account-modal-tab', 1).click();
@@ -5421,10 +4851,10 @@ function onload() {
             if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
                 tn('sl-account-modal', 0).insertAdjacentHTML('beforeend', '<div class="content" style="padding: 20px 40px;"></div>');
             }
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) && !n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('content')[0] && tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0] && tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0]) {
                 tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].inert = true;
             }
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0]) {
                 tn('sl-account-modal', 0).getElementsByClassName('ng-star-inserted active')[0].classList.remove('active');
             }
             if (n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
@@ -5472,78 +4902,71 @@ function onload() {
             nicknames += `
             </div>
             <div class="br"></div>
-            <div tabindex="0" class="mod-button" onclick="
-                document.getElementById('nickname-wrapper').insertAdjacentHTML('beforeend', \`
-                <div>
-                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
-                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
-                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
-                </div>\`);
-            ">Nickname toevoegen</div>
-            <div tabindex="0" class="mod-button" onclick="
-                document.getElementById('nickname-wrapper').innerHTML = \`
-                <div>
-                    <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
-                    <input type=\\'text\\' placeholder=\\'Afkorting\\'>
-                    <input type=\\'text\\' placeholder=\\'Nickname\\'>
-                </div>\`;
-            ">Reset</div>`;
-
-
-            // Backgrounds
-            let slideshow = '';
-            let i = 0;
-            let background = get(`background${i}`);
-            while (background && typeof background == 'string') {
-                slideshow += `
-                <img tabindex="0" onclick="
-                    document.getElementById('mod-background-wrapper').classList.add('mod-modified');
-                    this.remove();
-                " src="${background}">`;
-                i++;
-                background = get(`background${i}`);
-            }
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <div tabindex="0" class="mod-button" onclick="
+                    document.getElementById('nickname-wrapper').insertAdjacentHTML('beforeend', \`
+                    <div>
+                        <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                        <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                        <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                    </div>\`);
+                ">${window.getIcon('plus', null, 'var(--fg-on-primary-weak)')}Nickname toevoegen</div>
+                <div tabindex="0" class="mod-button" onclick="
+                    document.getElementById('nickname-wrapper').innerHTML = \`
+                    <div>
+                        <input type=\\'text\\' placeholder=\\'Docentnaam\\'>
+                        <input type=\\'text\\' placeholder=\\'Afkorting\\'>
+                        <input type=\\'text\\' placeholder=\\'Nickname\\'>
+                    </div>\`;
+                ">${window.getIcon('rotate-left', null, 'var(--fg-on-primary-weak)')}Reset</div>
+            </div>`;
 
             // Update details for multiple versions
             const updatechecker = `
             <a id="mod-update-checker" class="mod-setting-button" tabindex="0">
-                <span>${getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)')}Check updates</span>
+                <span>${window.getIcon('globe', 'mod-update-rotate', 'var(--text-moderate)')}Check updates</span>
             </a>`;
             const updateinfo = 'Je browser controleert automatisch op updates.';
 
             // Credit contributors
             let contributorContent = '';
-            for (const key of Object.keys(contributors)) {
+            for (const [key, value] of Object.entries(contributors)) {
                 contributorContent += `
-                <a href="https://github.com/${sanitizeString(key)}/" target="_blank">
-                    <img src="${sanitizeString(contributors[key])}">
-                    <p>${sanitizeString(key)}</p>
-                </a>`;
+                <a class="mod-credits-gh-pill" href="https://github.com/${sanitizeString(key)}/" target="_blank" rel="noopener">
+                    <img src="${sanitizeString(value)}" alt="${sanitizeString(key)}" class="mod-credits-gh-avatar">
+                    <span class="mod-credits-gh-name">${sanitizeString(key)}</span>
+                </a>
+                `;
             }
 
             // Define some constants used in the replacements we'll do later
             const openDyslexicEnabled = tn('span', 0) ? (window.getComputedStyle(tn('span', 0)).getPropertyValue('font-family').indexOf('OpenDyslexic') != -1) : false;
-            const avatarHidden = !n(cn('avatar', 0)) && !n(cn('avatar', 0).getElementsByClassName('foto')[0]) && cn('avatar', 0).getElementsByClassName('foto')[0].classList.contains('hidden');
+            // "Weergave > Verberg profielfoto" is overridden when this option exists (some schools don't have profile pictures) AND a custom profile picture is set
+            const avatarHiddenOverridden = document.querySelector('.avatar .initials') && !n(get('profilepic')) && n(document.getElementsByClassName('profielfoto-optie')[0]);
             const weergave = '<i style="background-color:var(--bg-primary-weak);fill:var(--fg-on-primary-weak);display:inline-block;vertical-align:middle;margin:0 5px;padding:5px;border-radius:4px;"><svg width="16px" height="16px" viewBox="0 0 24 24" display="block"><path d="m10.37 19.785-1.018-3.742H4.229L3.21 19.785H0L4.96 4h3.642l4.98 15.785zm-1.73-6.538L7.623 9.591q-.096-.365-.26-.935a114 114 0 0 0-.317-1.172q-.153-.603-.25-1.043-.095.441-.269 1.097a117 117 0 0 1-.538 2.053l-1.01 3.656h3.663Zm10.89-5.731q2.163 0 3.317 1.054Q23.999 9.623 24 11.774v8.01h-2.047l-.567-1.633h-.077q-.462.644-.942 1.053t-1.105.602q-.625.194-1.52.194a3.55 3.55 0 0 1-1.71-.409q-.75-.408-1.182-1.247-.432-.85-.433-2.15 0-1.914 1.202-2.818 1.2-.914 3.604-1.01l1.865-.065v-.527q0-.946-.442-1.387-.442-.44-1.23-.44a4.9 4.9 0 0 0-1.529.247q-.75.246-1.5.623l-.97-2.215a7.8 7.8 0 0 1 1.913-.796 8.3 8.3 0 0 1 2.2-.29m1.558 6.7-1.135.042q-1.422.043-1.98.57-.547.527-.547 1.387 0 .753.394 1.075.393.312 1.028.312.942 0 1.586-.623.654-.624.654-1.775v-.989Z"></path></svg></i>';
             const ngDetected = /(_ngcontent|_nghost|ng-tns-c\d+|ng-c\d+)/.test(get('customcss') ?? '');
             const night = document.getElementsByTagName('html')[0].classList.contains('night');
 
             // Fetch settings template HTML
-            let settingsContent = getSettingsFile();
-            if (n(settingsContent) || typeof settingsContent != 'string') {
+            let settingsContent = window.getResourceAsText('data/settings.html');
+            if (n(settingsContent)) {
                 settingsContent = '<h3 style="margin-top: 200px;">Error</h3><p style="margin-bottom: 200px;">Could not generate the settings HTML at this moment. Try again later.</h3>';
             }
 
             // Replace keys in replacement with real content
             const replacements = {
-                '{{icon_floppy_disk}}': getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
-                '{{icon_rotate_left}}': getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
-                '{{icon_circle_info}}': getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
-                '{{icon_circle_exclamation}}': getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
-                '{{icon_upload}}': getIcon('upload', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_floppy_disk}}': window.getIcon('floppy-disk', 'mod-save-shake', 'var(--text-moderate)'),
+                '{{icon_rotate_left}}': window.getIcon('rotate-left', 'mod-reset-rotate', 'var(--text-moderate)'),
+                '{{icon_circle_info}}': window.getIcon('circle-info', 'mod-info-wobble', 'var(--text-moderate)'),
+                '{{icon_circle_exclamation}}': window.getIcon('circle-exclamation', 'mod-bug-scale', 'var(--text-moderate)'),
+                '{{icon_upload}}': window.getIcon('upload', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_shuffle}}': window.getIcon('shuffle', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_palette}}': window.getIcon('palette', null, 'var(--fg-on-primary-weak)'),
+                '{{icon_edit}}': window.getIcon('edit', null, 'var(--fg-on-primary-weak)'),
                 '{{updatechecker}}': isExtension ? '' : updatechecker,
                 '{{addSetting_primarycolor}}': addSetting('Primaire kleur', null, 'primarycolor', 'color', '#0067c2'),
                 '{{addSetting_secondarycolor}}': addSetting('Secundaire kleur', null, 'secondarycolor', 'color', '#0067c2'),
+                '{{addLiveColors}}': addSetting(null, null, 'livecolor1', 'color', '#000000') + addSetting(null, null, 'livecolor2', 'color', '#000000') + addSetting(null, null, 'livecolor3', 'color', '#000000'),
                 '{{backgroundtype_image_active}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'active' : '',
                 '{{backgroundtype_slideshow_active}}': get('backgroundtype') == 'slideshow' ? 'active' : '',
                 '{{backgroundtype_color_active}}': get('backgroundtype') == 'color' ? 'active' : '',
@@ -5551,7 +4974,7 @@ function onload() {
                 '{{display_bg_image}}': (n(get('backgroundtype')) || get('backgroundtype') == 'image') ? 'block' : 'none',
                 '{{display_mod_filters}}': n(get('background')) ? 'display:none;' : '',
                 '{{video_style}}': n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';',
-                '{{video_src}}': (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? get('background') : '',
+                '{{video_src}}': (get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? `src="${get('background')}"` : '',
                 '{{image_style}}': (n(id('mod-background')) ? '' : 'filter:' + id('mod-background').style.filter + ';') + ((get('isbackgroundvideo') && get('isbackgroundvideo') != 'false') ? 'display:none;' : ''),
                 '{{image_src}}': (n(get('background')) ? 'data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=' : get('background')),
                 '{{addSlider_brightness}}': addSlider('Helderheid', 'brightness', 0, 200, '%', 100),
@@ -5563,16 +4986,14 @@ function onload() {
                 '{{addSlider_sepia}}': addSlider('Sepia', 'sepia', 0, 100, '%', 0),
                 '{{addSlider_invert}}': addSlider('Invert', 'invert', 0, 100, '%', 0),
                 '{{addSlider_blur}}': addSlider('Blur', 'blur', 0, 200, 'px', 0),
-                '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*'),
+                '{{addSetting_background}}': addSetting('Achtergrondafbeelding', 'Stel een afbeelding in voor op de achtergrond. Video\'s worden ook ondersteund.', 'background', 'file', null, 'image/*, video/*', null, `<div tabindex="0" class="mod-button" id="mod-random-background">${window.getIcon('shuffle', null, 'var(--fg-on-primary-weak)')}<span>Random</span></div>`),
                 '{{display_bg_slideshow}}': get('backgroundtype') == 'slideshow' ? 'block' : 'none',
-                '{{slideshow}}': slideshow,
                 '{{display_bg_color}}': get('backgroundtype') == 'color' ? 'block' : 'none',
                 '{{display_bg_live}}': get('backgroundtype') == 'live' ? 'block' : 'none',
                 '{{addSetting_backgroundcolor}}': addSetting('Achtergrondkleur', null, 'backgroundcolor', 'color', darkmode ? '#20262d' : '#ffffff'),
-                '{{addSetting_ui_transparency}}': night ? '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Somtoday Mod Night mode ondersteunt momenteel geen UI transparantie en/of blur.</div>' : addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
+                '{{addSetting_ui_transparency}}': night ? '<div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Somtoday Mod Night mode ondersteunt momenteel geen UI transparantie en/of blur.</div>' : addSetting('UI-transparantie', 'Verander de transparantie van de UI.', 'ui', 'range', get('ui'), 0, 100, 1, true, 'image', 'opacity'),
                 '{{addSetting_ui_blur}}': night ? '' : addSetting('UI-blur', 'Verander de blur van de UI.', 'uiblur', 'range', get('uiblur'), 0, 100, 1, true, 'image', 'blur'),
-                '{{theme_wrapper}}': '',
-                '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 4%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
+                '{{layout_1}}': '<div tabindex="0" class="layout-container' + (get('layout') == 1 ? ' layout-selected' : '') + '" id="layout-1"><div style="width:94%;height:19%;top:4%;left: 3%;"></div><div style="width:94%;height:68%;top:27%;left:3%;"></div><h3>Standaard</h3></div>',
                 '{{layout_2}}': '<div tabindex="0" class="layout-container' + (get('layout') == 2 ? ' layout-selected' : '') + '" id="layout-2"><div style="width: 16%; height: 92%; top: 4%; left: 3%;"></div><div style="width: 75%; height: 92%; right: 3%; top: 4%;"></div><h3>Sidebar links</h3></div>',
                 '{{layout_3}}': '<div tabindex="0" class="layout-container' + (get('layout') == 3 ? ' layout-selected' : '') + '" id="layout-3"><div style="width:75%;height:92%;left:3%;top:4%;"></div><div style="width:16%;height:92%;right:3%;top:4%;"></div><h3>Sidebar rechts</h3></div>',
                 '{{layout_4}}': '<div tabindex="0" class="layout-container' + (get('layout') == 4 ? ' layout-selected' : '') + '" id="layout-4"><div style="width:68%;height:19%;top:4%;left:16%;"></div><div style="width: 68%;height:68%;top:27%;left: 16%;"></div><h3>Gecentreerd</h3></div>',
@@ -5585,20 +5006,23 @@ function onload() {
                 '{{username_wrapper}}': '<h3>Gebruikersnaam</h3><p>Verander je gebruikersnaam.</p><div id="username-wrapper"><div><input title="Echte naam" class="mod-custom-setting" id="realname" type="text" placeholder="Echte naam" value="' + (n(get('realname')) ? '' : get('realname')) + '"><input title="Nieuwe gebruikersnaam" class="mod-custom-setting" id="username" type="text" placeholder="Nieuwe gebruikersnaam" value="' + (n(get('username')) ? '' : sanitizeString(get('username'))) + '"></div></div>',
                 '{{font_settings}}': `
                     <h3>Lettertype</h3>` +
-                    (openDyslexicEnabled ? '<div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>' : '') + `
-                    <div class="mod-custom-select notranslate">
-                        <select id="mod-font-select" title="Selecteer een lettertype">
-                            <option selected disabled hidden>
-                                ${n(get('customfontname')) ? get('fontname') : sanitizeString(get('customfontname'))}
-                            </option>
-                            <option>${fonts.join('</option><option>')}</option>
-                        </select>
+                    (openDyslexicEnabled ? '<div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Optimaliseer voor dyslexie</b> moet uitstaan om dit te laten werken.</div><div class="br"></div><div class="br"></div>' : '') + `
+                    <div class="br"></div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                        <div class="mod-custom-select notranslate">
+                            <select id="mod-font-select" title="Selecteer een lettertype">
+                                <option selected disabled hidden>
+                                    ${n(get('customfontname')) ? get('fontname') : sanitizeString(get('customfontname'))}
+                                </option>
+                                <option>${fonts.join('</option><option>')}</option>
+                            </select>
+                        </div>
+                        <label tabindex="0" class="mod-file-label" for="mod-font-file">
+                            ${window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                            <span>Of upload lettertype</span>
+                        </label>
                     </div>
-                    <label tabindex="0" class="mod-file-label" for="mod-font-file" style="display:inline-block;">
-                        ${getIcon('upload', null, 'var(--fg-on-primary-weak)')}
-                        <p>Of upload lettertype</p>
-                    </label>
-                    <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt">
+                    <input id="mod-font-file" type="file" style="display:none;" accept=".otf,.ttf,.fnt,.woff,.woff2">
                     <div class="example-box-wrapper">
                         <div id="font-box">
                             <h3 style="letter-spacing:normal;">Lettertype</h3>
@@ -5606,12 +5030,12 @@ function onload() {
                         </div>
                     </div>
                     <div class="br"></div><div class="br"></div><div class="br"></div>`,
-                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Gebruik een eigen profielafbeelding in plaats van je schoolfoto.' + (avatarHidden ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Verberg profielfoto</b> moet uitstaan om dit te laten werken.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
+                '{{profilepic_setting}}': addSetting('Profielafbeelding', 'Gebruik een eigen profielafbeelding in plaats van je schoolfoto.' + (avatarHiddenOverridden ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'De instelling <b>' + weergave + 'Weergave > Verberg profielfoto</b> wordt genegeerd omdat je een custom profielafbeelding hebt ingesteld. Reset deze instelling om je initialen te tonen.</div>' : ''), 'profilepic', 'file', null, 'image/*', '120'),
                 '{{grade_reveal_setting}}': '<div><h3>Cijfer-reveal</h3><p style="margin-right:15px;">Toon bij je cijfers een optel-animatie.</p><div id="grade-reveal-select" class="mod-multi-choice"><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '1' ? ' class="active"' : '') + ' tabindex="0">Alleen bij nieuwe cijfers</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '2' ? ' class="active"' : '') + ' tabindex="0">Altijd</span><span' + (get('bools').charAt(BOOL_INDEX.GRADE_REVEAL) == '0' ? ' class="active"' : '') + ' tabindex="0">Nooit</span></div></div>',
-                '{{letterbeoordelingen_setting}}': '<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">Instellen</div></div>',
+                '{{letterbeoordelingen_setting}}': `<div><h3>Letterbeoordelingen</h3><p style="margin-right:15px;">Stel in hoeveel lettercijfers (O, V, G, etc) waard zijn voor jouw school.</p><div id="mod-change-letterbeoordelingen" tabindex="0" class="mod-button">${window.getIcon('edit', null, 'var(--fg-on-primary-weak)')}Instellen</div></div>`,
                 '{{extra_settings}}': addSetting('Analyse op cijferpagina', 'Laat een korte analyse zien op de cijfer-pagina van een vak.', 'bools18', 'checkbox', true) +
                     (platform == 'Android' ? '' : addSetting('Compact rooster', 'Maak je rooster compacter door lesuren in een grid te zetten. Werkt niet voor alle scholen.', 'bools03', 'checkbox', false)) +
-                    addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developer om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) +
+                    addSetting('Deel debug-data', 'Verstuur bij een error anonieme informatie naar de developers om Somtoday Mod te verbeteren.', 'bools04', 'checkbox', false) +
                     (platform == 'Android' ? '' : addSetting('Downloadknop voor cijfers', 'Laat een downloadknop zien op de laatste cijfers en vakgemiddelden-pagina.', 'bools05', 'checkbox', true)) +
                     addSetting('Feestdagen', 'Laat bij feestdagen soms iets zien, zoals een kerstmuts op het Somtoday-logo.', 'bools17', 'checkbox', true) +
                     addSetting('Felicitatieberichten', 'Laat een felicitatiebericht zien als je jarig bent, of als je al een aantal jaar van Somtoday Mod gebruik maakt.', 'bools06', 'checkbox', true) +
@@ -5626,10 +5050,10 @@ function onload() {
                     addSetting('Taken toevoegen', 'Laat een knop zien om taken toe te voegen aan de studiewijzer.', 'bools16', 'checkbox', true),
                 '{{browser_settings}}': (platform == 'Android' ? '' :
                     addSetting('Titel', 'Verander de titel van Somtoday in de tabbladen van de browser.', 'title', 'text', '', 'Somtoday') + '<div class="br"></div><div class="br"></div><div class="br"></div>' +
-                    addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
+                    addSetting('Icoon', 'Verander het icoontje van Somtoday in de menubalk van de browser. Accepteert png, jpg/jpeg, gif, svg, ico en meer.</p>' + (platform == 'Firefox' ? '' : '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Bewegende GIF-bestanden werken alleen in Firefox.</div>') + '<div class="br"></div><p>', 'icon', 'file', null, 'image/*', '300')
                 ) + '<div class="br"></div><div class="br"></div>' +
-                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die CSS kennen.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red !important;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
-                '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
+                    addSetting('Aangepaste CSS', 'Voer hier je eigen CSS in om Somtoday nóg verder te veranderen. Dit is een geavanceerde instelling voor gebruikers die weten hoe CSS werkt.', 'customcss', 'textarea', '', '/* Voorbeeld: */\nbody {\n    background: red;\n}', '15') + '<div id="angular-hash-warning" style="display: ' + (ngDetected ? 'block' : 'none') + ';"><div class="br"></div><div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'We hebben een _ng-attribuut of ng-classname gedetecteerd. Deze worden door A<b>ng</b>ular bij elke versie van Somtoday opnieuw gegenereerd, waardoor de CSS over een paar maanden niet meer zal werken. Het is beter om id\'s, normale classnames en andere selectors te gebruiken.</div><div class="br"></div><div class="br"></div></div>',
+                '{{autologin_warning}}': get('logincredentialsincorrect') == '1' ? '<div class="mod-info-notice">' + window.getIcon('circle-info', null, 'var(--fg-on-primary-weak)', 'style="height: 20px;"') + 'Autologin is tijdelijk uitgeschakeld.</div><div class="br"></div><div class="br"></div><div class="br"></div>' : '',
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
                 '{{autologin_pass}}': addSetting('Wachtwoord', 'Voer je wachtwoord in.', 'loginpass', 'password', '', ''),
@@ -5637,7 +5061,7 @@ function onload() {
                 '{{platform}}': 'Somtoday ' + platform,
                 '{{contributors_list}}': contributorContent,
                 '{{updateinfo}}': isExtension ? updateinfo : '',
-                '{{export_import_buttons}}': (platform == 'Android' ? '' : '<div id="export-settings" class="mod-button">Exporteer Mod-instellingen</div><div id="import-settings" class="mod-button">Importeer Mod-instellingen</div><input type="file" id="import-settings-json" class="hidden" accept="application/json">')
+                '{{export_import_buttons}}': (platform == 'Android' ? '' : `<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"><div id="export-settings" class="mod-button">${window.getIcon('export', null, 'var(--fg-on-primary-weak)')}<span>Exporteer Mod-instellingen</span></div><div id="import-settings" class="mod-button">${window.getIcon('import', null, 'var(--fg-on-primary-weak)')}<span>Importeer Mod-instellingen</span></div></div><input type="file" id="import-settings-json" class="hidden" accept="application/json">`)
             };
             for (const key in replacements) {
                 settingsContent = settingsContent.replaceAll(key, replacements[key]);
@@ -5744,9 +5168,73 @@ function onload() {
             addTheme('Biljard', '6253916', '#27f56c', '#13bd4c');
             addTheme('Arcade', '28920045', '#fd4ff4', '#fd4ff4');
             addTheme('Ski\'s', '257961', '#f71111', '#f71111');
-            addTheme('Schaken', '277124', '#e8e8e8', '#514642');
+            addTheme('Schaken', '277124', '#514642', '#e8e8e8');
             addTheme('Kerstmis', '1708601', '#0dac0d', '#a50c0c');
+            id('theme-wrapper').insertAdjacentHTML('afterend', `<div id="more-themes" tabindex="0" class="mod-button">Meer bekijken</div>`);
+            document.getElementById('more-themes').addEventListener('click', function () {
+                const hiddenThemes = this.previousElementSibling.querySelectorAll('.theme[style]');
+                for (let i = 0; i < 10; i++) {
+                    if (n(hiddenThemes[i])) break;
 
+                    hiddenThemes[i].removeAttribute('style');
+                }
+                if (hiddenThemes.length - 10 <= 0) {
+                    this.remove();
+                }
+            });
+
+            // Backgrounds
+            const slideshowWrapper = id('mod-background-wrapper');
+            const slideshowLabel = slideshowWrapper.getElementsByTagName('label')[0];
+            const slideCount = n(get('slides')) ? 0 : get('slides');
+            // Insert placeholder divs (will be replaced with <img> elements)
+            for (let i = 0; i < slideCount; i++) {
+                slideshowWrapper.insertBefore(document.createElement('div'), slideshowLabel);
+            }
+
+            // Add slideshow image asynchronous
+            async function addImage(url, element = null) {
+                return new Promise((resolve, reject) => {
+                    if (n(slideshowLabel)) {
+                        resolve();
+                    }
+
+                    const img = document.createElement('img');
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.addEventListener('click', function () {
+                        id('mod-background-wrapper').classList.add('mod-modified');
+                        this.remove();
+                    })
+                    img.tabIndex = 0;
+                    img.src = url;
+                    if (element) {
+                        element.replaceWith(img);
+                    }
+                    else {
+                        slideshowWrapper.insertBefore(img, slideshowLabel);
+                    }
+                })
+            }
+
+            // Replace all placeholder <div> elements with their corresponding <img> elements
+            addSlide(0);
+            async function addSlide(i) {
+                const div = slideshowWrapper.getElementsByTagName('div')[0];
+                const background = get(`background${i}`);
+
+                if (i >= slideCount) {
+                    slideshowWrapper.classList.remove('mod-loading');
+                    return;
+                }
+
+                await addImage(background, div);
+                await new Promise(resolve => setTimeout(resolve, 1));
+
+                addSlide(i + 1);
+            }
+            const notLoaded = slideshowWrapper.querySelectorAll('div');
+            notLoaded.forEach(el => el.remove());
 
             // Backgrounds section event listeners
             if (id('mod-background-preview-image') && id('mod-background-preview-video')) {
@@ -5765,7 +5253,7 @@ function onload() {
                             reader.readAsDataURL(this.files[i]);
                             reader.onload = function () {
                                 id('mod-background-wrapper').classList.add('mod-modified');
-                                id('mod-background-wrapper').insertAdjacentHTML('afterbegin', '<img tabindex="0" onclick="document.getElementById(\'mod-background-wrapper\').classList.add(\'mod-modified\');this.remove();" src="' + reader.result + '" />');
+                                addImage(reader.result);
                             };
                         }
                     }
@@ -5890,7 +5378,7 @@ function onload() {
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
                                 const fileList = dataTransfer.files;
-                                element.nextElementSibling.files = fileList;
+                                element.parentElement.previousElementSibling.files = fileList;
                             }
                         });
                     } else {
@@ -5901,14 +5389,14 @@ function onload() {
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
                                 const fileList = dataTransfer.files;
-                                element.nextElementSibling.files = fileList;
+                                element.parentElement.previousElementSibling.files = fileList;
                             }
                         });
                     }
                     let inputEvent = new Event('input', {
                         bubbles: false,
                     });
-                    element.nextElementSibling.dispatchEvent(inputEvent);
+                    element.parentElement.previousElementSibling.dispatchEvent(inputEvent);
                 });
                 element.addEventListener('dragover', function (event) {
                     event.preventDefault();
@@ -5923,22 +5411,16 @@ function onload() {
             // File reset buttons
             for (const element of cn('mod-file-reset')) {
                 element.addEventListener('click', function () {
-                    element.classList.toggle('mod-active');
-                    if (element.dataset.key == 'background') {
-                        if (!n(id('mod-random-background'))) {
-                            if (id('mod-random-background').classList.contains('mod-active')) {
-                                id('mod-random-background').classList.remove('mod-active');
-                            }
+                    const shouldBeActive = !element.classList.contains('mod-active');
+                    for (const btn of element.parentElement.getElementsByClassName('mod-active')) {
+                        btn.classList.remove('mod-active');
+                        if (btn.classList.contains('mod-file-label')) {
+                            setHTML(btn.children[1], 'Kies een bestand');
+                            element.parentElement.previousElementSibling.value = null;
                         }
                     }
-                    if (!n(element.previousElementSibling)) {
-                        if (!n(element.previousElementSibling.getElementsByTagName('label')[0])) {
-                            if (element.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
-                                element.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
-                                setHTML(element.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
-                                element.previousElementSibling.getElementsByTagName('input')[0].value = null;
-                            }
-                        }
+                    if (shouldBeActive) {
+                        element.classList.add('mod-active');
                     }
                 });
             }
@@ -5999,7 +5481,7 @@ function onload() {
                     modMessage('Alles resetten?', 'Al je instellingen zullen worden gereset. Weet je zeker dat je door wil gaan?', 'Ja', 'Nee');
                     id('mod-message-action1').addEventListener('click', function () {
                         execute([reset, setBackground, style, pageUpdate]);
-                        if (!n(id('mod-grades-graphs')) && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
+                        if (id('mod-grades-graphs') && get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && tn('sl-vakresultaten', 0)) {
                             tryRemove(id('mod-grades-graphs'));
                             tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                             setTimeout(gradeGraphs, 500);
@@ -6012,22 +5494,16 @@ function onload() {
             if (id('mod-update-checker')) {
                 id('mod-update-checker').addEventListener('click', function () { execute([checkUpdate]) });
             }
-            if (id('mod-play-defender')) {
-                id('mod-play-defender').addEventListener('click', function () {
-                    tn('sl-root', 0).inert = false;
-                    setTimeout(gradeDefenderGame, 200);
-                });
-            }
             // Make random background button work
             // Random background images thanks to Lorem Picsum: https://picsum.photos
             if (id('mod-random-background')) {
                 id('mod-random-background').addEventListener('click', function () {
                     id('mod-random-background').classList.toggle('mod-active');
-                    if (!n(id('mod-random-background').previousElementSibling)) {
+                    if (id('mod-random-background').previousElementSibling) {
                         if (id('mod-random-background').previousElementSibling.classList.contains('mod-active')) {
                             id('mod-random-background').previousElementSibling.classList.remove('mod-active');
                         }
-                        if ((((!n(id('mod-random-background').previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling)) && !n(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0])) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
+                        if ((((id('mod-random-background').previousElementSibling) && id('mod-random-background').previousElementSibling.previousElementSibling) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0]) && id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.contains('mod-active')) {
                             id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].classList.remove('mod-active');
                             setHTML(id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('label')[0].children[1], 'Kies een bestand');
                             id('mod-random-background').previousElementSibling.previousElementSibling.getElementsByTagName('input')[0].value = null;
@@ -6035,14 +5511,120 @@ function onload() {
                     }
                 });
             }
-            // Live wallpaper randomize
-            if (id('mod-live-randomize')) {
-                id('mod-live-randomize').addEventListener('click', function () {
-                    set('backgroundtype', 'live');
-                    set('live_seed', Math.random() * 100);
-                    startLiveWallpaper();
+
+            // Live wallpaper
+            if (id('mod-live-random')) {
+                let liveType, col1, col2, col3;
+
+                id('primarycolor').addEventListener('change', function () {
+                    if (liveType == 'primary') {
+                        id('mod-live-primary').click();
+                    }
                 });
+
+                id('secondarycolor').addEventListener('change', function () {
+                    if (liveType == 'secondary') {
+                        id('mod-live-secondary').click();
+                    }
+                });
+
+                id('livecolor1').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col1[0] != rgb[0] || col1[1] != rgb[1] || col1[2] != rgb[2]) {
+                        col1 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+                id('livecolor2').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col2[0] != rgb[0] || col2[1] != rgb[1] || col2[2] != rgb[2]) {
+                        col2 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+                id('livecolor3').addEventListener('input', function () {
+                    const rgb = hexToRgb(this.value);
+                    if (col3[0] != rgb[0] || col3[1] != rgb[1] || col3[2] != rgb[2]) {
+                        col3 = rgb;
+                        resetLiveButtons();
+                    }
+                });
+
+                function resetLiveButtons(e) {
+                    if (e) return;
+
+                    id('mod-bg-live').dataset.type = liveType;
+                    id('mod-live-random').classList.remove('mod-active');
+                    id('mod-live-primary').classList.remove('mod-active');
+                    id('mod-live-secondary').classList.remove('mod-active');
+                    id('mod-live-custom').classList.remove('mod-active');
+
+                    id('livecolor1').value = rgbToHex(col1);
+                    id('livecolor1').dispatchEvent(new Event('input', { bubbles: false }));
+                    id('livecolor2').value = rgbToHex(col2);
+                    id('livecolor2').dispatchEvent(new Event('input', { bubbles: false }));
+                    id('livecolor3').value = rgbToHex(col3);
+                    id('livecolor3').dispatchEvent(new Event('input', { bubbles: false }));
+
+                    id(`mod-live-${liveType}`).classList.add('mod-active');
+
+                    if (liveType == 'custom') {
+                        show(id('mod-live-colors'));
+                    }
+                    else {
+                        hide(id('mod-live-colors'));
+                    }
+
+                    startLiveWallpaper(true, col1, col2, col3);
+                }
+
+                id('mod-live-random').addEventListener('click', function () {
+                    liveType = 'random';
+                    col1 = randomColor(0);
+                    col2 = randomColor(2);
+                    col3 = randomColor(4);
+
+                    resetLiveButtons();
+                });
+                id('mod-live-primary').addEventListener('click', function () {
+                    const baseColor = id('primarycolor').value;
+
+                    liveType = 'primary';
+                    col1 = hexToRgb(baseColor);
+                    col2 = hexToRgb(adjust(baseColor, -50));
+                    col3 = hexToRgb(adjust(baseColor, 50));
+
+                    resetLiveButtons();
+                });
+                id('mod-live-secondary').addEventListener('click', function () {
+                    const baseColor = id('secondarycolor').value;
+
+                    liveType = 'secondary';
+                    col1 = hexToRgb(baseColor);
+                    col2 = hexToRgb(adjust(baseColor, -50));
+                    col3 = hexToRgb(adjust(baseColor, 50));
+
+                    resetLiveButtons();
+                });
+                id('mod-live-custom').addEventListener('click', function () {
+                    liveType = 'custom';
+
+                    resetLiveButtons();
+                });
+
+                if (n(get('livetype'))) {
+                    id('mod-live-random').click();
+                }
+                else {
+                    liveType = get('livetype');
+                    col1 = hexToRgb(get('livecolor1'));
+                    col2 = hexToRgb(get('livecolor2'));
+                    col3 = hexToRgb(get('livecolor3'));
+
+                    resetLiveButtons();
+                }
             }
+
             // Letterbeoordelingen
             if (id('mod-change-letterbeoordelingen')) {
                 id('mod-change-letterbeoordelingen').addEventListener('click', function () {
@@ -6057,53 +5639,18 @@ function onload() {
         }
     }
 
-    const settingFileCache = {};
-    function getSettingsFile(type) {
-        // Set default settings type
-        if (n(type)) {
-            type = 'familiar';
-        }
-
-        // Extensions fetch setting content from easy to edit HTML file
-        // Other platforms can't do this, so during the generation process it's automatically hardcoded here
-        // Currently, only type 'familiar' is supported
-        if (isExtension) {
-            // On Firefox, chrome.runtime.getURL takes a few ms to load, in which the scrollHeight becomes 0
-            // This causes the scroll position to be lost, so we cache the results to prevent this behaviour
-            if (settingFileCache[type]) {
-                return settingFileCache[type];
-            }
-
-            let url = chrome.runtime.getURL('settings_content/' + type + '.html');
-
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            xhr.send(null);
-
-            if (xhr.status === 200) {
-                settingFileCache[type] = xhr.responseText;
-                return xhr.responseText;
-            } else {
-                return '';
-            }
-        }
-        else {
-            // [GENERATION] HARDCODED_SETTINGS
-        }
-    }
-
     // Close modsettings
     function closeSettings(element) {
         id('mod-setting-button').classList.remove('active');
         tryRemove(id('mod-setting-panel'));
-        if (!n(tn('sl-account-modal', 0))) {
-            if (!n(tn('sl-account-modal-header', 1)) && !n(tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0])) {
+        if (tn('sl-account-modal', 0)) {
+            if (tn('sl-account-modal-header', 1) && tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0]) {
                 tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].dataset.originalText;
             }
             tn('sl-account-modal-header', 1).getElementsByClassName('title ng-star-inserted')[0].innerHTML = element.getElementsByTagName('span')[0].innerHTML;
-            if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0])) {
-                if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0])) {
-                    if (!n(tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0])) {
+            if (tn('sl-account-modal', 0).getElementsByClassName('content')[0]) {
+                if (tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0]) {
+                    if (tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0]) {
                         tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].children[0].removeAttribute('inert');
                     }
                 }
@@ -6153,7 +5700,7 @@ function onload() {
         for (const element of cn('mod-slider')) {
             set(element.getElementsByTagName('input')[0].dataset.property, element.getElementsByTagName('input')[0].value + element.getElementsByTagName('input')[0].dataset.unit);
         }
-        if (!n(id('mod-font-file')) && id('mod-font-file').files[0]) {
+        if (id('mod-font-file') && id('mod-font-file').files[0]) {
             set('customfontname', id('mod-font-file').files[0].name);
             let reader = new FileReader();
             reader.readAsDataURL(id('mod-font-file').files[0]);
@@ -6164,7 +5711,7 @@ function onload() {
                 }, 100);
             };
         }
-        else if (!n(id('mod-font-select')) && id('mod-font-select').classList.contains('mod-modified')) {
+        else if (id('mod-font-select') && id('mod-font-select').classList.contains('mod-modified')) {
             set('customfont', '');
             set('customfontname', '');
             set('fontname', id('mod-font-select').value);
@@ -6230,12 +5777,14 @@ function onload() {
         else if (id('mod-bg-slideshow').style.display == 'block') {
             modMessage('Bezig met opslaan', 'Je achtergrondafbeeldingen worden nu opgeslagen. Dit kan even duren.', null, null, null, null, true);
             set('backgroundtype', 'slideshow');
-            if (id('mod-background-wrapper').classList.contains('mod-modified')) {
+            if (id('mod-background-wrapper').classList.contains('mod-modified') == true && id('mod-background-wrapper').classList.contains('mod-loading') == false) {
                 await removeSlideshowBackgrounds();
                 let i = 0;
                 for (const element of id('mod-background-wrapper').getElementsByTagName('img')) {
-                    await saveSlideshowBackground(element, i);
-                    i++;
+                    if (element.complete && element.naturalWidth != 0) {
+                        await saveSlideshowBackground(element, i);
+                        i++;
+                    }
                 }
                 set('slides', i);
             }
@@ -6246,6 +5795,9 @@ function onload() {
         else if (id('mod-bg-live').style.display == 'block') {
             set('backgroundtype', 'live');
         }
+        if (id('mod-bg-live')?.dataset?.type) {
+            set('livetype', id('mod-bg-live').dataset.type);
+        }
         const selectedtheme = cn('theme-selected', 0);
         if (!n(selectedtheme)) {
             if (id('primarycolor').classList.contains('mod-modified') == false) {
@@ -6255,7 +5807,7 @@ function onload() {
                 set('secondarycolor', selectedtheme.dataset.secondaryColor);
             }
             set('preset', selectedtheme.dataset.name);
-            if (selectedtheme.id != 'Standaard') {
+            if (selectedtheme.id != 'Standaard' && selectedtheme.dataset.url) {
                 toDataURL(selectedtheme.dataset.url, function (dataUrl) {
                     set('background', dataUrl);
                     set('backgroundtype', 'image');
@@ -6271,10 +5823,10 @@ function onload() {
         else {
             filesProcessed++;
         }
-        if (!n(cn('layout-selected', 0))) {
+        if (cn('layout-selected', 0)) {
             set('layout', parseInt(cn('layout-selected', 0).id.charAt(7)));
         }
-        if (!n(id('mod-random-background'))) {
+        if (id('mod-random-background')) {
             if (id('mod-random-background').classList.contains('mod-active')) {
                 toDataURL('https://picsum.photos/1600/800', function (dataUrl) {
                     set('background', dataUrl);
@@ -6293,7 +5845,7 @@ function onload() {
                 set(element.dataset.key, '');
             }
         }
-        if (!n(id('grade-reveal-select'))) {
+        if (id('grade-reveal-select')) {
             const showOnlyForNewGrades = id('grade-reveal-select').children[0].classList.contains('active');
             const showAlways = id('grade-reveal-select').children[1].classList.contains('active');
             set('bools', get('bools').replaceAt(14, showOnlyForNewGrades ? '1' : (showAlways ? '2' : '0')));
@@ -6314,11 +5866,11 @@ function onload() {
             execute([setBackground, style, pageUpdate, openSettings, browserSettings, profilePicture]);
             // Update grade graphs
             tryRemove(id('mod-grades-graphs'));
-            if (get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && !n(tn('sl-vakresultaten', 0))) {
+            if (get('bools').charAt(BOOL_INDEX.SUBJECT_GRAPHS) == '1' && tn('sl-vakresultaten', 0)) {
                 tn('sl-vakresultaten', 0).insertAdjacentHTML('beforeend', '<div id="mod-grades-graphs"><h3>Mijn cijfers</h3><div><canvas id="mod-chart-1"></canvas></div><h3>Mijn gemiddelde</h3><div><canvas id="mod-chart-2"></canvas></div></div>');
                 setTimeout(gradeGraphs, 500);
             }
-            if (!n(tn('sl-modal', 0))) {
+            if (tn('sl-modal', 0)) {
                 tn('sl-modal', 0).style.zIndex = '100000';
             }
             if (get('layout') == 3) {
@@ -6344,6 +5896,10 @@ function onload() {
         set('background', '');
         set('backgroundtype', 'image');
         set('backgroundcolor', darkmode ? '#20262d' : '#ffffff');
+        set('livetype', '');
+        set('livecolor1', '');
+        set('livecolor2', '');
+        set('livecolor3', '');
         set('ui', 0);
         set('uiblur', 0);
         set('fontname', 'Open Sans');
@@ -6352,10 +5908,6 @@ function onload() {
         set('layout', 1);
         set('profilepic', '');
         set('username', '');
-        set('loginschool', '');
-        set('loginname', '');
-        set('loginpass', '');
-        set('letterbeoordelingen', '');
         set('brightness', '100%');
         set('contrast', '100%');
         set('saturate', '100%');
@@ -6366,16 +5918,21 @@ function onload() {
         set('invert', '0%');
         set('blur', '0px');
         set('menuwidth', 110);
+        set('isbackgroundvideo', false);
         set('customfont', '');
         set('customfontname', '');
+        set('letterbeoordelingen', '');
+        set('customcss', '');
+        set('loginschool', '');
+        set('loginname', '');
+        set('loginpass', '');
         menuWidth = 110;
-        set('isbackgroundvideo', false);
         let i = 0;
         while (!n(get('background' + i))) {
             set('background' + i, '');
             i++;
         }
-        if (!n(tn('sl-account-modal', 0))) {
+        if (tn('sl-account-modal', 0)) {
             execute([openSettings, profilePicture]);
         }
     }
@@ -6386,9 +5943,9 @@ function onload() {
             set('birthday', '00-00-0000');
             set('lastjubileum', 0);
             execute([reset]);
-            tn('head', 0).insertAdjacentHTML('afterbegin', '<style>#mod-welcome{background:#0005;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;transition:opacity 0.3s ease;}#mod-welcome > div{width:355px;transform:translate(-50%, -50%);top:50%;position:absolute;left:50%;background: var(--bg-elevated-none);border-radius:16px;overflow:hidden;overflow-y:scroll;max-width:calc(100% - 30px);max-height:calc(100% - 30px);}#mod-welcome > div > div:first-child{background:#09f;height:130px;display:flex;justify-content:center;align-items:center}#mod-welcome svg{width:70px;height:35%;transition:transform .3s ease;cursor:pointer;}#mod-welcome > div > div:last-child{padding:15px 20px;}#mod-welcome h2{font-weight:400;}#mod-welcome input[type=checkbox]{width:20px;display:inline-block;height:20px;}#mod-welcome label{user-select:none;vertical-align:top;display:inline-block;padding-left:10px;margin-bottom:25px;font-size:14px;max-width:calc(100% - 35px);}div:hover > svg .glasses{animation:1s glasses linear forwards;}@keyframes glasses{0%{transform:translateY(-60px);opacity:0;}50%{transform:translateY(-30px);opacity:1;}100%{transform:translateY(0px);opacity:1;}}@media (min-width: 370px) and (min-height:700px){#mod-welcome > div{overflow-y:hidden;}#mod-welcome > div > div:first-child{height:200px;}#mod-welcome > div > div:last-child{padding:30px;}}</style>');
+            tn('head', 0).insertAdjacentHTML('afterbegin', '<style>#mod-welcome{background:#0005;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;transition:opacity 0.3s ease;}#mod-welcome > div{width:355px;transform:translate(-50%, -50%);top:50%;position:absolute;left:50%;background: var(--bg-elevated-none);border-radius:16px;overflow:hidden;overflow-y:scroll;max-width:calc(100% - 30px);max-height:calc(100% - 30px);}#mod-welcome > div > div:first-child{background:#09f;height:130px;display:flex;justify-content:center;align-items:center}#mod-welcome>div>div>svg{width:70px;height:35%;transition:transform .3s ease;cursor:pointer;}#mod-welcome > div > div:last-child{padding:15px 20px;}#mod-welcome h2{font-weight:400;}#mod-welcome input[type=checkbox]{width:20px;display:inline-block;height:20px;}#mod-welcome label{user-select:none;vertical-align:top;display:inline-block;padding-left:10px;margin-bottom:25px;font-size:14px;max-width:calc(100% - 35px);}div:hover > svg .glasses{animation:1s glasses linear forwards;}@keyframes glasses{0%{transform:translateY(-60px);opacity:0;}50%{transform:translateY(-30px);opacity:1;}100%{transform:translateY(0px);opacity:1;}}@media (min-width: 370px) and (min-height:700px){#mod-welcome > div{overflow-y:hidden;}#mod-welcome > div > div:first-child{height:200px;}#mod-welcome > div > div:last-child{padding:30px;}}</style>');
             const welcomecontent = platform == 'Android' ? '<h2>Welkom!</h2><p>Je hebt net de Somtoday Mod Android APK geïnstalleerd. Met deze app kun je alles wat je ook in de normale Somtoday app kan, plus nog veel meer doordat Somtoday Mod erbij zit.</p><p>Voordat je doorgaat, deze app is niet geaffilieerd met Somtoday. Gebruik is op eigen risico. Zorg ervoor dat je regelmatig op updates checkt om de app up to date te houden.</p>' : '<h2>Somtoday Mod is ge&iuml;nstalleerd!</h2><p>Stel achtergronden in, krijg inzicht in je cijfers en meer met Somtoday Mod!</p><p>' + (hasSettingsHash ? 'Laten we meteen beginnen!' : 'Meteen naar de instellingen gaan?') + '</p>';
-            id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="mod-welcome"><div><div>' + window.logo('mod-welcome-logo', null, '#fff') + '</div><div>' + welcomecontent + '<br><input type="checkbox" id="errordata"><label for="errordata">Verstuur error-data om bugs te fixen</label>' + (hasSettingsHash ? '' : '<div tabindex="0" class="mod-button" id="mod-welcome-open-settings">Instellingen</div>') + '<div tabindex="0" class="mod-button" id="mod-welcome-close">Sluiten</div></div></div></div>');
+            id('somtoday-mod').insertAdjacentHTML('afterbegin', '<div id="mod-welcome"><div><div>' + window.logo('mod-welcome-logo', null, '#fff') + '</div><div>' + welcomecontent + '<br><input type="checkbox" id="errordata"><label for="errordata">Verstuur error-data om bugs te fixen</label><div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">' + (hasSettingsHash ? '' : '<div tabindex="0" class="mod-button" id="mod-welcome-open-settings">' + window.getIcon('gear', null, 'var(--fg-on-primary-weak)') + '<span>Instellingen</span></div>') + '<div tabindex="0" class="mod-button" id="mod-welcome-close">Sluiten</div></div></div></div></div>');
             function closeWelcomeDialog() {
                 set('firstused', year + '-' + (month + 1) + '-' + dayInt);
                 id('mod-welcome').style.opacity = '0';
@@ -6434,27 +5991,109 @@ function onload() {
         if (get(key) == null && !key.startsWith('bools')) {
             set(key, value);
         }
-        let code = '<div><h3>' + name + '</h3>' + ((n(description) || type == 'checkbox') ? '' : '<div><p>' + description + '</p></div>');
+        let code = '<div>' + (n(name) ? '' : '<h3>' + name + '</h3>') + ((n(description) || type == 'checkbox') ? '' : '<div><p>' + description + '</p></div>');
         if (type == 'checkbox') {
             if (key.startsWith('bools')) {
                 code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get('bools').charAt(parseInt(key.charAt(5) + key.charAt(6))) == '1' ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
             } else {
                 code += '<label tabindex="0" class="switch" for="' + key + '"><input title="' + name + '" class="mod-custom-setting" type="checkbox" ' + (get(key) ? 'checked' : '') + ' oninput="this.classList.add(\'mod-modified\');" id="' + key + '"/><div class="slider round"></div></label>';
             }
-            code += (n(description) ? '' : '<p>' + description + '</p>') + '</div>';
+            code += (n(description) ? '' : '<p>' + description + '</p>');
         } else if (type == 'range') {
-            code += '<div class="mod-range-preview">' + getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p></div>';
+            code += '<div class="mod-range-preview">' + window.getIcon(param5, null, 'var(--fg-on-primary-weak)', 'style="' + (param6 == 'opacity' ? 'opacity:' + parseFloat((100 - (param4 != null ? value : get(key))) / 100).toString() : 'filter:' + param6 + '(' + parseFloat((param4 != null ? value : get(key)) / 4).toString() + 'px)') + '"') + '</div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="range" value="' + (param4 != null ? value : get(key)) + '" min="' + param1 + '" max="' + param2 + '" step="' + param3 + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[4].innerHTML=this.value;this.parentElement.getElementsByClassName(\'mod-range-preview\')[0].children[0].setAttribute(\'style\', \'' + (param6 == 'opacity' ? 'opacity:\'+parseFloat((100 - this.value) / 100).toString()+\'' : 'filter:' + param6 + '(\'+parseFloat(this.value / 4).toString()+\'px)') + '\');"/><p>' + (param4 != null ? value : get(key)) + '</p><p>%</p>';
         } else if (type == 'text' || type == 'password') {
-            code += '<input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="' + type + '" placeholder="' + param1 + '" value="' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '"/></div>';
+            code += '<input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="' + type + '" placeholder="' + param1 + '" value="' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '">';
         } else if (type == 'number') {
-            code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '"/></div>';
+            code += '<div class="br"></div><input title="' + name + '" class="mod-custom-setting" id="' + key + '" type="number" placeholder="' + param1 + '" value="' + get(key) + '">';
         } else if (type == 'color') {
-            code += '<div class="br"></div><div class="br"></div><label tabindex="0" class="mod-color" for="' + key + '" style="background: ' + (n(get(key)) ? value : get(key)) + '"><p>Kies een kleur</p></label><input class="mod-color-textinput" title="Voer een hex kleurencode in" value="' + get(key) + '" oninput="if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) { this.parentElement.children[5].value = this.value; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = this.value; } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) { const sixDigitCode = \'#\' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3); this.parentElement.children[5].value = sixDigitCode; this.style.color = \'var(--fg-on-primary-weak)\'; this.parentElement.children[3].style.background = sixDigitCode; } else { this.style.color = \'darkred\'; }"/><input title="' + name + '" class="mod-custom-setting" value="' + get(key) + '" id="' + key + '" oninput="this.classList.add(\'mod-modified\');this.parentElement.children[3].style.background = this.value; this.parentElement.children[4].value = this.value; this.parentElement.children[4].style.color = \'var(--fg-on-primary-weak)\';" type="color"/></div>';
+            code += `
+            <div class="br"></div>
+            <div class="br"></div>
+            <input
+                type="color"
+                title="${name ?? 'Kleur kiezen'}"
+                class="mod-custom-setting"
+                value="${n(get(key)) ? value : get(key)}"
+                id="${key}"
+                oninput="
+                    this.classList.add('mod-modified');
+                    this.nextElementSibling.getElementsByClassName('mod-color')[0].style.background = this.value;
+                    this.nextElementSibling.getElementsByClassName('mod-color-textinput')[0].value = this.value;
+                    this.nextElementSibling.getElementsByClassName('mod-color-textinput')[0].style.color = 'var(--fg-on-primary-weak)';
+                "
+            >
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+            <label tabindex="0" class="mod-color" for="${key}" style="background: ${n(get(key)) ? value : get(key)}">
+                <p>Kies een kleur</p>
+            </label>
+            <input
+                class="mod-color-textinput"
+                title="Voer een hex kleurencode in"
+                value="${n(get(key)) ? value : get(key)}"
+                oninput="
+                    if (/^#?([a-fA-F0-9]{6})$/.test(this.value)) {
+                        this.parentElement.previousElementSibling.value = this.value;
+                        this.style.color = 'var(--fg-on-primary-weak)';
+                        this.parentElement.getElementsByClassName('mod-color')[0].style.background = this.value;
+                    } else if (/^#?([a-fA-F0-9]{3})$/.test(this.value)) {
+                        const sixDigitCode = '#' + this.value.charAt(1) + this.value.charAt(1) + this.value.charAt(2) + this.value.charAt(2) + this.value.charAt(3) + this.value.charAt(3);
+                        this.parentElement.previousElementSibling.value = sixDigitCode;
+                        this.style.color = 'var(--fg-on-primary-weak)';
+                        this.parentElement.getElementsByClassName('mod-color')[0].style.background = sixDigitCode;
+                    } else {
+                        this.style.color = 'darkred';
+                    }
+                "
+                onblur="
+                    this.parentElement.previousElementSibling.dispatchEvent(new Event('input'));
+                "
+            >
+            </div>
+            `;
         } else if (type == 'file') {
-            code += '<label tabindex="0" class="mod-file-label" for="' + key + '">' + getIcon('upload', null, 'var(--fg-on-primary-weak)') + '<p>Kies een bestand</p></label><input' + (n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"') + ' oninput="this.parentElement.getElementsByTagName(\'label\')[0].classList.remove(\'mod-active\'); if (this.files.length != 0) { const name = this.files[0].name.toLowerCase(); if ((this.accept == \'image/*\' && this.files[0][\'type\'].indexOf(\'image\') != -1) || (this.accept == \'image/*, video/*\' && (this.files[0][\'type\'].indexOf(\'image\') != -1 || this.files[0][\'type\'].indexOf(\'video\') != -1)) || (this.accept != \'image/*, video/*\') && this.accept != \'image/*\') { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = name; this.parentElement.getElementsByTagName(\'label\')[0].classList.add(\'mod-active\'); this.parentElement.nextElementSibling.classList.remove(\'mod-active\'); this.parentElement.nextElementSibling.nextElementSibling.classList.remove(\'mod-active\'); } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; this.value = null; } } else { this.parentElement.getElementsByTagName(\'label\')[0].children[1].innerText = \'Kies een bestand\'; }" class="mod-file-input mod-custom-setting" type="file" accept="' + param1 + '" id="' + key + '"/></div><div tabindex="0" class="mod-button mod-file-reset" data-key="' + key + '">Reset</div>';
+            code += `
+            <input
+                ${n(param2) ? '' : ' title="' + name + '" data-size="' + param2 + '"'}
+                class="mod-file-input mod-custom-setting"
+                type="file"
+                accept="${param1}" id="${key}"
+                oninput="
+                    const fileLabel = this.nextElementSibling.getElementsByClassName('mod-file-label')[0];
+                    fileLabel.classList.remove('mod-active');
+                    if (this.files.length != 0) {
+                        const name = this.files[0].name.toLowerCase();
+                        if (
+                            (this.accept == 'image/*' && this.files[0]['type'].startsWith('image/')) ||
+                            (this.accept == 'image/*, video/*' && (this.files[0]['type'].startsWith('image/') || this.files[0]['type'].startsWith('video/'))) ||
+                            (this.accept != 'image/*, video/*' && this.accept != 'image/*')
+                        ) {
+                            for (const btn of this.nextElementSibling.getElementsByClassName('mod-active')) {
+                                btn.classList.remove('mod-active');
+                            }
+                            fileLabel.children[1].innerText = name;
+                            fileLabel.classList.add('mod-active');
+                        } else {
+                            fileLabel.children[1].innerText = 'Kies een bestand';
+                            this.value = null;
+                        }
+                    } else {
+                        fileLabel.children[1].innerText = 'Kies een bestand';
+                    }
+                "
+            >
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <label tabindex="0" class="mod-file-label" for="${key}">
+                    ${window.getIcon('upload', null, 'var(--fg-on-primary-weak)')}
+                    <span>Kies een bestand</span>
+                </label>
+                <div tabindex="0" class="mod-button mod-file-reset" data-key="${key}">${window.getIcon('rotate-left', null, 'var(--text-moderate)')}<span>Reset</span></div>
+                ${param3 ?? ''}
+            </div>
+            `;
         } else if (type == 'textarea') {
-            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '" style="width:100%;height:128px;font-family:monospace !important;font-size:12px;padding:10px;resize:vertical;">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea></div>';
+            code += '<textarea title="' + name + '" class="mod-custom-setting" id="' + key + '" placeholder="' + (param1 || '') + '" rows="' + (param2 || '10') + '">' + get(key).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>';
         }
+        code += '</div>';
         return code;
     }
 
@@ -6463,21 +6102,12 @@ function onload() {
         if (n(id('theme-wrapper'))) {
             return;
         }
-
-        if (themeCount % 10 == 0) {
-            if (themeCount == 0) {
-                id('theme-wrapper').insertAdjacentHTML('beforeend', `<div></div>`);
-            }
-            else {
-                id('theme-wrapper').insertAdjacentHTML('beforeend', '<div tabindex="0" class="mod-button" onclick="this.nextElementSibling.removeAttribute(\'style\'); this.remove();">Meer bekijken</div>');
-                id('theme-wrapper').insertAdjacentHTML('beforeend', `<div style="display: none"></div>`);
-            }
-        }
         themeCount++;
 
         // URL can be a URL to an image, but also a Pexels ID.
         let smallimg = url;
         let bigimg = url;
+        let preview;
         if (!isNaN(parseInt(url))) {
             smallimg = 'https://images.pexels.com/photos/' + url + '/pexels-photo-' + url + '.jpeg?auto=compress&cs=tinysrgb&w=250';
             bigimg = 'https://images.pexels.com/photos/' + url + '/pexels-photo-' + url + '.jpeg?auto=compress&cs=tinysrgb&w=1600';
@@ -6491,12 +6121,16 @@ function onload() {
             }
         }
         // Set empty image as theme background if no url is given
-        if (!url) {
-            smallimg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        if (url) {
+            preview = `<img src="${smallimg}" alt="Achtergrondafbeelding: ${name}" loading="lazy">`;
         }
-        id('theme-wrapper').children[id('theme-wrapper').childElementCount - 1].insertAdjacentHTML('beforeend', `
-            <div tabindex="0" class="theme${themeclass}" id="${name}" data-name="${name}" data-url="${bigimg}" data-color="${primaryColor}" data-secondary-color="${secondaryColor}">
-                <img src="${smallimg}" alt="Achtergrondafbeelding: ${name}" loading="lazy">
+        else {
+            preview = '<span></span>';
+        }
+        const hidden = themeCount > 10 ? 'style="display: none;"' : '';
+        id('theme-wrapper').insertAdjacentHTML('beforeend', `
+            <div ${hidden} tabindex="0" class="theme${themeclass}" id="${name}" data-name="${name}"${bigimg ? ` data-url="${bigimg}"` : ''} data-color="${primaryColor}" data-secondary-color="${secondaryColor}">
+                ${preview}
                 <h3>
                     <div style="background:${primaryColor};" title="${primaryColor}"></div>
                     ${name}
@@ -6562,14 +6196,14 @@ function onload() {
 
     // Insert modsettings link in the setting menu
     function insertModSettingLink() {
-        if (!n(tn('sl-account-modal', 0)) && !n(tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[0]) && n(id('mod-setting-button'))) {
+        if (tn('sl-account-modal', 0) && tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[0] && n(id('mod-setting-button'))) {
             let modbtn = tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab').length - 1].cloneNode(true);
             modbtn.id = 'mod-setting-button';
             modbtn.addEventListener('click', openSettings);
             modbtn.getElementsByTagName('span')[0].innerHTML = 'Mod-instellingen';
             modbtn.getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
             modbtn.getElementsByTagName('i')[0].style.paddingBottom = '2px';
-            modbtn.getElementsByTagName('i')[0].innerHTML = getIcon('gear', null, '#ea9418', 'style="width:16px;height:16px;"');
+            modbtn.getElementsByTagName('i')[0].innerHTML = window.getIcon('gear', null, '#ea9418', 'style="width:16px;height:16px;"');
             tn('sl-account-modal', 0).getElementsByTagName('nav')[0].appendChild(modbtn);
             for (const element of tn('sl-account-modal-tab')) {
                 if (element.id != 'mod-setting-button') {
@@ -6578,7 +6212,7 @@ function onload() {
             }
             setTimeout(function () {
                 // Save username and birthday
-                if (!n(cn('data-container', 1)) && !n(cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0]) && n(get('realname'))) {
+                if (cn('data-container', 1) && cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0] && n(get('realname'))) {
                     set('realname', cn('data-container', 1).getElementsByClassName('ng-star-inserted')[0].innerHTML);
                 }
                 for (const parent of cn('data-container')) {
@@ -6594,7 +6228,7 @@ function onload() {
 
         }
         // Update background of modsetting link in settings menu
-        else if (!n(id('mod-setting-button'))) {
+        else if (id('mod-setting-button')) {
             id('mod-setting-button').getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';
         }
     }
