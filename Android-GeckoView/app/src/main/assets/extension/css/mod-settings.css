@@ -1027,8 +1027,8 @@ input[type="color"] {
 
     #mod-background-wrapper label,
     #mod-background-wrapper img {
-        width: calc(50% - 10px);
-        margin-right: 10px;
+        flex-grow: 1;
+        width: 45%;
     }
 
     .mod-setting-button {
