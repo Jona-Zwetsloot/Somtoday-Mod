@@ -77,30 +77,38 @@
 }
 
 #somtoday-recap-wrapper {
-    width: 0;
-    height: 0;
+    width: 100%;
+    height: 100dvh;
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
     background: linear-gradient(145deg, var(--blue-40) 0%, var(--blue-100) 100%);
     z-index: 1000;
-    border-radius: 50%;
-    animation: recapstart 0.5s forwards ease;
+    animation: recapstart 0.5s ease;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 @keyframes recapstart {
+    0% {
+        scale: 0;
+        border-radius: 50%;
+    }
+
     100% {
+        scale: 1;
         border-radius: 0;
-        height: 100%;
-        width: 100%;
     }
 }
 
 #somtoday-recap-wrapper .recap-page {
     width: 100%;
     box-sizing: border-box;
-    padding: 30px;
+    padding: 60px 30px;
     transition: opacity 0.5s ease !important;
 }
 
@@ -136,7 +144,7 @@
     color: #fff;
     border: 3px solid #fff;
     padding: 20px 40px;
-    border-radius: 6px;
+    border-radius: 100vh;
     display: block;
     font-size: 1.5em;
     width: fit-content;
@@ -313,6 +321,15 @@
     #somtoday-recap-wrapper .recap-page {
         font-size: 0.6em;
     }
+
+    #recap-nextpage {
+        font-size: 1.8em;
+        padding: 18px 36px;
+    }
+
+    #somtoday-recap-wrapper label p {
+        font-size: 1.3em;
+    }
 }
 
 #recap-nextpage {
@@ -327,6 +344,8 @@
     height: 100%;
     overflow: hidden;
     pointer-events: none;
+    padding: 0;
+    font-size: 0;
 }
 
 .circles li {

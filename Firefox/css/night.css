@@ -200,6 +200,3 @@
 :root.night .icon.svg {
     background-color: var(--bg-primary-weak) !important;
 }
-:root.night .week:not(sl-rooster-week) {
-    background: transparent !important;
-}

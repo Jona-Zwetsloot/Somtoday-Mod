@@ -200,8 +200,8 @@ body.rainbow #mod-background-live {
     }
 }
 
-body.barrelroll {
-    animation: barrelroll 2s 0.1s infinite;
+html.barrelroll {
+    animation: barrelroll 2s 0.1s infinite !important;
 }
 
 @keyframes barrelroll {

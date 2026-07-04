@@ -60,11 +60,6 @@ sl-modal>div:has(sl-account-modal) {
     max-height: 368px !important;
 }
 
-.week:not(sl-rooster-week) {
-    background: var(--bg-neutral-none) !important;
-    color: var(--text-strong) !important;
-}
-
 @media (min-width:1280px) {
     sl-tab-bar {
         background: none !important;
