@@ -538,8 +538,14 @@ textarea.mod-custom-setting {
     margin-bottom: -3px;
 }
 
-#mod-setting-panel .mod-credits-gh-pills {
+#mod-setting-panel .mod-credits-gh-pills,
+#mod-setting-panel #mod-games {
     margin-bottom: 30px;
+}
+
+#mod-games button {
+	padding: 8px 13px;
+	font-size: 0.8em;
 }
 
 #mod-setting-panel .mod-credits-gh-pill {

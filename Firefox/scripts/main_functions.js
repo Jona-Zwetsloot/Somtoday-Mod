@@ -47,9 +47,6 @@ function onload() {
     let isRecapping = false;
     let ignoreRecapConditions = false;
     let ignoreCountdownConditions = false;
-    if (tn('sl-root', 0)) {
-        somtodayversion = tn('sl-root', 0).getAttribute('ng-version');
-    }
     let menuColor;
     let highLightColor;
     let menuWidth = n(get('menuwidth')) ? 110 : get('menuwidth');
@@ -79,7 +76,7 @@ function onload() {
     // Write message in the console
     function consoleMessage() {
         setTimeout(console.log.bind(console, "%cSomtoday Mod is geactiveerd!", "color:#0067c2;font-weight:bold;font-family:Arial;font-size:26px;"));
-        setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\nMet dank aan " + Object.keys(contributors).join(', ') + "\n" + (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + " van Somtoday\nVersie " + version_name + " van Somtoday Mod " + platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
+        setTimeout(console.log.bind(console, "%cGeniet van je betere versie van Somtoday.\n\nMet dank aan " + Object.keys(contributors).join(', ') + "\nVersie " + version_name + " van Somtoday Mod " + platform, "color:#0067c2;font-weight:bold;font-family:Arial;font-size:16px;"));
     }
 
     function initTheme() {
@@ -5197,7 +5194,7 @@ function onload() {
                 '{{autologin_school}}': addSetting('School', 'Voer je schoolnaam in.', 'loginschool', 'text', '', ''),
                 '{{autologin_name}}': addSetting('Gebruikersnaam', 'Voer je gebruikersnaam in.', 'loginname', 'text', '', ''),
                 '{{autologin_pass}}': addSetting('Wachtwoord', 'Voer je wachtwoord in.', 'loginpass', 'password', '', ''),
-                '{{somtoday_version}}': (n(somtodayversion) ? 'Onbekende versie' : 'Versie ' + somtodayversion) + ' van Somtoday | Versie ' + version_name + ' van Somtoday Mod',
+                '{{somtoday_version}}': 'Versie ' + version_name + ' van Somtoday Mod',
                 '{{platform}}': 'Somtoday ' + platform,
                 '{{contributors_list}}': contributorContent,
                 '{{updateinfo}}': isExtension ? updateinfo : '',
@@ -5209,6 +5206,17 @@ function onload() {
 
             // Insert the HTML
             tn('sl-account-modal', 0).getElementsByClassName('content')[0].children[0].insertAdjacentHTML('beforeend', settingsContent);
+
+            for (const element of cn('mod-game')) {
+                element.addEventListener('click', function () {
+                    const game = this.dataset.game;
+                    execute([
+                        game === 'the-dungeon' ? startTheDungeon :
+                            game === 'the-escape' ? startTheEscape :
+                                game === 'grade-defender' ? startGradeDefender : null
+                    ]);
+                });
+            }
 
             // Import/export settings, which does not work on Android (can't download files there in a WebView at the moment)
             if (id('import-settings') && id('export-settings') && id('import-settings-json')) {

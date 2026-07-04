@@ -714,9 +714,11 @@ async function startTheDungeon() {
 
     const levels = [];
     const parser = new DOMParser();
-    for (let i = 0; ; i++) {
+    const LEVEL_COUNT = 1;
+    for (let i = 0; i < LEVEL_COUNT; i++) {
         try {
             const resp = window.getResourceAsText(`data/the-dungeon/lvl-${i}.xml`);
+            if (!resp) break;
             const xml = parser.parseFromString(resp, 'text/xml');
             if (xml.querySelector('parseerror')) break;
             const lvlParsed = parseLvl(xml, i);

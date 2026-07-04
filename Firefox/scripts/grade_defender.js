@@ -138,11 +138,16 @@ function startGradeDefender() {
     }
 
     let pressedKeys = {};
+    let mouseDown = false;
     document.addEventListener('keyup', function (e) { pressedKeys[e.key] = false; });
     document.addEventListener('keydown', function (e) { if (e.key == 40) { e.preventDefault(); } pressedKeys[e.key] = true; });
 
     canvas.addEventListener('click', shoot);
     canvas.addEventListener('touchstart', shoot);
+    canvas.addEventListener('mousedown', function () { mouseDown = true; });
+    canvas.addEventListener('mouseup', function () { mouseDown = false; });
+    canvas.addEventListener('touchstart', function () { mouseDown = true; });
+    canvas.addEventListener('touchend', function () { mouseDown = false; });
 
     id('grade-defender-close').addEventListener('click', () => {
         gameRunning = false;
@@ -240,7 +245,7 @@ function startGradeDefender() {
     function gameLoop(timestamp) {
         if (!gameRunning) return;
 
-        if (pressedKeys[' ']) {
+        if (pressedKeys[' '] || mouseDown) {
             shoot();
         }
 
