@@ -6353,6 +6353,7 @@ function onload() {
             let modbtn = tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab')[tn('sl-account-modal', 0).getElementsByTagName('sl-account-modal-tab').length - 1].cloneNode(true);
             modbtn.id = 'mod-setting-button';
             modbtn.classList.remove('active');
+            modbtn.ariaSelected = false;
             modbtn.addEventListener('click', openSettings);
             modbtn.getElementsByTagName('span')[0].innerHTML = 'Mod-instellingen';
             modbtn.getElementsByTagName('i')[0].style.background = darkmode ? '#603d20' : '#ffefe3';

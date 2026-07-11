@@ -102,8 +102,10 @@ function addNightTheme() {
 
     // Insert night mode option
     const blokDiv = document.querySelector('div.blok');
-    const darkDiv = blokDiv.querySelector('div[data-gtm="instellingen-weergave-theme-dark-mode"]');
-    const darkImage = darkDiv.getElementsByTagName('img')[0];
+    const darkDiv = blokDiv?.querySelector('div[data-gtm="instellingen-weergave-theme-dark-mode"]');
+    const darkImage = darkDiv?.getElementsByTagName('img')[0];
+    if (!darkDiv) return;
+
     const nightDiv = darkDiv.cloneNode(true);
     nightDiv.id = 'mod-night-theme';
     nightDiv.getElementsByTagName('label')[0].title = 'Toegevoegd door Somtoday Mod';
@@ -160,15 +162,20 @@ function addNightTheme() {
 }
 const waitForTabs = new MutationObserver((mutations, obs) => {
     const tabs = document.querySelectorAll('sl-account-modal-tab');
-    if (tabs.length >= 2) {
-        const secondTab = tabs[1];
-        const tabObserver = new MutationObserver(() => {
-            if (secondTab.getAttribute('aria-selected') === 'true') {
+    for (const tab of tabs) {
+        if (tab.querySelector('span').innerText.trim() == 'Weergave') {
+            if (tab.classList.contains('active')) {
                 addNightTheme();
-                tabObserver.disconnect();
             }
-        });
-        tabObserver.observe(secondTab, { attributes: true });
+
+            const tabObserver = new MutationObserver(() => {
+                if (tab.classList.contains('active')) {
+                    addNightTheme();
+                    tabObserver.disconnect();
+                }
+            });
+            tabObserver.observe(tab, { attributes: true });
+        }
     }
 });
 waitForTabs.observe(document.body, { childList: true, subtree: true });
